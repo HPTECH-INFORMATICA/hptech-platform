@@ -1,0 +1,14 @@
+{
+  "name": "hptech-platform",
+  "version": "0.1.0",
+  "private": true,
+  "description": "HPTECH Platform - Plataforma SaaS para clínicas",
+  "license": "MIT",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "test": "turbo test",
+    "format": "prettier --write ."
+  }
+}
