@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -15,6 +15,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "HPTECH Clinic",
   description: "Plataforma de gestão para clínicas",
+};
+
+export const viewport: Viewport = {
+  colorScheme: "light dark",
 };
 
 export default function RootLayout({

@@ -1,26 +1,289 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+
+  /* Color: brand and actions */
+  --color-action-primary: #1746a2;
+  --color-action-primary-hover: #123a87;
+  --color-action-primary-active: #0d2f70;
+  --color-action-primary-soft: #eaf0ff;
+  --color-action-secondary: #087e8b;
+  --color-action-secondary-hover: #066a75;
+  --color-action-secondary-soft: #e5f7f8;
+
+  /* Color: feedback */
+  --color-success: #16845b;
+  --color-success-soft: #e5f7ef;
+  --color-warning: #a96600;
+  --color-warning-soft: #fff4d8;
+  --color-danger: #c5353f;
+  --color-danger-soft: #fdebec;
+  --color-info: #2769c8;
+  --color-info-soft: #e9f2ff;
+
+  /* Color: neutral surfaces and content */
+  --color-background: #f6f8fc;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f1f4f9;
+  --color-surface-elevated: #ffffff;
+  --color-text: #172033;
+  --color-text-muted: #657086;
+  --color-text-subtle: #8791a5;
+  --color-text-inverse: #ffffff;
+  --color-border: #dde3ed;
+  --color-border-strong: #c5cedd;
+  --color-overlay: rgba(11, 16, 32, 0.52);
+  --color-focus: #4d7cfe;
+
+  /* Color: Operational Centers */
+  --color-center-commercial: #2769c8;
+  --color-center-commercial-soft: #e9f2ff;
+  --color-center-clinical: #087e8b;
+  --color-center-clinical-soft: #e5f7f8;
+  --color-center-financial: #16845b;
+  --color-center-financial-soft: #e5f7ef;
+  --color-center-administrative: #657086;
+  --color-center-administrative-soft: #f1f4f9;
+  --color-center-intelligence: #6d4bd1;
+  --color-center-intelligence-soft: #f0ebff;
+
+  /* Color: charts */
+  --color-chart-series-1: #2769c8;
+  --color-chart-series-2: #087e8b;
+  --color-chart-series-3: #6d4bd1;
+  --color-chart-series-4: #c26a19;
+  --color-chart-series-5: #b43a78;
+  --color-chart-series-6: #4e7a3e;
+  --color-chart-series-7: #596579;
+  --color-chart-series-8: #8a5a22;
+  --color-chart-axis: #657086;
+  --color-chart-grid: #dde3ed;
+  --color-chart-tooltip-background: #172033;
+  --color-chart-tooltip-text: #ffffff;
+  --color-chart-reference: #8791a5;
+
+  /* Spacing */
+  --space-0: 0;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* Radius */
+  --radius-none: 0;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.625rem;
+  --radius-lg: 0.875rem;
+  --radius-xl: 1.25rem;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-none: none;
+  --shadow-xs: 0 1px 2px rgba(23, 32, 51, 0.06);
+  --shadow-sm: 0 4px 12px rgba(23, 32, 51, 0.08);
+  --shadow-md: 0 12px 28px rgba(23, 32, 51, 0.12);
+  --shadow-lg: 0 24px 56px rgba(23, 32, 51, 0.18);
+
+  /* Typography */
+  --font-family-sans: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  --font-family-mono: var(--font-geist-mono), monospace;
+  --font-size-display: 2.5rem;
+  --font-size-heading-1: 2rem;
+  --font-size-heading-2: 1.5rem;
+  --font-size-heading-3: 1.25rem;
+  --font-size-heading-4: 1rem;
+  --font-size-text-lg: 1.125rem;
+  --font-size-text-md: 1rem;
+  --font-size-text-sm: 0.875rem;
+  --font-size-text-xs: 0.75rem;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --line-height-tight: 1.15;
+  --line-height-snug: 1.2;
+  --line-height-heading: 1.3;
+  --line-height-compact: 1.4;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.55;
+
+  /* Interaction and motion */
+  --state-hover-opacity: 0.92;
+  --state-active-opacity: 0.84;
+  --state-disabled-opacity: 0.48;
+  --state-focus-width: 2px;
+  --state-focus-offset: 2px;
+  --duration-instant: 0ms;
+  --duration-fast: 120ms;
+  --duration-base: 180ms;
+  --duration-slow: 280ms;
+  --duration-emphasis: 400ms;
+  --easing-standard: cubic-bezier(0.2, 0, 0, 1);
+  --easing-enter: cubic-bezier(0.16, 1, 0.3, 1);
+  --easing-exit: cubic-bezier(0.4, 0, 1, 1);
+  --easing-linear: linear;
+
+  /* Layout */
+  --layout-content-max: 90rem;
+  --layout-reading-min: 40rem;
+  --layout-reading-max: 47.5rem;
+  --layout-sidebar-expanded: 16rem;
+  --layout-sidebar-collapsed: 4.5rem;
+  --layout-header-height: 4rem;
+  --layout-touch-target: 2.75rem;
+
+  /* Icons */
+  --icon-size-sm: 1rem;
+  --icon-size-md: 1.25rem;
+  --icon-size-lg: 1.5rem;
+  --icon-stroke: 1.75;
+  --icon-gap: 0.5rem;
+  --icon-button-size: 2.75rem;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-hp-background: var(--color-background);
+  --color-hp-foreground: var(--color-text);
+  --color-hp-surface: var(--color-surface);
+  --color-hp-surface-subtle: var(--color-surface-subtle);
+  --color-hp-surface-elevated: var(--color-surface-elevated);
+  --color-hp-muted: var(--color-text-muted);
+  --color-hp-subtle: var(--color-text-subtle);
+  --color-hp-border: var(--color-border);
+  --color-hp-border-strong: var(--color-border-strong);
+  --color-hp-primary: var(--color-action-primary);
+  --color-hp-primary-hover: var(--color-action-primary-hover);
+  --color-hp-primary-active: var(--color-action-primary-active);
+  --color-hp-primary-soft: var(--color-action-primary-soft);
+  --color-hp-secondary: var(--color-action-secondary);
+  --color-hp-secondary-hover: var(--color-action-secondary-hover);
+  --color-hp-secondary-soft: var(--color-action-secondary-soft);
+  --color-hp-success: var(--color-success);
+  --color-hp-warning: var(--color-warning);
+  --color-hp-danger: var(--color-danger);
+  --color-hp-info: var(--color-info);
+  --color-hp-focus: var(--color-focus);
+  --font-sans: var(--font-family-sans);
+  --font-mono: var(--font-family-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    color-scheme: dark;
+    --color-action-primary: #7ea6ff;
+    --color-action-primary-hover: #9ab9ff;
+    --color-action-primary-active: #b4caff;
+    --color-action-primary-soft: #17264a;
+    --color-action-secondary: #58d2d9;
+    --color-action-secondary-hover: #7adde2;
+    --color-action-secondary-soft: #12383d;
+    --color-success: #57d6a0;
+    --color-success-soft: #123b2d;
+    --color-warning: #f4b95b;
+    --color-warning-soft: #453317;
+    --color-danger: #ff7a83;
+    --color-danger-soft: #481f27;
+    --color-info: #76a9fa;
+    --color-info-soft: #172f52;
+    --color-background: #0b1020;
+    --color-surface: #12192b;
+    --color-surface-subtle: #182137;
+    --color-surface-elevated: #202a42;
+    --color-text: #f3f6fc;
+    --color-text-muted: #aab4c8;
+    --color-text-subtle: #8490a8;
+    --color-text-inverse: #0b1020;
+    --color-border: #29344d;
+    --color-border-strong: #3a4763;
+    --color-overlay: rgba(0, 0, 0, 0.68);
+    --color-focus: #7ea6ff;
+    --color-center-commercial: #76a9fa;
+    --color-center-commercial-soft: #172f52;
+    --color-center-clinical: #58d2d9;
+    --color-center-clinical-soft: #12383d;
+    --color-center-financial: #57d6a0;
+    --color-center-financial-soft: #123b2d;
+    --color-center-administrative: #aab4c8;
+    --color-center-administrative-soft: #29344d;
+    --color-center-intelligence: #b39bff;
+    --color-center-intelligence-soft: #302653;
+    --color-chart-series-1: #76a9fa;
+    --color-chart-series-2: #58d2d9;
+    --color-chart-series-3: #b39bff;
+    --color-chart-series-4: #f2a65a;
+    --color-chart-series-5: #f080b5;
+    --color-chart-series-6: #8ccb78;
+    --color-chart-series-7: #aab4c8;
+    --color-chart-series-8: #d8a15f;
+    --color-chart-axis: #aab4c8;
+    --color-chart-grid: #29344d;
+    --color-chart-tooltip-background: #f3f6fc;
+    --color-chart-tooltip-text: #0b1020;
+    --color-chart-reference: #8490a8;
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
+    --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.28);
+    --shadow-md: 0 12px 28px rgba(0, 0, 0, 0.36);
+    --shadow-lg: 0 24px 56px rgba(0, 0, 0, 0.46);
   }
 }
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background: var(--color-background);
+}
+
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  min-height: 100%;
+  margin: 0;
+  background: var(--color-background);
+  color: var(--color-text);
+  font-family: var(--font-family-sans);
+  font-size: var(--font-size-text-md);
+  line-height: var(--line-height-normal);
+  text-rendering: optimizeLegibility;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: var(--state-focus-width) solid var(--color-focus);
+  outline-offset: var(--state-focus-offset);
+}
+
+@media (max-width: 639px) {
+  :root {
+    --font-size-display: 2rem;
+    --font-size-heading-1: 1.75rem;
+    --font-size-heading-2: 1.375rem;
+    --font-size-heading-3: 1.125rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

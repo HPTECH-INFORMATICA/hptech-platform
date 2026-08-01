@@ -14,7 +14,7 @@ export default function LeadSearch({ value, onChange }: LeadSearchProps) {
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder="Buscar por nome, contato ou interesse"
-        className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+        className="min-h-11 w-full rounded-[var(--radius-md)] border border-hp-border-strong bg-hp-surface px-4 text-sm text-hp-foreground transition-colors duration-[var(--duration-fast)] placeholder:text-hp-subtle hover:border-hp-primary focus:border-hp-primary"
       />
     </label>
   );

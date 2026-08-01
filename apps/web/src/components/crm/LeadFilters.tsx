@@ -17,7 +17,7 @@ export default function LeadFilters({
       <select
         value={selectedSource}
         onChange={(event) => onSourceChange(event.target.value)}
-        className="w-full rounded-lg border border-slate-300 bg-white px-4 py-2.5 text-sm text-slate-700 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 sm:w-52"
+        className="min-h-11 w-full rounded-[var(--radius-md)] border border-hp-border-strong bg-hp-surface px-4 text-sm text-hp-foreground transition-colors duration-[var(--duration-fast)] hover:border-hp-primary focus:border-hp-primary sm:w-52"
       >
         <option value="">Todas as origens</option>
         {sources.map((source) => (

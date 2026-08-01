@@ -179,7 +179,11 @@ export default function CRMHome() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-80 items-center justify-center text-slate-500">
+      <div
+        role="status"
+        aria-live="polite"
+        className="flex min-h-80 items-center justify-center text-hp-muted"
+      >
         Carregando Kanban...
       </div>
     );
@@ -188,11 +192,11 @@ export default function CRMHome() {
   return (
     <div className="space-y-6">
       <header>
-        <p className="text-sm font-medium text-blue-600">CRM</p>
-        <h1 className="mt-1 text-3xl font-bold text-slate-900">
+        <p className="text-sm font-medium text-hp-primary">CRM</p>
+        <h1 className="mt-1 text-3xl font-bold text-hp-foreground">
           Pipeline comercial
         </h1>
-        <p className="mt-2 text-sm text-slate-600">
+        <p className="mt-2 text-sm text-hp-muted">
           Acompanhe os leads e mova cada oportunidade entre os estágios.
         </p>
       </header>
@@ -209,13 +213,13 @@ export default function CRMHome() {
       {error && (
         <div
           role="alert"
-          className="flex flex-col gap-3 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 sm:flex-row sm:items-center sm:justify-between"
+          className="flex flex-col gap-3 rounded-[var(--radius-lg)] border border-hp-danger bg-[var(--color-danger-soft)] px-4 py-3 text-sm text-hp-danger sm:flex-row sm:items-center sm:justify-between"
         >
           <span>{error}</span>
           <button
             type="button"
             onClick={() => void loadKanban()}
-            className="font-semibold underline underline-offset-2"
+            className="inline-flex min-h-11 items-center self-start rounded-[var(--radius-md)] px-2 font-semibold underline underline-offset-2 sm:self-auto"
           >
             Tentar novamente
           </button>

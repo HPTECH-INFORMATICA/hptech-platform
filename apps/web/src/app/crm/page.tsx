@@ -1,10 +1,10 @@
 import CRMHome from "@/components/crm/CRMHome";
-import DashboardLayout from "@/components/layout/DashboardLayout";
+import AppShell from "@/components/layout/AppShell";
 
 export default function CRMPage() {
   return (
-    <DashboardLayout>
+    <AppShell title="CRM">
       <CRMHome />
-    </DashboardLayout>
+    </AppShell>
   );
 }
