@@ -1,0 +1,6 @@
+[project]
+name = "hptech-api"
+version = "0.1.0"
+description = "Backend da HPTECH Platform"
+
+requires-python = ">=3.12"
