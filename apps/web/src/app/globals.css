@@ -139,6 +139,9 @@
   --layout-header-height: 4rem;
   --layout-touch-target: 2.75rem;
 
+  /* Z-index */
+  --z-toast: 100;
+
   /* Icons */
   --icon-size-sm: 1rem;
   --icon-size-md: 1.25rem;
