@@ -139,7 +139,18 @@
   --layout-header-height: 4rem;
   --layout-touch-target: 2.75rem;
 
+  /* Modal */
+  --modal-width-md: 35rem;
+  --modal-max-height: calc(100dvh - 3rem);
+  --modal-padding: var(--space-6);
+  --modal-gap: var(--space-5);
+  --modal-radius: var(--radius-xl);
+  --modal-background: var(--color-surface-elevated);
+  --modal-border: var(--color-border-strong);
+  --modal-shadow: var(--shadow-lg);
+
   /* Z-index */
+  --z-modal: 80;
   --z-toast: 100;
 
   /* Icons */
