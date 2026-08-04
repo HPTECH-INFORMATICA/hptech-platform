@@ -18,6 +18,16 @@ import Dialog, {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/Dialog";
+import Drawer, {
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerOverlay,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/Drawer";
 import IconButton from "@/components/ui/IconButton";
 import Input from "@/components/ui/Input";
 import Radio from "@/components/ui/Radio";
@@ -35,7 +45,14 @@ export default function UIPlaygroundClient() {
   const [message, setMessage] = useState("");
   const [controlledOpen, setControlledOpen] = useState(false);
   const [protectedOpen, setProtectedOpen] = useState(false);
+  const [controlledDrawerOpen, setControlledDrawerOpen] = useState(false);
+  const [protectedDrawerOpen, setProtectedDrawerOpen] = useState(false);
+  const [drawerSize, setDrawerSize] = useState<"sm" | "md" | "lg" | "xl">(
+    "md",
+  );
   const initialFocusRef = useRef<HTMLButtonElement | null>(null);
+  const drawerInitialFocusRef = useRef<HTMLInputElement | null>(null);
+  const externalFocusRef = useRef<HTMLButtonElement | null>(null);
 
   return (
     <main className="min-h-screen bg-hp-background px-4 py-8 text-hp-foreground sm:px-6 lg:px-10">
@@ -656,6 +673,391 @@ export default function UIPlaygroundClient() {
             </Dialog>
           </div>
         </PlaygroundSection>
+
+        <PlaygroundSection
+          title="Drawer"
+          description="Validação das posições, políticas de fechamento, foco modal, tamanhos e composição aninhada."
+        >
+          <button
+            ref={externalFocusRef}
+            type="button"
+            className={drawerSecondaryClasses}
+          >
+            Destino externo para teste de foco
+          </button>
+
+          <div className="mt-6 grid min-w-0 gap-6 lg:grid-cols-2">
+            <Drawer>
+              <Card>
+                <DrawerDemoHeading
+                  title="Básico à direita"
+                  description="Uncontrolled, tamanho md, trap de foco e todos os fechamentos padrão."
+                />
+                <DrawerTrigger className={drawerTriggerClasses}>
+                  Abrir Drawer básico
+                </DrawerTrigger>
+              </Card>
+              <DrawerOverlay />
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle>Dados demonstrativos</DrawerTitle>
+                  <DrawerDescription>
+                    Exemplo fictício para validar foco, rolagem e fechamento.
+                  </DrawerDescription>
+                </DrawerHeader>
+                <div className="space-y-4 p-[var(--space-4)]">
+                  <Button variant="secondary">Primeiro botão</Button>
+                  <Input label="Nome de demonstração" placeholder="Equipe Demo" />
+                  <Button
+                    variant="outline"
+                    onClick={() => externalFocusRef.current?.focus()}
+                  >
+                    Tentar focar elemento externo
+                  </Button>
+                  {Array.from({ length: 12 }, (_, index) => (
+                    <p key={index} className="text-sm text-hp-muted">
+                      Conteúdo fictício {index + 1} para validar a rolagem interna
+                      sem ampliar horizontalmente a página.
+                    </p>
+                  ))}
+                </div>
+                <DrawerFooter>
+                  <Button variant="ghost">Último botão do ciclo</Button>
+                  <DrawerClose className={drawerPrimaryClasses}>
+                    Fechar
+                  </DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+
+            <Drawer>
+              <Card>
+                <DrawerDemoHeading
+                  title="Lateral esquerda"
+                  description="Posição left com largura sm."
+                />
+                <DrawerTrigger className={drawerTriggerClasses}>
+                  Abrir à esquerda
+                </DrawerTrigger>
+              </Card>
+              <DrawerOverlay />
+              <DrawerContent side="left" size="sm">
+                <DrawerHeader>
+                  <DrawerTitle>Navegação auxiliar</DrawerTitle>
+                  <DrawerDescription>
+                    Conteúdo fictício alinhado à esquerda.
+                  </DrawerDescription>
+                </DrawerHeader>
+                <div className="p-[var(--space-4)] text-sm text-hp-muted">
+                  Nenhuma ação de negócio é executada neste exemplo.
+                </div>
+                <DrawerFooter>
+                  <DrawerClose className={drawerPrimaryClasses}>Fechar</DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+
+            <Drawer>
+              <Card>
+                <DrawerDemoHeading
+                  title="Inferior"
+                  description="Side bottom, sem size, com altura e rolagem intrínsecas."
+                />
+                <DrawerTrigger className={drawerTriggerClasses}>
+                  Abrir inferior
+                </DrawerTrigger>
+              </Card>
+              <DrawerOverlay />
+              <DrawerContent side="bottom">
+                <DrawerHeader>
+                  <DrawerTitle>Resumo da operação</DrawerTitle>
+                  <DrawerDescription>
+                    Drawer inferior responsivo e sem tamanho lateral.
+                  </DrawerDescription>
+                </DrawerHeader>
+                <div className="space-y-3 p-[var(--space-4)] text-sm text-hp-muted">
+                  {Array.from({ length: 8 }, (_, index) => (
+                    <p key={index}>Linha demonstrativa {index + 1}.</p>
+                  ))}
+                </div>
+                <DrawerFooter>
+                  <DrawerClose className={drawerPrimaryClasses}>Concluir</DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+
+            <Card>
+              <DrawerDemoHeading
+                title="Tamanhos laterais"
+                description={`Tamanho selecionado: ${drawerSize}`}
+              />
+              <div className="mb-4 flex flex-wrap gap-2">
+                {(["sm", "md", "lg", "xl"] as const).map((size) => (
+                  <Button
+                    key={size}
+                    size="sm"
+                    variant={drawerSize === size ? "primary" : "outline"}
+                    onClick={() => setDrawerSize(size)}
+                  >
+                    {size}
+                  </Button>
+                ))}
+              </div>
+              <Drawer>
+                <DrawerTrigger className={drawerTriggerClasses}>
+                  Abrir tamanho {drawerSize}
+                </DrawerTrigger>
+                <DrawerOverlay />
+                <DrawerContent side="right" size={drawerSize}>
+                  <DrawerHeader>
+                    <DrawerTitle>Drawer lateral {drawerSize}</DrawerTitle>
+                    <DrawerDescription>
+                      Validação das quatro larguras oficiais.
+                    </DrawerDescription>
+                  </DrawerHeader>
+                  <DrawerFooter>
+                    <DrawerClose className={drawerPrimaryClasses}>Fechar</DrawerClose>
+                  </DrawerFooter>
+                </DrawerContent>
+              </Drawer>
+            </Card>
+
+            <Card>
+              <DrawerDemoHeading
+                title="Controlled"
+                description={`Estado: ${controlledDrawerOpen ? "aberto" : "fechado"}`}
+              />
+              <Button onClick={() => setControlledDrawerOpen(true)}>
+                Abrir controlado
+              </Button>
+              <Drawer
+                open={controlledDrawerOpen}
+                onOpenChange={setControlledDrawerOpen}
+              >
+                <DrawerOverlay />
+                <DrawerContent>
+                  <DrawerHeader>
+                    <DrawerTitle>Drawer controlado</DrawerTitle>
+                    <DrawerDescription>
+                      O estado pertence ao Playground.
+                    </DrawerDescription>
+                  </DrawerHeader>
+                  <DrawerFooter>
+                    <DrawerClose className={drawerPrimaryClasses}>Fechar</DrawerClose>
+                  </DrawerFooter>
+                </DrawerContent>
+              </Drawer>
+            </Card>
+
+            <Card>
+              <DrawerDemoHeading
+                title="Prevent dismiss"
+                description="Escape, Overlay e DrawerClose são bloqueados."
+              />
+              <Button onClick={() => setProtectedDrawerOpen(true)}>
+                Abrir protegido
+              </Button>
+              <Drawer
+                open={protectedDrawerOpen}
+                onOpenChange={setProtectedDrawerOpen}
+                preventDismiss
+              >
+                <DrawerOverlay />
+                <DrawerContent>
+                  <DrawerHeader>
+                    <DrawerTitle>Fechamento protegido</DrawerTitle>
+                    <DrawerDescription>
+                      Somente a ação programática pode encerrar este exemplo.
+                    </DrawerDescription>
+                  </DrawerHeader>
+                  <DrawerFooter>
+                    <DrawerClose className={drawerSecondaryClasses}>
+                      DrawerClose bloqueado
+                    </DrawerClose>
+                    <Button onClick={() => setProtectedDrawerOpen(false)}>
+                      Fechar programaticamente
+                    </Button>
+                  </DrawerFooter>
+                </DrawerContent>
+              </Drawer>
+            </Card>
+
+            <Drawer closeOnEscape={false}>
+              <Card>
+                <DrawerDemoHeading
+                  title="Escape desativado"
+                  description="Overlay e DrawerClose permanecem disponíveis."
+                />
+                <DrawerTrigger className={drawerTriggerClasses}>
+                  Testar Escape
+                </DrawerTrigger>
+              </Card>
+              <DrawerOverlay />
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle>Escape desativado</DrawerTitle>
+                  <DrawerDescription>Escape não fecha este Drawer.</DrawerDescription>
+                </DrawerHeader>
+                <DrawerFooter>
+                  <DrawerClose className={drawerPrimaryClasses}>Fechar</DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+
+            <Drawer closeOnOverlayClick={false}>
+              <Card>
+                <DrawerDemoHeading
+                  title="Overlay desativado"
+                  description="Escape e DrawerClose permanecem disponíveis."
+                />
+                <DrawerTrigger className={drawerTriggerClasses}>
+                  Testar Overlay
+                </DrawerTrigger>
+              </Card>
+              <DrawerOverlay />
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle>Overlay sem dismiss</DrawerTitle>
+                  <DrawerDescription>
+                    Clicar fora não fecha este Drawer.
+                  </DrawerDescription>
+                </DrawerHeader>
+                <DrawerFooter>
+                  <DrawerClose className={drawerPrimaryClasses}>Fechar</DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+
+            <Drawer initialFocusRef={drawerInitialFocusRef}>
+              <Card>
+                <DrawerDemoHeading
+                  title="Foco inicial"
+                  description="Uma referência explícita define o primeiro foco."
+                />
+                <DrawerTrigger className={drawerTriggerClasses}>
+                  Validar foco inicial
+                </DrawerTrigger>
+              </Card>
+              <DrawerOverlay />
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle>Foco inicial explícito</DrawerTitle>
+                  <DrawerDescription>
+                    O campo identificado deve receber foco.
+                  </DrawerDescription>
+                </DrawerHeader>
+                <div className="p-[var(--space-4)]">
+                  <Input
+                    ref={drawerInitialFocusRef}
+                    label="Destino do foco inicial"
+                    placeholder="Controle demonstrativo"
+                  />
+                </div>
+                <DrawerFooter>
+                  <DrawerClose className={drawerPrimaryClasses}>Fechar</DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+
+            <Drawer restoreFocus={false}>
+              <Card>
+                <DrawerDemoHeading
+                  title="Sem restauração"
+                  description="O fechamento não força retorno ao Trigger."
+                />
+                <DrawerTrigger className={drawerTriggerClasses}>
+                  Testar restoreFocus=false
+                </DrawerTrigger>
+              </Card>
+              <DrawerOverlay />
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle>Restauração desativada</DrawerTitle>
+                  <DrawerDescription>
+                    Os demais comportamentos modais continuam ativos.
+                  </DrawerDescription>
+                </DrawerHeader>
+                <DrawerFooter>
+                  <DrawerClose className={drawerPrimaryClasses}>Fechar</DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+
+            <Drawer lockScroll={false}>
+              <Card>
+                <DrawerDemoHeading
+                  title="Sem scroll lock"
+                  description="A modalidade e o trap permanecem ativos."
+                />
+                <DrawerTrigger className={drawerTriggerClasses}>
+                  Testar lockScroll=false
+                </DrawerTrigger>
+              </Card>
+              <DrawerOverlay />
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle>Documento rolável</DrawerTitle>
+                  <DrawerDescription>
+                    O Drawer continua modal sem bloquear a rolagem documental.
+                  </DrawerDescription>
+                </DrawerHeader>
+                <div className="p-[var(--space-4)]">
+                  <Input label="Controle para validar o trap" />
+                </div>
+                <DrawerFooter>
+                  <DrawerClose className={drawerPrimaryClasses}>Fechar</DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+
+            <Drawer>
+              <Card>
+                <DrawerDemoHeading
+                  title="Múltiplos Drawers"
+                  description="Validação da ordem modal e do lock compartilhado."
+                />
+                <DrawerTrigger className={drawerTriggerClasses}>
+                  Abrir Drawer A
+                </DrawerTrigger>
+              </Card>
+              <DrawerOverlay />
+              <DrawerContent side="right" size="lg">
+                <DrawerHeader>
+                  <DrawerTitle>Drawer A</DrawerTitle>
+                  <DrawerDescription>
+                    Abra o Drawer B para validar a contenção superior.
+                  </DrawerDescription>
+                </DrawerHeader>
+                <div className="p-[var(--space-4)]">
+                  <Drawer>
+                    <DrawerTrigger className={drawerTriggerClasses}>
+                      Abrir Drawer B
+                    </DrawerTrigger>
+                    <DrawerOverlay />
+                    <DrawerContent side="right" size="sm">
+                      <DrawerHeader>
+                        <DrawerTitle>Drawer B</DrawerTitle>
+                        <DrawerDescription>
+                          Este Drawer deve permanecer acima do Drawer A.
+                        </DrawerDescription>
+                      </DrawerHeader>
+                      <DrawerFooter>
+                        <DrawerClose className={drawerPrimaryClasses}>
+                          Fechar Drawer B
+                        </DrawerClose>
+                      </DrawerFooter>
+                    </DrawerContent>
+                  </Drawer>
+                </div>
+                <DrawerFooter>
+                  <DrawerClose className={drawerSecondaryClasses}>
+                    Fechar Drawer A
+                  </DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+          </div>
+        </PlaygroundSection>
       </div>
     </main>
   );
@@ -692,6 +1094,10 @@ const dialogPrimaryClasses = dialogTriggerClasses;
 const dialogSecondaryClasses =
   "inline-flex min-h-11 items-center justify-center rounded-[var(--radius-md)] border border-hp-border bg-hp-surface px-[var(--space-4)] py-[var(--space-2)] text-sm font-semibold text-hp-foreground transition-colors hover:bg-hp-surface-subtle focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-focus)] focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50";
 
+const drawerTriggerClasses = dialogTriggerClasses;
+const drawerPrimaryClasses = dialogPrimaryClasses;
+const drawerSecondaryClasses = dialogSecondaryClasses;
+
 function DialogDemoHeading({
   title,
   description,
@@ -706,6 +1112,8 @@ function DialogDemoHeading({
     </div>
   );
 }
+
+const DrawerDemoHeading = DialogDemoHeading;
 
 function DialogDetail({ label, value }: { label: string; value: string }) {
   return (

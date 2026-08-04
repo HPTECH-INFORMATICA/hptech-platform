@@ -149,8 +149,22 @@
   --modal-border: var(--color-border-strong);
   --modal-shadow: var(--shadow-lg);
 
+  /* Drawer */
+  --drawer-width-sm: 25rem;
+  --drawer-width-md: var(--modal-width-md);
+  --drawer-width-lg: 47.5rem;
+  --drawer-width-xl: 60rem;
+  --drawer-max-height: var(--modal-max-height);
+  --drawer-radius: var(--modal-radius);
+  --drawer-background: var(--modal-background);
+  --drawer-border: var(--modal-border);
+  --drawer-shadow: var(--modal-shadow);
+  --drawer-overlay-background: var(--color-overlay);
+
   /* Z-index */
   --z-modal: 80;
+  --z-drawer-overlay: 60;
+  --z-drawer: 80;
   --z-toast: 100;
 
   /* Icons */
