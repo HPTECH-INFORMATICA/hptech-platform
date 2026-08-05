@@ -40,6 +40,12 @@ import Popover, {
   type PopoverAlign,
   type PopoverSide,
 } from "@/components/ui/Popover";
+import Tooltip, {
+  TooltipContent,
+  TooltipTrigger,
+  type TooltipAlign,
+  type TooltipSide,
+} from "@/components/ui/Tooltip";
 import Radio from "@/components/ui/Radio";
 import SearchBox from "@/components/ui/SearchBox";
 import Select from "@/components/ui/Select";
@@ -63,6 +69,8 @@ export default function UIPlaygroundClient() {
   const [controlledPopoverOpen, setControlledPopoverOpen] = useState(false);
   const [dynamicPopoverContent, setDynamicPopoverContent] = useState(1);
   const [dynamicTriggerLong, setDynamicTriggerLong] = useState(false);
+  const [controlledTooltipOpen, setControlledTooltipOpen] = useState(false);
+  const [tooltipDelay, setTooltipDelay] = useState(500);
   const initialFocusRef = useRef<HTMLButtonElement | null>(null);
   const drawerInitialFocusRef = useRef<HTMLInputElement | null>(null);
   const externalFocusRef = useRef<HTMLButtonElement | null>(null);
@@ -588,6 +596,195 @@ export default function UIPlaygroundClient() {
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <ShadowPopoverDemo mode="open" />
             <ShadowPopoverDemo mode="closed" />
+          </div>
+        </PlaygroundSection>
+
+
+        <PlaygroundSection
+          title="Tooltip"
+          description="Informações auxiliares por hover e foco, com delay, posicionamento e portal contextual."
+        >
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <TooltipDemo title="Básico" />
+
+            {(["top", "right", "bottom", "left"] as TooltipSide[]).map(
+              (side) => (
+                <TooltipDemo
+                  key={side}
+                  title={`Side ${side}`}
+                  side={side}
+                />
+              ),
+            )}
+
+            {(["start", "center", "end"] as TooltipAlign[]).map((align) => (
+              <TooltipDemo
+                key={align}
+                title={`Align ${align}`}
+                align={align}
+              />
+            ))}
+
+            {[0, 8, 16, -4].map((sideOffset) => (
+              <TooltipDemo
+                key={sideOffset}
+                title={`Offset ${sideOffset}px`}
+                sideOffset={sideOffset}
+              />
+            ))}
+
+            <TooltipDemo
+              title="Aberto inicialmente"
+              defaultOpen
+              description="Exemplo uncontrolled iniciado aberto."
+            />
+
+            <div className={tooltipDemoClasses}>
+              <h3 className="font-semibold">Controlado</h3>
+              <p className="text-sm text-hp-muted">
+                Estado: {controlledTooltipOpen ? "aberto" : "fechado"}
+              </p>
+
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  size="sm"
+                  onClick={() => setControlledTooltipOpen(true)}
+                >
+                  Abrir
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setControlledTooltipOpen(false)}
+                >
+                  Fechar
+                </Button>
+              </div>
+
+              <Tooltip
+                open={controlledTooltipOpen}
+                onOpenChange={setControlledTooltipOpen}
+              >
+                <TooltipTrigger className={tooltipTriggerClasses}>
+                  Trigger controlado
+                </TooltipTrigger>
+                <TooltipContent>
+                  Estado mantido pelo Playground.
+                </TooltipContent>
+              </Tooltip>
+            </div>
+
+            <div className={tooltipDemoClasses}>
+              <h3 className="font-semibold">Delay configurável</h3>
+              <p className="text-sm text-hp-muted">
+                Delay atual: {tooltipDelay} ms
+              </p>
+
+              <div className="flex flex-wrap gap-2">
+                {[0, 500, 1000].map((delay) => (
+                  <Button
+                    key={delay}
+                    size="sm"
+                    variant={tooltipDelay === delay ? "primary" : "outline"}
+                    onClick={() => setTooltipDelay(delay)}
+                  >
+                    {delay} ms
+                  </Button>
+                ))}
+              </div>
+
+              <Tooltip openDelay={tooltipDelay}>
+                <TooltipTrigger className={tooltipTriggerClasses}>
+                  Testar delay
+                </TooltipTrigger>
+                <TooltipContent>
+                  Abriu após {tooltipDelay} ms.
+                </TooltipContent>
+              </Tooltip>
+            </div>
+
+            <div className={tooltipDemoClasses}>
+              <h3 className="font-semibold">Trigger desabilitado</h3>
+              <Tooltip>
+                <TooltipTrigger
+                  className={tooltipTriggerClasses}
+                  disabled
+                >
+                  Não deve abrir
+                </TooltipTrigger>
+                <TooltipContent>
+                  Este conteúdo não deve ser exibido.
+                </TooltipContent>
+              </Tooltip>
+            </div>
+
+            <div className={tooltipDemoClasses}>
+              <h3 className="font-semibold">ARIA explícita preservada</h3>
+              <Tooltip>
+                <TooltipTrigger
+                  className={tooltipTriggerClasses}
+                  aria-describedby="descricao-externa"
+                >
+                  Trigger com descrição existente
+                </TooltipTrigger>
+                <TooltipContent>
+                  O ID do Tooltip é combinado enquanto aberto.
+                </TooltipContent>
+              </Tooltip>
+              <p id="descricao-externa" className="text-sm text-hp-muted">
+                Descrição já fornecida pelo consumidor.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-4">
+            <Dialog>
+              <DialogTrigger className={dialogTriggerClasses}>
+                Tooltip no Dialog
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Contexto Dialog</DialogTitle>
+                  <DialogDescription>
+                    O Tooltip deve permanecer visível no top layer.
+                  </DialogDescription>
+                </DialogHeader>
+                <TooltipDemo title="Tooltip contextual" side="bottom" />
+                <DialogFooter>
+                  <DialogClose className={dialogSecondaryClasses}>
+                    Fechar Dialog
+                  </DialogClose>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <Drawer>
+              <DrawerTrigger className={drawerTriggerClasses}>
+                Tooltip no Drawer
+              </DrawerTrigger>
+              <DrawerOverlay />
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle>Contexto Drawer</DrawerTitle>
+                  <DrawerDescription>
+                    O portal usa o conteúdo do Drawer como camada contextual.
+                  </DrawerDescription>
+                </DrawerHeader>
+                <div className="p-[var(--space-6)]">
+                  <TooltipDemo title="Tooltip contextual" side="left" />
+                </div>
+                <DrawerFooter>
+                  <DrawerClose className={drawerSecondaryClasses}>
+                    Fechar Drawer
+                  </DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <ShadowTooltipDemo mode="open" />
+            <ShadowTooltipDemo mode="closed" />
           </div>
         </PlaygroundSection>
 
@@ -1393,6 +1590,93 @@ function ShadowPopoverDemo({ mode }: { mode: ShadowRootMode }) {
                 <PopoverClose className={popoverCloseClasses}>Fechar</PopoverClose>
               </PopoverContent>
             </Popover>,
+            mountPoint,
+          )
+        : null}
+    </div>
+  );
+}
+
+
+const tooltipTriggerClasses = dialogSecondaryClasses;
+const tooltipDemoClasses =
+  "flex min-w-0 flex-col items-start gap-3 rounded-[var(--radius-lg)] border border-hp-border bg-hp-surface p-[var(--space-4)]";
+
+type TooltipDemoProps = Pick<
+  React.ComponentProps<typeof Tooltip>,
+  "defaultOpen" | "openDelay"
+> &
+  Pick<
+    React.ComponentProps<typeof TooltipContent>,
+    "side" | "align" | "sideOffset"
+  > & {
+    title: string;
+    description?: string;
+  };
+
+function TooltipDemo({
+  title,
+  description = "Informação auxiliar curta.",
+  side,
+  align,
+  sideOffset,
+  ...rootProps
+}: TooltipDemoProps) {
+  return (
+    <div className={tooltipDemoClasses}>
+      <h3 className="font-semibold">{title}</h3>
+      <Tooltip {...rootProps}>
+        <TooltipTrigger className={tooltipTriggerClasses}>
+          Passe o mouse ou foque
+        </TooltipTrigger>
+        <TooltipContent
+          side={side}
+          align={align}
+          sideOffset={sideOffset}
+        >
+          {description}
+        </TooltipContent>
+      </Tooltip>
+    </div>
+  );
+}
+
+function ShadowTooltipDemo({ mode }: { mode: ShadowRootMode }) {
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const [mountPoint, setMountPoint] = useState<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (wrapper === null) return;
+
+    const host = document.createElement("div");
+    const root = host.attachShadow({ mode });
+    const target = document.createElement("div");
+
+    root.append(target);
+    wrapper.append(host);
+    setMountPoint(target);
+
+    return () => {
+      setMountPoint(null);
+      host.remove();
+    };
+  }, [mode]);
+
+  return (
+    <div className={tooltipDemoClasses}>
+      <h3 className="font-semibold">ShadowRoot {mode}</h3>
+      <div ref={wrapperRef} />
+      {mountPoint
+        ? createPortal(
+            <Tooltip>
+              <TooltipTrigger className={tooltipTriggerClasses}>
+                Passe o mouse ou foque
+              </TooltipTrigger>
+              <TooltipContent>
+                Tooltip no ShadowRoot {mode}.
+              </TooltipContent>
+            </Tooltip>,
             mountPoint,
           )
         : null}

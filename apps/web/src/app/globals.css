@@ -168,8 +168,18 @@
   --popover-radius: var(--radius-lg);
   --popover-padding: var(--space-4);
 
+  /* Tooltip */
+  --tooltip-background: var(--color-text);
+  --tooltip-foreground: var(--color-background);
+  --tooltip-border: var(--color-border-strong);
+  --tooltip-shadow: var(--shadow-sm);
+  --tooltip-radius: var(--radius-md);
+  --tooltip-padding-x: var(--space-3);
+  --tooltip-padding-y: var(--space-2);
+
   /* Z-index */
   --z-popover: 70;
+  --z-tooltip: 75;
   --z-modal: 80;
   --z-drawer-overlay: 60;
   --z-drawer: 80;
