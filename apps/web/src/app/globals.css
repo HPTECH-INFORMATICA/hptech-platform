@@ -177,6 +177,24 @@
   --tooltip-padding-x: var(--space-3);
   --tooltip-padding-y: var(--space-2);
 
+  /* Dropdown Menu */
+  --dropdown-menu-background: var(--color-surface);
+  --dropdown-menu-foreground: var(--color-text);
+  --dropdown-menu-border: var(--color-border);
+  --dropdown-menu-shadow: var(--shadow-lg);
+
+  --dropdown-menu-radius: var(--radius-lg);
+  --dropdown-menu-padding: var(--space-2);
+
+  --dropdown-menu-min-width: 14rem;
+  --dropdown-menu-max-width: 24rem;
+
+  --dropdown-menu-item-focus: var(--color-surface-hover);
+  --dropdown-menu-separator: var(--color-border);
+
+  --z-dropdown-menu: 72;
+
+
   /* Z-index */
   --z-popover: 70;
   --z-tooltip: 75;

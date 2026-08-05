@@ -29,6 +29,15 @@ import Drawer, {
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/Drawer";
+import DropdownMenu, {
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  type DropdownMenuAlign,
+  type DropdownMenuSide,
+} from "@/components/ui/DropdownMenu";
 import IconButton from "@/components/ui/IconButton";
 import Input from "@/components/ui/Input";
 import Popover, {
@@ -71,6 +80,8 @@ export default function UIPlaygroundClient() {
   const [dynamicTriggerLong, setDynamicTriggerLong] = useState(false);
   const [controlledTooltipOpen, setControlledTooltipOpen] = useState(false);
   const [tooltipDelay, setTooltipDelay] = useState(500);
+  const [controlledDropdownOpen, setControlledDropdownOpen] = useState(false);
+  const [preventedSelectionCount, setPreventedSelectionCount] = useState(0);
   const initialFocusRef = useRef<HTMLButtonElement | null>(null);
   const drawerInitialFocusRef = useRef<HTMLInputElement | null>(null);
   const externalFocusRef = useRef<HTMLButtonElement | null>(null);
@@ -785,6 +796,235 @@ export default function UIPlaygroundClient() {
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <ShadowTooltipDemo mode="open" />
             <ShadowTooltipDemo mode="closed" />
+          </div>
+        </PlaygroundSection>
+
+
+        <PlaygroundSection
+          title="Dropdown Menu"
+          description="Menu de ações com navegação por teclado, seleção, dismiss e portal contextual."
+        >
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <DropdownMenuDemo title="Básico" />
+
+            {(["top", "right", "bottom", "left"] as DropdownMenuSide[]).map(
+              (side) => (
+                <DropdownMenuDemo
+                  key={side}
+                  title={`Side ${side}`}
+                  side={side}
+                />
+              ),
+            )}
+
+            {(["start", "center", "end"] as DropdownMenuAlign[]).map(
+              (align) => (
+                <DropdownMenuDemo
+                  key={align}
+                  title={`Align ${align}`}
+                  align={align}
+                />
+              ),
+            )}
+
+            {[0, 8, 16, -4].map((sideOffset) => (
+              <DropdownMenuDemo
+                key={sideOffset}
+                title={`Offset ${sideOffset}px`}
+                sideOffset={sideOffset}
+              />
+            ))}
+
+            <div className={dropdownMenuDemoClasses}>
+              <h3 className="font-semibold">Controlado</h3>
+              <p className="text-sm text-hp-muted">
+                Estado: {controlledDropdownOpen ? "aberto" : "fechado"}
+              </p>
+              <DropdownMenu
+                open={controlledDropdownOpen}
+                onOpenChange={setControlledDropdownOpen}
+              >
+                <DropdownMenuTrigger className={dropdownMenuTriggerClasses}>
+                  Alternar controlado
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuLabel>Menu controlado</DropdownMenuLabel>
+                  <DropdownMenuItem>Primeira ação</DropdownMenuItem>
+                  <DropdownMenuItem>Segunda ação</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            <DropdownMenuDemo
+              title="Escape desativado"
+              closeOnEscape={false}
+              description="Escape não fecha; seleção e clique externo continuam ativos."
+            />
+
+            <DropdownMenuDemo
+              title="Interação externa desativada"
+              closeOnInteractOutside={false}
+              description="Clique externo não fecha; Escape e seleção continuam ativos."
+            />
+
+            <div className={dropdownMenuDemoClasses}>
+              <h3 className="font-semibold">Item desabilitado</h3>
+              <DropdownMenu>
+                <DropdownMenuTrigger className={dropdownMenuTriggerClasses}>
+                  Abrir menu
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem>Item disponível</DropdownMenuItem>
+                  <DropdownMenuItem disabled>
+                    Item desabilitado
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>Outra ação</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            <div className={dropdownMenuDemoClasses}>
+              <h3 className="font-semibold">Seleção prevenida</h3>
+              <p className="text-sm text-hp-muted">
+                Tentativas: {preventedSelectionCount}
+              </p>
+              <DropdownMenu>
+                <DropdownMenuTrigger className={dropdownMenuTriggerClasses}>
+                  Abrir menu
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem
+                    onSelect={(event) => {
+                      event.preventDefault();
+                      setPreventedSelectionCount((value) => value + 1);
+                    }}
+                  >
+                    Manter menu aberto
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>Fechar normalmente</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            <div className={dropdownMenuDemoClasses}>
+              <h3 className="font-semibold">Label, separador e danger</h3>
+              <DropdownMenu>
+                <DropdownMenuTrigger className={dropdownMenuTriggerClasses}>
+                  Ações da conta
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuLabel>Conta demonstrativa</DropdownMenuLabel>
+                  <DropdownMenuItem>Visualizar perfil</DropdownMenuItem>
+                  <DropdownMenuItem inset>Preferências</DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem variant="danger">
+                    Encerrar sessão fictícia
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            <div className={dropdownMenuDemoClasses}>
+              <h3 className="font-semibold">Loop desativado</h3>
+              <p className="text-sm text-hp-muted">
+                As setas param no primeiro e no último item.
+              </p>
+              <DropdownMenu>
+                <DropdownMenuTrigger className={dropdownMenuTriggerClasses}>
+                  Testar navegação
+                </DropdownMenuTrigger>
+                <DropdownMenuContent loop={false}>
+                  <DropdownMenuItem>Primeiro</DropdownMenuItem>
+                  <DropdownMenuItem>Segundo</DropdownMenuItem>
+                  <DropdownMenuItem>Último</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            <div className={dropdownMenuDemoClasses}>
+              <h3 className="font-semibold">ID explícito do Trigger</h3>
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  id="dropdown-trigger-explicito"
+                  className={dropdownMenuTriggerClasses}
+                >
+                  Abrir menu identificado
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem>Validar aria-labelledby</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-4">
+            <Dialog>
+              <DialogTrigger className={dialogTriggerClasses}>
+                Dropdown no Dialog
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Contexto Dialog</DialogTitle>
+                  <DialogDescription>
+                    O menu deve permanecer na camada correta do Dialog.
+                  </DialogDescription>
+                </DialogHeader>
+                <DropdownMenuDemo title="Menu contextual" />
+                <DialogFooter>
+                  <DialogClose className={dialogSecondaryClasses}>
+                    Fechar Dialog
+                  </DialogClose>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <Drawer>
+              <DrawerTrigger className={drawerTriggerClasses}>
+                Dropdown no Drawer
+              </DrawerTrigger>
+              <DrawerOverlay />
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle>Contexto Drawer</DrawerTitle>
+                  <DrawerDescription>
+                    O menu usa o conteúdo do Drawer como portal contextual.
+                  </DrawerDescription>
+                </DrawerHeader>
+                <div className="p-[var(--space-6)]">
+                  <DropdownMenuDemo title="Menu contextual" />
+                </div>
+                <DrawerFooter>
+                  <DrawerClose className={drawerSecondaryClasses}>
+                    Fechar Drawer
+                  </DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+
+            <DropdownMenu>
+              <DropdownMenuTrigger className={dropdownMenuTriggerClasses}>
+                Menus aninhados
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuLabel>Menu externo</DropdownMenuLabel>
+                <DropdownMenuItem>Primeira ação</DropdownMenuItem>
+                <DropdownMenu>
+                  <DropdownMenuTrigger className={dropdownMenuNestedTriggerClasses}>
+                    Abrir menu interno
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent side="right" align="start">
+                    <DropdownMenuLabel>Menu interno</DropdownMenuLabel>
+                    <DropdownMenuItem>Ação interna A</DropdownMenuItem>
+                    <DropdownMenuItem>Ação interna B</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <ShadowDropdownMenuDemo mode="open" />
+            <ShadowDropdownMenuDemo mode="closed" />
           </div>
         </PlaygroundSection>
 
@@ -1677,6 +1917,107 @@ function ShadowTooltipDemo({ mode }: { mode: ShadowRootMode }) {
                 Tooltip no ShadowRoot {mode}.
               </TooltipContent>
             </Tooltip>,
+            mountPoint,
+          )
+        : null}
+    </div>
+  );
+}
+
+
+const dropdownMenuTriggerClasses = dialogSecondaryClasses;
+const dropdownMenuNestedTriggerClasses =
+  "flex w-full items-center rounded-[var(--radius-sm)] px-[var(--space-3)] py-[var(--space-2)] text-left text-sm text-[var(--dropdown-menu-foreground)] outline-none transition-colors focus-visible:bg-[var(--dropdown-menu-item-focus)]";
+const dropdownMenuDemoClasses =
+  "flex min-w-0 flex-col items-start gap-3 rounded-[var(--radius-lg)] border border-hp-border bg-hp-surface p-[var(--space-4)]";
+
+type DropdownMenuDemoProps = Pick<
+  React.ComponentProps<typeof DropdownMenu>,
+  "closeOnEscape" | "closeOnInteractOutside"
+> &
+  Pick<
+    React.ComponentProps<typeof DropdownMenuContent>,
+    "side" | "align" | "sideOffset" | "loop"
+  > & {
+    title: string;
+    description?: string;
+  };
+
+function DropdownMenuDemo({
+  title,
+  description = "Ações fictícias para validar seleção e navegação.",
+  side,
+  align,
+  sideOffset,
+  loop,
+  ...rootProps
+}: DropdownMenuDemoProps) {
+  return (
+    <div className={dropdownMenuDemoClasses}>
+      <h3 className="font-semibold">{title}</h3>
+      <p className="text-sm text-hp-muted">{description}</p>
+      <DropdownMenu {...rootProps}>
+        <DropdownMenuTrigger className={dropdownMenuTriggerClasses}>
+          Abrir menu
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          side={side}
+          align={align}
+          sideOffset={sideOffset}
+          loop={loop}
+        >
+          <DropdownMenuLabel>{title}</DropdownMenuLabel>
+          <DropdownMenuItem>Visualizar detalhes</DropdownMenuItem>
+          <DropdownMenuItem>Editar demonstração</DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem variant="danger">
+            Remover item fictício
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+}
+
+function ShadowDropdownMenuDemo({ mode }: { mode: ShadowRootMode }) {
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const [mountPoint, setMountPoint] = useState<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+
+    if (wrapper === null) return;
+
+    const host = document.createElement("div");
+    const root = host.attachShadow({ mode });
+    const target = document.createElement("div");
+
+    root.append(target);
+    wrapper.append(host);
+    setMountPoint(target);
+
+    return () => {
+      setMountPoint(null);
+      host.remove();
+    };
+  }, [mode]);
+
+  return (
+    <div className={dropdownMenuDemoClasses}>
+      <h3 className="font-semibold">ShadowRoot {mode}</h3>
+      <div ref={wrapperRef} />
+      {mountPoint
+        ? createPortal(
+            <DropdownMenu>
+              <DropdownMenuTrigger className={dropdownMenuTriggerClasses}>
+                Abrir no Shadow DOM
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuLabel>ShadowRoot {mode}</DropdownMenuLabel>
+                <DropdownMenuItem>Primeira ação</DropdownMenuItem>
+                <DropdownMenuItem>Segunda ação</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>,
             mountPoint,
           )
         : null}
