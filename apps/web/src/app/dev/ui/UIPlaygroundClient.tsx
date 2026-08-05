@@ -1,6 +1,7 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import Alert from "@/components/ui/Alert";
 import Avatar from "@/components/ui/Avatar";
@@ -30,6 +31,15 @@ import Drawer, {
 } from "@/components/ui/Drawer";
 import IconButton from "@/components/ui/IconButton";
 import Input from "@/components/ui/Input";
+import Popover, {
+  PopoverClose,
+  PopoverContent,
+  PopoverDescription,
+  PopoverTitle,
+  PopoverTrigger,
+  type PopoverAlign,
+  type PopoverSide,
+} from "@/components/ui/Popover";
 import Radio from "@/components/ui/Radio";
 import SearchBox from "@/components/ui/SearchBox";
 import Select from "@/components/ui/Select";
@@ -50,9 +60,13 @@ export default function UIPlaygroundClient() {
   const [drawerSize, setDrawerSize] = useState<"sm" | "md" | "lg" | "xl">(
     "md",
   );
+  const [controlledPopoverOpen, setControlledPopoverOpen] = useState(false);
+  const [dynamicPopoverContent, setDynamicPopoverContent] = useState(1);
+  const [dynamicTriggerLong, setDynamicTriggerLong] = useState(false);
   const initialFocusRef = useRef<HTMLButtonElement | null>(null);
   const drawerInitialFocusRef = useRef<HTMLInputElement | null>(null);
   const externalFocusRef = useRef<HTMLButtonElement | null>(null);
+  const popoverInitialFocusRef = useRef<HTMLInputElement | null>(null);
 
   return (
     <main className="min-h-screen bg-hp-background px-4 py-8 text-hp-foreground sm:px-6 lg:px-10">
@@ -396,6 +410,184 @@ export default function UIPlaygroundClient() {
                 </div>
               </div>
             </Card>
+          </div>
+        </PlaygroundSection>
+
+        <PlaygroundSection
+          title="Popover"
+          description="Posicionamento, foco, dismiss, atualização e composição contextual do Popover oficial."
+        >
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <PopoverDemo title="Básico" />
+
+            {(["top", "right", "bottom", "left"] as PopoverSide[]).map(
+              (side) => (
+                <PopoverDemo key={side} title={`Side ${side}`} side={side} />
+              ),
+            )}
+
+            {(["start", "center", "end"] as PopoverAlign[]).map((align) => (
+              <PopoverDemo key={align} title={`Align ${align}`} align={align} />
+            ))}
+
+            {[0, 8, 16, -4].map((sideOffset) => (
+              <PopoverDemo
+                key={sideOffset}
+                title={`Offset ${sideOffset}px`}
+                sideOffset={sideOffset}
+              />
+            ))}
+
+            <PopoverDemo
+              title="Escape desativado"
+              closeOnEscape={false}
+              description="Feche pelo botão ou clicando fora."
+            />
+            <PopoverDemo
+              title="Interação externa desativada"
+              closeOnInteractOutside={false}
+              description="Feche pelo botão ou Escape."
+            />
+
+            <div className={popoverDemoClasses}>
+              <h3 className="font-semibold">Controlado</h3>
+              <p className="text-sm text-hp-muted">
+                Estado: {controlledPopoverOpen ? "aberto" : "fechado"}
+              </p>
+              <Popover
+                open={controlledPopoverOpen}
+                onOpenChange={setControlledPopoverOpen}
+              >
+                <PopoverTrigger className={popoverTriggerClasses}>
+                  Alternar controlado
+                </PopoverTrigger>
+                <PopoverContent className={popoverContentClasses}>
+                  <PopoverTitle>Popover controlado</PopoverTitle>
+                  <PopoverDescription>
+                    O estado é mantido pelo Playground.
+                  </PopoverDescription>
+                  <PopoverClose className={popoverCloseClasses}>Fechar</PopoverClose>
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div className={popoverDemoClasses}>
+              <h3 className="font-semibold">initialFocusRef</h3>
+              <Popover initialFocusRef={popoverInitialFocusRef}>
+                <PopoverTrigger className={popoverTriggerClasses}>Abrir</PopoverTrigger>
+                <PopoverContent className={popoverContentClasses}>
+                  <PopoverTitle>Foco explícito</PopoverTitle>
+                  <Input ref={popoverInitialFocusRef} label="Destino do foco inicial" />
+                  <PopoverClose className={popoverCloseClasses}>Fechar</PopoverClose>
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <FocusPopoverDemo mode="autofocus" />
+            <FocusPopoverDemo mode="first" />
+            <FocusPopoverDemo mode="none" />
+            <PopoverDemo title="Sem restauração" restoreFocus={false} />
+
+            <div className={popoverDemoClasses}>
+              <h3 className="font-semibold">Interação externa</h3>
+              <Popover>
+                <PopoverTrigger className={popoverTriggerClasses}>Abrir</PopoverTrigger>
+                <PopoverContent className={popoverContentClasses}>
+                  <PopoverTitle>Teste externo</PopoverTitle>
+                  <PopoverDescription>Clique no controle ao lado.</PopoverDescription>
+                </PopoverContent>
+              </Popover>
+              <Button variant="secondary">Controle externo</Button>
+            </div>
+
+            <div className={popoverDemoClasses}>
+              <h3 className="font-semibold">ARIA explícita</h3>
+              <Popover>
+                <PopoverTrigger className={popoverTriggerClasses}>Abrir</PopoverTrigger>
+                <PopoverContent
+                  aria-label="Ajuda contextual explícita"
+                  className={popoverContentClasses}
+                >
+                  Conteúdo identificado por aria-label fornecido pelo consumidor.
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div className={popoverDemoClasses}>
+              <h3 className="font-semibold">Conteúdo dinâmico</h3>
+              <Popover>
+                <PopoverTrigger className={popoverTriggerClasses}>Abrir</PopoverTrigger>
+                <PopoverContent className={popoverContentClasses}>
+                  <PopoverTitle>Itens: {dynamicPopoverContent}</PopoverTitle>
+                  <Button onClick={() => setDynamicPopoverContent((value) => value + 1)}>
+                    Adicionar conteúdo
+                  </Button>
+                  {Array.from({ length: dynamicPopoverContent }, (_, index) => (
+                    <p key={index} className="text-sm text-hp-muted">Linha {index + 1}</p>
+                  ))}
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <div className={popoverDemoClasses}>
+              <h3 className="font-semibold">Trigger dinâmico</h3>
+              <Button variant="secondary" onClick={() => setDynamicTriggerLong((value) => !value)}>
+                Alterar trigger
+              </Button>
+              <Popover>
+                <PopoverTrigger className={popoverTriggerClasses}>
+                  {dynamicTriggerLong ? "Trigger com largura dinâmica ampliada" : "Trigger curto"}
+                </PopoverTrigger>
+                <PopoverContent className={popoverContentClasses}>Reposicionamento automático.</PopoverContent>
+              </Popover>
+            </div>
+          </div>
+
+          <div className="mt-6 h-56 overflow-auto rounded-[var(--radius-lg)] border border-hp-border p-[var(--space-6)]">
+            <div className="min-h-[28rem] pt-28">
+              <PopoverDemo title="Scroll em container" side="right" />
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-4">
+            <Popover>
+              <PopoverTrigger className={popoverTriggerClasses}>Popovers aninhados</PopoverTrigger>
+              <PopoverContent className={popoverContentClasses}>
+                <PopoverTitle>Popover externo</PopoverTitle>
+                <Popover>
+                  <PopoverTrigger className={popoverTriggerClasses}>Abrir interno</PopoverTrigger>
+                  <PopoverContent className={popoverContentClasses}>
+                    <PopoverTitle>Popover interno</PopoverTitle>
+                    <PopoverDescription>Camada contextual superior.</PopoverDescription>
+                    <PopoverClose className={popoverCloseClasses}>Fechar interno</PopoverClose>
+                  </PopoverContent>
+                </Popover>
+              </PopoverContent>
+            </Popover>
+
+            <Dialog>
+              <DialogTrigger className={dialogTriggerClasses}>Popover no Dialog</DialogTrigger>
+              <DialogContent>
+                <DialogHeader><DialogTitle>Contexto Dialog</DialogTitle></DialogHeader>
+                <PopoverDemo title="Popover contextual" />
+                <DialogFooter><DialogClose className={dialogSecondaryClasses}>Fechar Dialog</DialogClose></DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <Drawer>
+              <DrawerTrigger className={drawerTriggerClasses}>Popover no Drawer</DrawerTrigger>
+              <DrawerOverlay />
+              <DrawerContent>
+                <DrawerHeader><DrawerTitle>Contexto Drawer</DrawerTitle></DrawerHeader>
+                <div className="p-[var(--space-6)]"><PopoverDemo title="Popover contextual" /></div>
+                <DrawerFooter><DrawerClose className={drawerSecondaryClasses}>Fechar Drawer</DrawerClose></DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <ShadowPopoverDemo mode="open" />
+            <ShadowPopoverDemo mode="closed" />
           </div>
         </PlaygroundSection>
 
@@ -1097,6 +1289,116 @@ const dialogSecondaryClasses =
 const drawerTriggerClasses = dialogTriggerClasses;
 const drawerPrimaryClasses = dialogPrimaryClasses;
 const drawerSecondaryClasses = dialogSecondaryClasses;
+
+const popoverTriggerClasses = dialogSecondaryClasses;
+const popoverCloseClasses = dialogSecondaryClasses;
+const popoverContentClasses =
+  "w-72 space-y-3 rounded-[var(--radius-lg)] border border-hp-border bg-hp-surface p-[var(--space-4)] text-sm text-hp-foreground shadow-[var(--shadow-lg)]";
+const popoverDemoClasses =
+  "flex min-w-0 flex-col items-start gap-3 rounded-[var(--radius-lg)] border border-hp-border bg-hp-surface p-[var(--space-4)]";
+
+type PopoverDemoProps = Pick<
+  React.ComponentProps<typeof Popover>,
+  "closeOnEscape" | "closeOnInteractOutside" | "restoreFocus"
+> &
+  Pick<React.ComponentProps<typeof PopoverContent>, "side" | "align" | "sideOffset"> & {
+    title: string;
+    description?: string;
+  };
+
+function PopoverDemo({
+  title,
+  description = "Conteúdo contextual com título e descrição.",
+  side,
+  align,
+  sideOffset,
+  ...rootProps
+}: PopoverDemoProps) {
+  return (
+    <div className={popoverDemoClasses}>
+      <h3 className="font-semibold">{title}</h3>
+      <Popover {...rootProps}>
+        <PopoverTrigger className={popoverTriggerClasses}>Abrir Popover</PopoverTrigger>
+        <PopoverContent
+          side={side}
+          align={align}
+          sideOffset={sideOffset}
+          className={popoverContentClasses}
+        >
+          <PopoverTitle>{title}</PopoverTitle>
+          <PopoverDescription>{description}</PopoverDescription>
+          <PopoverClose className={popoverCloseClasses}>Fechar</PopoverClose>
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
+
+function FocusPopoverDemo({ mode }: { mode: "autofocus" | "first" | "none" }) {
+  const labels = {
+    autofocus: "Elemento autofocus",
+    first: "Primeiro controle focável",
+    none: "Sem controles focáveis",
+  };
+
+  return (
+    <div className={popoverDemoClasses}>
+      <h3 className="font-semibold">{labels[mode]}</h3>
+      <Popover>
+        <PopoverTrigger className={popoverTriggerClasses}>Abrir</PopoverTrigger>
+        <PopoverContent className={popoverContentClasses}>
+          <PopoverTitle>{labels[mode]}</PopoverTitle>
+          <PopoverDescription>Valida a política de foco inicial.</PopoverDescription>
+          {mode === "autofocus" ? <button autoFocus className={popoverCloseClasses}>Destino autofocus</button> : null}
+          {mode === "first" ? <button className={popoverCloseClasses}>Primeiro controle</button> : null}
+          {mode === "none" ? <p className="text-hp-muted">Apenas texto informativo.</p> : null}
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
+
+function ShadowPopoverDemo({ mode }: { mode: ShadowRootMode }) {
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const [mountPoint, setMountPoint] = useState<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (wrapper === null) return;
+
+    const host = document.createElement("div");
+    const root = host.attachShadow({ mode });
+    const target = document.createElement("div");
+    root.append(target);
+    wrapper.append(host);
+    setMountPoint(target);
+
+    return () => {
+      setMountPoint(null);
+      host.remove();
+    };
+  }, [mode]);
+
+  return (
+    <div className={popoverDemoClasses}>
+      <h3 className="font-semibold">ShadowRoot {mode}</h3>
+      <div ref={wrapperRef} />
+      {mountPoint
+        ? createPortal(
+            <Popover>
+              <PopoverTrigger className={popoverTriggerClasses}>Abrir no Shadow DOM</PopoverTrigger>
+              <PopoverContent className={popoverContentClasses}>
+                <PopoverTitle>ShadowRoot {mode}</PopoverTitle>
+                <PopoverDescription>Portal contextual no mesmo root.</PopoverDescription>
+                <PopoverClose className={popoverCloseClasses}>Fechar</PopoverClose>
+              </PopoverContent>
+            </Popover>,
+            mountPoint,
+          )
+        : null}
+    </div>
+  );
+}
 
 function DialogDemoHeading({
   title,

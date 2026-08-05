@@ -161,7 +161,15 @@
   --drawer-shadow: var(--modal-shadow);
   --drawer-overlay-background: var(--color-overlay);
 
+  /* Popover */
+  --popover-background: var(--color-surface-elevated);
+  --popover-border: var(--color-border-strong);
+  --popover-shadow: var(--shadow-md);
+  --popover-radius: var(--radius-lg);
+  --popover-padding: var(--space-4);
+
   /* Z-index */
+  --z-popover: 70;
   --z-modal: 80;
   --z-drawer-overlay: 60;
   --z-drawer: 80;
