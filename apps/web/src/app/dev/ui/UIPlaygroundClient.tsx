@@ -45,6 +45,14 @@ import DropdownMenu, {
   type DropdownMenuAlign,
   type DropdownMenuSide,
 } from "@/components/ui/DropdownMenu";
+import HoverCard, {
+  HoverCardContent,
+  HoverCardDescription,
+  HoverCardTitle,
+  HoverCardTrigger,
+  type HoverCardAlign,
+  type HoverCardSide,
+} from "@/components/ui/HoverCard";
 import IconButton from "@/components/ui/IconButton";
 import Input from "@/components/ui/Input";
 import Menubar, {
@@ -105,6 +113,10 @@ export default function UIPlaygroundClient() {
     useState<string | null>(null);
   const [preventedMenubarSelectionCount, setPreventedMenubarSelectionCount] =
     useState(0);
+  const [controlledHoverCardOpen, setControlledHoverCardOpen] =
+    useState(false);
+  const [hoverCardOpenDelay, setHoverCardOpenDelay] = useState(300);
+  const [hoverCardCloseDelay, setHoverCardCloseDelay] = useState(150);
   const initialFocusRef = useRef<HTMLButtonElement | null>(null);
   const drawerInitialFocusRef = useRef<HTMLInputElement | null>(null);
   const externalFocusRef = useRef<HTMLButtonElement | null>(null);
@@ -1541,6 +1553,197 @@ export default function UIPlaygroundClient() {
           </div>
         </PlaygroundSection>
 
+
+        <PlaygroundSection
+          title="Hover Card"
+          description="Cartão informativo por hover ou foco, com delays, posicionamento e portal contextual."
+        >
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <HoverCardDemo title="Básico" />
+
+            {(["top", "right", "bottom", "left"] as HoverCardSide[]).map(
+              (side) => (
+                <HoverCardDemo
+                  key={side}
+                  title={`Side ${side}`}
+                  side={side}
+                />
+              ),
+            )}
+
+            {(["start", "center", "end"] as HoverCardAlign[]).map(
+              (align) => (
+                <HoverCardDemo
+                  key={align}
+                  title={`Align ${align}`}
+                  align={align}
+                />
+              ),
+            )}
+
+            {[0, 8, 16].map((sideOffset) => (
+              <HoverCardDemo
+                key={sideOffset}
+                title={`Offset ${sideOffset}px`}
+                sideOffset={sideOffset}
+              />
+            ))}
+
+            <div className={hoverCardDemoClasses}>
+              <h3 className="font-semibold">Controlado</h3>
+              <p className="text-sm text-hp-muted">
+                Estado: {controlledHoverCardOpen ? "aberto" : "fechado"}
+              </p>
+              <HoverCard
+                open={controlledHoverCardOpen}
+                onOpenChange={setControlledHoverCardOpen}
+              >
+                <HoverCardTrigger className={hoverCardTriggerClasses}>
+                  Passe o mouse ou foque
+                </HoverCardTrigger>
+                <HoverCardContent>
+                  <HoverCardTitle>Hover Card controlado</HoverCardTitle>
+                  <HoverCardDescription>
+                    Estado externo sincronizado com o componente.
+                  </HoverCardDescription>
+                </HoverCardContent>
+              </HoverCard>
+            </div>
+
+            <div className={hoverCardDemoClasses}>
+              <h3 className="font-semibold">Delay configurável</h3>
+              <div className="grid w-full grid-cols-2 gap-3">
+                <label className="space-y-1 text-sm">
+                  <span className="text-hp-muted">Abrir (ms)</span>
+                  <input
+                    className="field"
+                    type="number"
+                    min={0}
+                    value={hoverCardOpenDelay}
+                    onChange={(event) =>
+                      setHoverCardOpenDelay(Number(event.target.value))
+                    }
+                  />
+                </label>
+
+                <label className="space-y-1 text-sm">
+                  <span className="text-hp-muted">Fechar (ms)</span>
+                  <input
+                    className="field"
+                    type="number"
+                    min={0}
+                    value={hoverCardCloseDelay}
+                    onChange={(event) =>
+                      setHoverCardCloseDelay(Number(event.target.value))
+                    }
+                  />
+                </label>
+              </div>
+
+              <HoverCard
+                openDelay={hoverCardOpenDelay}
+                closeDelay={hoverCardCloseDelay}
+              >
+                <HoverCardTrigger className={hoverCardTriggerClasses}>
+                  Testar delays
+                </HoverCardTrigger>
+                <HoverCardContent>
+                  <HoverCardTitle>Delays personalizados</HoverCardTitle>
+                  <HoverCardDescription>
+                    Abra e feche para validar os tempos configurados.
+                  </HoverCardDescription>
+                </HoverCardContent>
+              </HoverCard>
+            </div>
+
+            <div className={hoverCardDemoClasses}>
+              <h3 className="font-semibold">Conteúdo interativo</h3>
+              <HoverCard>
+                <HoverCardTrigger className={hoverCardTriggerClasses}>
+                  Perfil fictício
+                </HoverCardTrigger>
+                <HoverCardContent>
+                  <HoverCardTitle>Marina Alves</HoverCardTitle>
+                  <HoverCardDescription>
+                    Consultora demonstrativa da HPTECH Platform.
+                  </HoverCardDescription>
+                  <button className={hoverCardActionClasses}>
+                    Ver perfil fictício
+                  </button>
+                </HoverCardContent>
+              </HoverCard>
+            </div>
+
+            <div className={hoverCardDemoClasses}>
+              <h3 className="font-semibold">Transição Trigger → Content</h3>
+              <p className="text-sm text-hp-muted">
+                O cartão deve permanecer aberto ao mover o ponteiro.
+              </p>
+              <HoverCard closeDelay={400}>
+                <HoverCardTrigger className={hoverCardTriggerClasses}>
+                  Mova até o conteúdo
+                </HoverCardTrigger>
+                <HoverCardContent>
+                  <HoverCardTitle>Permanência aberta</HoverCardTitle>
+                  <HoverCardDescription>
+                    O ponteiro pode sair do Trigger e entrar no cartão.
+                  </HoverCardDescription>
+                </HoverCardContent>
+              </HoverCard>
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-4">
+            <Dialog>
+              <DialogTrigger className={dialogTriggerClasses}>
+                Hover Card no Dialog
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Contexto Dialog</DialogTitle>
+                  <DialogDescription>
+                    O cartão deve permanecer na camada correta.
+                  </DialogDescription>
+                </DialogHeader>
+                <HoverCardDemo title="Hover Card contextual" />
+                <DialogFooter>
+                  <DialogClose className={dialogSecondaryClasses}>
+                    Fechar Dialog
+                  </DialogClose>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <Drawer>
+              <DrawerTrigger className={drawerTriggerClasses}>
+                Hover Card no Drawer
+              </DrawerTrigger>
+              <DrawerOverlay />
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle>Contexto Drawer</DrawerTitle>
+                  <DrawerDescription>
+                    O cartão usa o Drawer como portal contextual.
+                  </DrawerDescription>
+                </DrawerHeader>
+                <div className="p-[var(--space-6)]">
+                  <HoverCardDemo title="Hover Card contextual" />
+                </div>
+                <DrawerFooter>
+                  <DrawerClose className={drawerSecondaryClasses}>
+                    Fechar Drawer
+                  </DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <ShadowHoverCardDemo mode="open" />
+            <ShadowHoverCardDemo mode="closed" />
+          </div>
+        </PlaygroundSection>
+
         <PlaygroundSection
           title="Dialog"
           description="Validação de abertura, fechamento, foco, backdrop, Escape, estado controlado e múltiplos modais."
@@ -2703,6 +2906,101 @@ function ShadowMenubarDemo({ mode }: { mode: ShadowRootMode }) {
       <h3 className="font-semibold">ShadowRoot {mode}</h3>
       <div ref={wrapperRef} />
       {mountPoint ? createPortal(<MenubarDemo />, mountPoint) : null}
+    </div>
+  );
+}
+
+
+const hoverCardTriggerClasses =
+  "inline-flex min-h-[var(--layout-touch-target)] items-center justify-center rounded-[var(--radius-md)] border border-hp-border bg-hp-surface px-[var(--space-4)] py-[var(--space-2)] text-sm font-medium text-hp-foreground outline-none transition-colors hover:bg-hp-surface-subtle focus-visible:ring-2 focus-visible:ring-[var(--color-focus)] focus-visible:ring-offset-2";
+const hoverCardActionClasses =
+  "mt-3 inline-flex min-h-[var(--layout-touch-target)] items-center justify-center rounded-[var(--radius-md)] border border-hp-border px-[var(--space-3)] py-[var(--space-2)] text-sm font-medium outline-none transition-colors hover:bg-hp-surface-subtle focus-visible:ring-2 focus-visible:ring-[var(--color-focus)] focus-visible:ring-offset-2";
+const hoverCardDemoClasses =
+  "flex min-w-0 flex-col items-start gap-3 rounded-[var(--radius-lg)] border border-hp-border bg-hp-surface p-[var(--space-4)]";
+
+type HoverCardDemoProps = Pick<
+  React.ComponentProps<typeof HoverCard>,
+  "openDelay" | "closeDelay"
+> &
+  Pick<
+    React.ComponentProps<typeof HoverCardContent>,
+    "side" | "align" | "sideOffset"
+  > & {
+    title: string;
+  };
+
+function HoverCardDemo({
+  title,
+  side,
+  align,
+  sideOffset,
+  ...rootProps
+}: HoverCardDemoProps) {
+  return (
+    <div className={hoverCardDemoClasses}>
+      <h3 className="font-semibold">{title}</h3>
+      <HoverCard {...rootProps}>
+        <HoverCardTrigger className={hoverCardTriggerClasses}>
+          Passe o mouse ou foque
+        </HoverCardTrigger>
+        <HoverCardContent
+          side={side}
+          align={align}
+          sideOffset={sideOffset}
+        >
+          <HoverCardTitle>{title}</HoverCardTitle>
+          <HoverCardDescription>
+            Conteúdo fictício para validar o Hover Card oficial.
+          </HoverCardDescription>
+        </HoverCardContent>
+      </HoverCard>
+    </div>
+  );
+}
+
+function ShadowHoverCardDemo({ mode }: { mode: ShadowRootMode }) {
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const [mountPoint, setMountPoint] = useState<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+
+    if (wrapper === null) return;
+
+    const host = document.createElement("div");
+    const root = host.attachShadow({ mode });
+    const target = document.createElement("div");
+
+    root.append(target);
+    wrapper.append(host);
+    setMountPoint(target);
+
+    return () => {
+      setMountPoint(null);
+      host.remove();
+    };
+  }, [mode]);
+
+  return (
+    <div className={hoverCardDemoClasses}>
+      <h3 className="font-semibold">ShadowRoot {mode}</h3>
+      <div ref={wrapperRef} />
+      {mountPoint
+        ? createPortal(
+            <HoverCard>
+              <HoverCardTrigger className={hoverCardTriggerClasses}>
+                Passe o mouse ou foque
+              </HoverCardTrigger>
+              <HoverCardContent>
+                <HoverCardTitle>ShadowRoot {mode}</HoverCardTitle>
+                <HoverCardDescription>
+                  Portal contextual no mesmo root.
+                </HoverCardDescription>
+              </HoverCardContent>
+            </HoverCard>,
+            mountPoint,
+          )
+        : null}
     </div>
   );
 }

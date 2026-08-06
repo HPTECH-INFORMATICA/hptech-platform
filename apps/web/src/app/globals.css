@@ -227,6 +227,15 @@
   --menubar-trigger-focus: var(--color-surface-subtle);
   --menubar-trigger-active: var(--color-action-primary-soft);
 
+  /* Hover Card */
+  --hover-card-background: var(--color-surface);
+  --hover-card-foreground: var(--color-text);
+  --hover-card-border: var(--color-border);
+  --hover-card-shadow: var(--shadow-lg);
+  --hover-card-radius: var(--radius-lg);
+  --hover-card-padding: var(--space-4);
+  --hover-card-width: 20rem;
+
   /* Z-index */
   --z-popover: 70;
   --z-tooltip: 75;
