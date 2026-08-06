@@ -211,6 +211,22 @@
 
   --z-context-menu: 73;
 
+  /* Menubar */
+  --menubar-background: var(--color-surface);
+  --menubar-foreground: var(--color-text);
+  --menubar-border: var(--color-border);
+  --menubar-shadow: var(--shadow-xs);
+  --menubar-radius: var(--radius-lg);
+  --menubar-padding: var(--space-1);
+  --menubar-gap: var(--space-1);
+
+  --menubar-trigger-radius: var(--radius-md);
+  --menubar-trigger-padding-x: var(--space-3);
+  --menubar-trigger-padding-y: var(--space-2);
+  --menubar-trigger-hover: var(--color-surface-subtle);
+  --menubar-trigger-focus: var(--color-surface-subtle);
+  --menubar-trigger-active: var(--color-action-primary-soft);
+
   /* Z-index */
   --z-popover: 70;
   --z-tooltip: 75;

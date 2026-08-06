@@ -47,6 +47,14 @@ import DropdownMenu, {
 } from "@/components/ui/DropdownMenu";
 import IconButton from "@/components/ui/IconButton";
 import Input from "@/components/ui/Input";
+import Menubar, {
+  MenubarContent,
+  MenubarItem,
+  MenubarLabel,
+  MenubarMenu,
+  MenubarSeparator,
+  MenubarTrigger,
+} from "@/components/ui/Menubar";
 import Popover, {
   PopoverClose,
   PopoverContent,
@@ -92,6 +100,10 @@ export default function UIPlaygroundClient() {
   const [controlledContextMenuOpen, setControlledContextMenuOpen] =
     useState(false);
   const [preventedContextSelectionCount, setPreventedContextSelectionCount] =
+    useState(0);
+  const [controlledMenubarValue, setControlledMenubarValue] =
+    useState<string | null>(null);
+  const [preventedMenubarSelectionCount, setPreventedMenubarSelectionCount] =
     useState(0);
   const initialFocusRef = useRef<HTMLButtonElement | null>(null);
   const drawerInitialFocusRef = useRef<HTMLInputElement | null>(null);
@@ -1295,6 +1307,240 @@ export default function UIPlaygroundClient() {
           </div>
         </PlaygroundSection>
 
+
+        <PlaygroundSection
+          title="Menubar"
+          description="Barra horizontal de menus com abertura por mouse e teclado, troca entre menus e navegação acessível."
+        >
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className={menubarDemoClasses}>
+              <h3 className="font-semibold">Básico</h3>
+              <p className="text-sm text-hp-muted">
+                Use clique, Enter, Espaço, ArrowDown ou ArrowUp para abrir.
+              </p>
+              <MenubarDemo />
+            </div>
+
+            <div className={menubarDemoClasses}>
+              <h3 className="font-semibold">Controlado</h3>
+              <p className="text-sm text-hp-muted">
+                Menu ativo: {controlledMenubarValue ?? "nenhum"}
+              </p>
+              <Menubar
+                value={controlledMenubarValue}
+                onValueChange={setControlledMenubarValue}
+              >
+                <MenubarMenu value="arquivo-controlado">
+                  <MenubarTrigger>Arquivo</MenubarTrigger>
+                  <MenubarContent>
+                    <MenubarItem>Novo arquivo</MenubarItem>
+                    <MenubarItem>Abrir arquivo</MenubarItem>
+                  </MenubarContent>
+                </MenubarMenu>
+
+                <MenubarMenu value="editar-controlado">
+                  <MenubarTrigger>Editar</MenubarTrigger>
+                  <MenubarContent>
+                    <MenubarItem>Desfazer</MenubarItem>
+                    <MenubarItem>Refazer</MenubarItem>
+                  </MenubarContent>
+                </MenubarMenu>
+              </Menubar>
+            </div>
+
+            <div className={menubarDemoClasses}>
+              <h3 className="font-semibold">Trigger desabilitado</h3>
+              <Menubar>
+                <MenubarMenu value="arquivo-disabled">
+                  <MenubarTrigger>Arquivo</MenubarTrigger>
+                  <MenubarContent>
+                    <MenubarItem>Novo</MenubarItem>
+                  </MenubarContent>
+                </MenubarMenu>
+
+                <MenubarMenu value="editar-disabled">
+                  <MenubarTrigger disabled>Editar desabilitado</MenubarTrigger>
+                  <MenubarContent>
+                    <MenubarItem>Não deve abrir</MenubarItem>
+                  </MenubarContent>
+                </MenubarMenu>
+
+                <MenubarMenu value="ajuda-disabled">
+                  <MenubarTrigger>Ajuda</MenubarTrigger>
+                  <MenubarContent>
+                    <MenubarItem>Sobre</MenubarItem>
+                  </MenubarContent>
+                </MenubarMenu>
+              </Menubar>
+            </div>
+
+            <div className={menubarDemoClasses}>
+              <h3 className="font-semibold">Item desabilitado</h3>
+              <Menubar>
+                <MenubarMenu value="arquivo-item-disabled">
+                  <MenubarTrigger>Arquivo</MenubarTrigger>
+                  <MenubarContent>
+                    <MenubarItem>Novo</MenubarItem>
+                    <MenubarItem disabled>Salvar indisponível</MenubarItem>
+                    <MenubarItem>Fechar</MenubarItem>
+                  </MenubarContent>
+                </MenubarMenu>
+
+                <MenubarMenu value="ajuda-item-disabled">
+                  <MenubarTrigger>Ajuda</MenubarTrigger>
+                  <MenubarContent>
+                    <MenubarItem>Documentação</MenubarItem>
+                  </MenubarContent>
+                </MenubarMenu>
+              </Menubar>
+            </div>
+
+            <div className={menubarDemoClasses}>
+              <h3 className="font-semibold">Seleção prevenida</h3>
+              <p className="text-sm text-hp-muted">
+                Tentativas: {preventedMenubarSelectionCount}
+              </p>
+              <Menubar>
+                <MenubarMenu value="arquivo-prevented">
+                  <MenubarTrigger>Arquivo</MenubarTrigger>
+                  <MenubarContent>
+                    <MenubarItem
+                      onSelect={(event) => {
+                        event.preventDefault();
+                        setPreventedMenubarSelectionCount(
+                          (value) => value + 1,
+                        );
+                      }}
+                    >
+                      Manter menu aberto
+                    </MenubarItem>
+                    <MenubarItem>Fechar normalmente</MenubarItem>
+                  </MenubarContent>
+                </MenubarMenu>
+
+                <MenubarMenu value="ajuda-prevented">
+                  <MenubarTrigger>Ajuda</MenubarTrigger>
+                  <MenubarContent>
+                    <MenubarItem>Sobre</MenubarItem>
+                  </MenubarContent>
+                </MenubarMenu>
+              </Menubar>
+            </div>
+
+            <div className={menubarDemoClasses}>
+              <h3 className="font-semibold">Label, Separator e Danger</h3>
+              <Menubar>
+                <MenubarMenu value="conta-completa">
+                  <MenubarTrigger>Conta</MenubarTrigger>
+                  <MenubarContent>
+                    <MenubarLabel>Conta demonstrativa</MenubarLabel>
+                    <MenubarItem>Perfil</MenubarItem>
+                    <MenubarItem inset>Preferências</MenubarItem>
+                    <MenubarSeparator />
+                    <MenubarItem variant="danger">
+                      Encerrar sessão fictícia
+                    </MenubarItem>
+                  </MenubarContent>
+                </MenubarMenu>
+
+                <MenubarMenu value="ajuda-completa">
+                  <MenubarTrigger>Ajuda</MenubarTrigger>
+                  <MenubarContent>
+                    <MenubarItem>Central de ajuda</MenubarItem>
+                  </MenubarContent>
+                </MenubarMenu>
+              </Menubar>
+            </div>
+
+            <div className={menubarDemoClasses}>
+              <h3 className="font-semibold">Loop desativado</h3>
+              <p className="text-sm text-hp-muted">
+                ArrowLeft e ArrowRight param nas extremidades.
+              </p>
+              <Menubar loop={false}>
+                <MenubarMenu value="primeiro-sem-loop">
+                  <MenubarTrigger>Primeiro</MenubarTrigger>
+                  <MenubarContent>
+                    <MenubarItem>Ação A</MenubarItem>
+                  </MenubarContent>
+                </MenubarMenu>
+
+                <MenubarMenu value="segundo-sem-loop">
+                  <MenubarTrigger>Segundo</MenubarTrigger>
+                  <MenubarContent>
+                    <MenubarItem>Ação B</MenubarItem>
+                  </MenubarContent>
+                </MenubarMenu>
+
+                <MenubarMenu value="ultimo-sem-loop">
+                  <MenubarTrigger>Último</MenubarTrigger>
+                  <MenubarContent>
+                    <MenubarItem>Ação C</MenubarItem>
+                  </MenubarContent>
+                </MenubarMenu>
+              </Menubar>
+            </div>
+
+            <div className={menubarDemoClasses}>
+              <h3 className="font-semibold">Troca por hover</h3>
+              <p className="text-sm text-hp-muted">
+                Abra um menu e passe o mouse sobre os outros Triggers.
+              </p>
+              <MenubarDemo />
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-4">
+            <Dialog>
+              <DialogTrigger className={dialogTriggerClasses}>
+                Menubar no Dialog
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Contexto Dialog</DialogTitle>
+                  <DialogDescription>
+                    Os menus devem permanecer na camada correta.
+                  </DialogDescription>
+                </DialogHeader>
+                <MenubarDemo />
+                <DialogFooter>
+                  <DialogClose className={dialogSecondaryClasses}>
+                    Fechar Dialog
+                  </DialogClose>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <Drawer>
+              <DrawerTrigger className={drawerTriggerClasses}>
+                Menubar no Drawer
+              </DrawerTrigger>
+              <DrawerOverlay />
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle>Contexto Drawer</DrawerTitle>
+                  <DrawerDescription>
+                    Os menus usam o Drawer como portal contextual.
+                  </DrawerDescription>
+                </DrawerHeader>
+                <div className="p-[var(--space-6)]">
+                  <MenubarDemo />
+                </div>
+                <DrawerFooter>
+                  <DrawerClose className={drawerSecondaryClasses}>
+                    Fechar Drawer
+                  </DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <ShadowMenubarDemo mode="open" />
+            <ShadowMenubarDemo mode="closed" />
+          </div>
+        </PlaygroundSection>
+
         <PlaygroundSection
           title="Dialog"
           description="Validação de abertura, fechamento, foco, backdrop, Escape, estado controlado e múltiplos modais."
@@ -2379,6 +2625,84 @@ function ShadowContextMenuDemo({ mode }: { mode: ShadowRootMode }) {
             mountPoint,
           )
         : null}
+    </div>
+  );
+}
+
+
+const menubarDemoClasses =
+  "flex min-w-0 flex-col items-start gap-3 rounded-[var(--radius-lg)] border border-hp-border bg-hp-surface p-[var(--space-4)]";
+
+function MenubarDemo() {
+  return (
+    <Menubar>
+      <MenubarMenu value="arquivo-demo">
+        <MenubarTrigger>Arquivo</MenubarTrigger>
+        <MenubarContent>
+          <MenubarLabel>Arquivo</MenubarLabel>
+          <MenubarItem>Novo arquivo</MenubarItem>
+          <MenubarItem>Abrir arquivo</MenubarItem>
+          <MenubarSeparator />
+          <MenubarItem>Fechar</MenubarItem>
+        </MenubarContent>
+      </MenubarMenu>
+
+      <MenubarMenu value="editar-demo">
+        <MenubarTrigger>Editar</MenubarTrigger>
+        <MenubarContent>
+          <MenubarLabel>Editar</MenubarLabel>
+          <MenubarItem>Desfazer</MenubarItem>
+          <MenubarItem>Refazer</MenubarItem>
+        </MenubarContent>
+      </MenubarMenu>
+
+      <MenubarMenu value="visualizar-demo">
+        <MenubarTrigger>Visualizar</MenubarTrigger>
+        <MenubarContent>
+          <MenubarItem>Ampliar</MenubarItem>
+          <MenubarItem>Reduzir</MenubarItem>
+        </MenubarContent>
+      </MenubarMenu>
+
+      <MenubarMenu value="ajuda-demo">
+        <MenubarTrigger>Ajuda</MenubarTrigger>
+        <MenubarContent>
+          <MenubarItem>Documentação</MenubarItem>
+          <MenubarItem>Sobre</MenubarItem>
+        </MenubarContent>
+      </MenubarMenu>
+    </Menubar>
+  );
+}
+
+function ShadowMenubarDemo({ mode }: { mode: ShadowRootMode }) {
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const [mountPoint, setMountPoint] = useState<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+
+    if (wrapper === null) return;
+
+    const host = document.createElement("div");
+    const root = host.attachShadow({ mode });
+    const target = document.createElement("div");
+
+    root.append(target);
+    wrapper.append(host);
+    setMountPoint(target);
+
+    return () => {
+      setMountPoint(null);
+      host.remove();
+    };
+  }, [mode]);
+
+  return (
+    <div className={menubarDemoClasses}>
+      <h3 className="font-semibold">ShadowRoot {mode}</h3>
+      <div ref={wrapperRef} />
+      {mountPoint ? createPortal(<MenubarDemo />, mountPoint) : null}
     </div>
   );
 }
