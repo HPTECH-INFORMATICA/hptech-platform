@@ -10,6 +10,13 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Checkbox from "@/components/ui/Checkbox";
 import EmptyState from "@/components/ui/EmptyState";
+import ContextMenu, {
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuLabel,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "@/components/ui/ContextMenu";
 import Dialog, {
   DialogClose,
   DialogContent,
@@ -82,6 +89,10 @@ export default function UIPlaygroundClient() {
   const [tooltipDelay, setTooltipDelay] = useState(500);
   const [controlledDropdownOpen, setControlledDropdownOpen] = useState(false);
   const [preventedSelectionCount, setPreventedSelectionCount] = useState(0);
+  const [controlledContextMenuOpen, setControlledContextMenuOpen] =
+    useState(false);
+  const [preventedContextSelectionCount, setPreventedContextSelectionCount] =
+    useState(0);
   const initialFocusRef = useRef<HTMLButtonElement | null>(null);
   const drawerInitialFocusRef = useRef<HTMLInputElement | null>(null);
   const externalFocusRef = useRef<HTMLButtonElement | null>(null);
@@ -1025,6 +1036,262 @@ export default function UIPlaygroundClient() {
           <div className="mt-6 grid gap-4 md:grid-cols-2">
             <ShadowDropdownMenuDemo mode="open" />
             <ShadowDropdownMenuDemo mode="closed" />
+          </div>
+        </PlaygroundSection>
+
+
+        <PlaygroundSection
+          title="Context Menu"
+          description="Menu contextual por clique direito ou teclado, com navegação, seleção, dismiss e portal contextual."
+        >
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <ContextMenuDemo title="Básico" />
+
+            <div className={contextMenuDemoClasses}>
+              <h3 className="font-semibold">Abertura pelo teclado</h3>
+              <p className="text-sm text-hp-muted">
+                Foque a área e use Shift + F10 ou a tecla Menu.
+              </p>
+              <ContextMenu>
+                <ContextMenuTrigger className={contextMenuTriggerClasses}>
+                  Área focável para teclado
+                </ContextMenuTrigger>
+                <ContextMenuContent>
+                  <ContextMenuLabel>Menu pelo teclado</ContextMenuLabel>
+                  <ContextMenuItem>Primeira ação</ContextMenuItem>
+                  <ContextMenuItem>Segunda ação</ContextMenuItem>
+                </ContextMenuContent>
+              </ContextMenu>
+            </div>
+
+            <div className={contextMenuDemoClasses}>
+              <h3 className="font-semibold">Controlado</h3>
+              <p className="text-sm text-hp-muted">
+                Estado: {controlledContextMenuOpen ? "aberto" : "fechado"}
+              </p>
+              <ContextMenu
+                open={controlledContextMenuOpen}
+                onOpenChange={setControlledContextMenuOpen}
+              >
+                <ContextMenuTrigger className={contextMenuTriggerClasses}>
+                  Clique com o botão direito
+                </ContextMenuTrigger>
+                <ContextMenuContent>
+                  <ContextMenuLabel>Menu controlado</ContextMenuLabel>
+                  <ContextMenuItem>Primeira ação</ContextMenuItem>
+                  <ContextMenuItem>Segunda ação</ContextMenuItem>
+                </ContextMenuContent>
+              </ContextMenu>
+            </div>
+
+            <ContextMenuDemo
+              title="Escape desativado"
+              closeOnEscape={false}
+              description="Escape não fecha; seleção e clique externo continuam ativos."
+            />
+
+            <ContextMenuDemo
+              title="Interação externa desativada"
+              closeOnInteractOutside={false}
+              description="Clique externo não fecha; Escape e seleção continuam ativos."
+            />
+
+            <div className={contextMenuDemoClasses}>
+              <h3 className="font-semibold">Trigger desabilitado</h3>
+              <ContextMenu>
+                <ContextMenuTrigger
+                  disabled
+                  className={contextMenuTriggerClasses}
+                >
+                  Não deve abrir
+                </ContextMenuTrigger>
+                <ContextMenuContent>
+                  <ContextMenuItem>
+                    Este conteúdo não deve aparecer
+                  </ContextMenuItem>
+                </ContextMenuContent>
+              </ContextMenu>
+            </div>
+
+            <div className={contextMenuDemoClasses}>
+              <h3 className="font-semibold">Item desabilitado</h3>
+              <ContextMenu>
+                <ContextMenuTrigger className={contextMenuTriggerClasses}>
+                  Clique com o botão direito
+                </ContextMenuTrigger>
+                <ContextMenuContent>
+                  <ContextMenuItem>Item disponível</ContextMenuItem>
+                  <ContextMenuItem disabled>
+                    Item desabilitado
+                  </ContextMenuItem>
+                  <ContextMenuItem>Outra ação</ContextMenuItem>
+                </ContextMenuContent>
+              </ContextMenu>
+            </div>
+
+            <div className={contextMenuDemoClasses}>
+              <h3 className="font-semibold">Seleção prevenida</h3>
+              <p className="text-sm text-hp-muted">
+                Tentativas: {preventedContextSelectionCount}
+              </p>
+              <ContextMenu>
+                <ContextMenuTrigger className={contextMenuTriggerClasses}>
+                  Clique com o botão direito
+                </ContextMenuTrigger>
+                <ContextMenuContent>
+                  <ContextMenuItem
+                    onSelect={(event) => {
+                      event.preventDefault();
+                      setPreventedContextSelectionCount(
+                        (value) => value + 1,
+                      );
+                    }}
+                  >
+                    Manter menu aberto
+                  </ContextMenuItem>
+                  <ContextMenuItem>Fechar normalmente</ContextMenuItem>
+                </ContextMenuContent>
+              </ContextMenu>
+            </div>
+
+            <div className={contextMenuDemoClasses}>
+              <h3 className="font-semibold">Label, separador e danger</h3>
+              <ContextMenu>
+                <ContextMenuTrigger className={contextMenuTriggerClasses}>
+                  Clique com o botão direito
+                </ContextMenuTrigger>
+                <ContextMenuContent>
+                  <ContextMenuLabel>Conta demonstrativa</ContextMenuLabel>
+                  <ContextMenuItem>Visualizar perfil</ContextMenuItem>
+                  <ContextMenuItem inset>Preferências</ContextMenuItem>
+                  <ContextMenuSeparator />
+                  <ContextMenuItem variant="danger">
+                    Remover item fictício
+                  </ContextMenuItem>
+                </ContextMenuContent>
+              </ContextMenu>
+            </div>
+
+            <div className={contextMenuDemoClasses}>
+              <h3 className="font-semibold">Loop desativado</h3>
+              <p className="text-sm text-hp-muted">
+                As setas param no primeiro e no último item.
+              </p>
+              <ContextMenu>
+                <ContextMenuTrigger className={contextMenuTriggerClasses}>
+                  Testar navegação
+                </ContextMenuTrigger>
+                <ContextMenuContent loop={false}>
+                  <ContextMenuItem>Primeiro</ContextMenuItem>
+                  <ContextMenuItem>Segundo</ContextMenuItem>
+                  <ContextMenuItem>Último</ContextMenuItem>
+                </ContextMenuContent>
+              </ContextMenu>
+            </div>
+
+            <div className={contextMenuDemoClasses}>
+              <h3 className="font-semibold">Reposicionamento</h3>
+              <p className="text-sm text-hp-muted">
+                Abra em pontos diferentes da área enquanto o menu estiver aberto.
+              </p>
+              <ContextMenu>
+                <ContextMenuTrigger className={contextMenuLargeTriggerClasses}>
+                  Clique com o botão direito em posições diferentes
+                </ContextMenuTrigger>
+                <ContextMenuContent>
+                  <ContextMenuItem>Nova posição aplicada</ContextMenuItem>
+                  <ContextMenuItem>Outra ação</ContextMenuItem>
+                </ContextMenuContent>
+              </ContextMenu>
+            </div>
+
+            <div className={contextMenuDemoClasses}>
+              <h3 className="font-semibold">Fechamento por scroll</h3>
+              <div className="h-36 w-full overflow-auto rounded-[var(--radius-md)] border border-hp-border p-[var(--space-4)]">
+                <div className="min-h-64 pt-20">
+                  <ContextMenu>
+                    <ContextMenuTrigger className={contextMenuTriggerClasses}>
+                      Abra e role o container
+                    </ContextMenuTrigger>
+                    <ContextMenuContent>
+                      <ContextMenuItem>
+                        O scroll deve fechar o menu
+                      </ContextMenuItem>
+                    </ContextMenuContent>
+                  </ContextMenu>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-4">
+            <Dialog>
+              <DialogTrigger className={dialogTriggerClasses}>
+                Context Menu no Dialog
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Contexto Dialog</DialogTitle>
+                  <DialogDescription>
+                    O menu deve permanecer na camada correta do Dialog.
+                  </DialogDescription>
+                </DialogHeader>
+                <ContextMenuDemo title="Menu contextual" />
+                <DialogFooter>
+                  <DialogClose className={dialogSecondaryClasses}>
+                    Fechar Dialog
+                  </DialogClose>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <Drawer>
+              <DrawerTrigger className={drawerTriggerClasses}>
+                Context Menu no Drawer
+              </DrawerTrigger>
+              <DrawerOverlay />
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle>Contexto Drawer</DrawerTitle>
+                  <DrawerDescription>
+                    O menu usa o conteúdo do Drawer como portal contextual.
+                  </DrawerDescription>
+                </DrawerHeader>
+                <div className="p-[var(--space-6)]">
+                  <ContextMenuDemo title="Menu contextual" />
+                </div>
+                <DrawerFooter>
+                  <DrawerClose className={drawerSecondaryClasses}>
+                    Fechar Drawer
+                  </DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+
+            <ContextMenu>
+              <ContextMenuTrigger className={contextMenuTriggerClasses}>
+                Menu contextual externo
+              </ContextMenuTrigger>
+              <ContextMenuContent>
+                <ContextMenuLabel>Menu externo</ContextMenuLabel>
+                <ContextMenuItem>Primeira ação</ContextMenuItem>
+                <ContextMenu>
+                  <ContextMenuTrigger className={contextMenuNestedTriggerClasses}>
+                    Área do menu interno
+                  </ContextMenuTrigger>
+                  <ContextMenuContent>
+                    <ContextMenuLabel>Menu interno</ContextMenuLabel>
+                    <ContextMenuItem>Ação interna A</ContextMenuItem>
+                    <ContextMenuItem>Ação interna B</ContextMenuItem>
+                  </ContextMenuContent>
+                </ContextMenu>
+              </ContextMenuContent>
+            </ContextMenu>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <ShadowContextMenuDemo mode="open" />
+            <ShadowContextMenuDemo mode="closed" />
           </div>
         </PlaygroundSection>
 
@@ -2018,6 +2285,97 @@ function ShadowDropdownMenuDemo({ mode }: { mode: ShadowRootMode }) {
                 <DropdownMenuItem>Segunda ação</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>,
+            mountPoint,
+          )
+        : null}
+    </div>
+  );
+}
+
+
+const contextMenuTriggerClasses =
+  "flex min-h-28 w-full items-center justify-center rounded-[var(--radius-lg)] border border-dashed border-hp-border-strong bg-hp-surface-subtle p-[var(--space-4)] text-center text-sm font-medium text-hp-foreground outline-none transition-colors hover:bg-hp-surface focus-visible:ring-2 focus-visible:ring-[var(--color-focus)] focus-visible:ring-offset-2 aria-disabled:cursor-not-allowed aria-disabled:opacity-50";
+const contextMenuLargeTriggerClasses =
+  "flex min-h-40 w-full items-center justify-center rounded-[var(--radius-lg)] border border-dashed border-hp-border-strong bg-hp-surface-subtle p-[var(--space-4)] text-center text-sm font-medium text-hp-foreground outline-none transition-colors hover:bg-hp-surface focus-visible:ring-2 focus-visible:ring-[var(--color-focus)] focus-visible:ring-offset-2";
+const contextMenuNestedTriggerClasses =
+  "flex w-full items-center rounded-[var(--radius-sm)] px-[var(--space-3)] py-[var(--space-2)] text-left text-sm text-[var(--context-menu-foreground)] outline-none transition-colors focus-visible:bg-[var(--context-menu-item-focus)]";
+const contextMenuDemoClasses =
+  "flex min-w-0 flex-col items-start gap-3 rounded-[var(--radius-lg)] border border-hp-border bg-hp-surface p-[var(--space-4)]";
+
+type ContextMenuDemoProps = Pick<
+  React.ComponentProps<typeof ContextMenu>,
+  "closeOnEscape" | "closeOnInteractOutside"
+> & {
+  title: string;
+  description?: string;
+};
+
+function ContextMenuDemo({
+  title,
+  description = "Clique com o botão direito na área ou use Shift + F10.",
+  ...rootProps
+}: ContextMenuDemoProps) {
+  return (
+    <div className={contextMenuDemoClasses}>
+      <h3 className="font-semibold">{title}</h3>
+      <p className="text-sm text-hp-muted">{description}</p>
+      <ContextMenu {...rootProps}>
+        <ContextMenuTrigger className={contextMenuTriggerClasses}>
+          Área do Context Menu
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          <ContextMenuLabel>{title}</ContextMenuLabel>
+          <ContextMenuItem>Visualizar detalhes</ContextMenuItem>
+          <ContextMenuItem>Editar demonstração</ContextMenuItem>
+          <ContextMenuSeparator />
+          <ContextMenuItem variant="danger">
+            Remover item fictício
+          </ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
+    </div>
+  );
+}
+
+function ShadowContextMenuDemo({ mode }: { mode: ShadowRootMode }) {
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const [mountPoint, setMountPoint] = useState<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+
+    if (wrapper === null) return;
+
+    const host = document.createElement("div");
+    const root = host.attachShadow({ mode });
+    const target = document.createElement("div");
+
+    root.append(target);
+    wrapper.append(host);
+    setMountPoint(target);
+
+    return () => {
+      setMountPoint(null);
+      host.remove();
+    };
+  }, [mode]);
+
+  return (
+    <div className={contextMenuDemoClasses}>
+      <h3 className="font-semibold">ShadowRoot {mode}</h3>
+      <div ref={wrapperRef} />
+      {mountPoint
+        ? createPortal(
+            <ContextMenu>
+              <ContextMenuTrigger className={contextMenuTriggerClasses}>
+                Clique com o botão direito
+              </ContextMenuTrigger>
+              <ContextMenuContent>
+                <ContextMenuLabel>ShadowRoot {mode}</ContextMenuLabel>
+                <ContextMenuItem>Primeira ação</ContextMenuItem>
+                <ContextMenuItem>Segunda ação</ContextMenuItem>
+              </ContextMenuContent>
+            </ContextMenu>,
             mountPoint,
           )
         : null}

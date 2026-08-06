@@ -194,6 +194,22 @@
 
   --z-dropdown-menu: 72;
 
+  /* Context Menu */
+  --context-menu-background: var(--dropdown-menu-background);
+  --context-menu-foreground: var(--dropdown-menu-foreground);
+  --context-menu-border: var(--dropdown-menu-border);
+  --context-menu-shadow: var(--dropdown-menu-shadow);
+
+  --context-menu-radius: var(--dropdown-menu-radius);
+  --context-menu-padding: var(--dropdown-menu-padding);
+
+  --context-menu-min-width: var(--dropdown-menu-min-width);
+  --context-menu-max-width: var(--dropdown-menu-max-width);
+
+  --context-menu-item-focus: var(--dropdown-menu-item-focus);
+  --context-menu-separator: var(--dropdown-menu-separator);
+
+  --z-context-menu: 73;
 
   /* Z-index */
   --z-popover: 70;
