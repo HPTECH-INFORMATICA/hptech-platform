@@ -265,6 +265,15 @@
   --accordion-content-padding-bottom: var(--space-4);
   --accordion-content-foreground: var(--color-text-muted);
 
+  /* Collapsible */
+  --collapsible-foreground: var(--color-text);
+  --collapsible-content-foreground: var(--color-text-muted);
+  --collapsible-trigger-radius: var(--radius-md);
+  --collapsible-trigger-padding-x: var(--space-3);
+  --collapsible-trigger-padding-y: var(--space-2);
+  --collapsible-trigger-hover: var(--color-surface-subtle);
+  --collapsible-trigger-focus: var(--color-surface-subtle);
+
   /* Z-index */
   --z-popover: 70;
   --z-tooltip: 75;

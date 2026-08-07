@@ -15,6 +15,10 @@ import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Checkbox from "@/components/ui/Checkbox";
 import EmptyState from "@/components/ui/EmptyState";
+import Collapsible, {
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/Collapsible";
 import ContextMenu, {
   ContextMenuContent,
   ContextMenuItem,
@@ -138,6 +142,8 @@ export default function UIPlaygroundClient() {
     useState("item-1");
   const [controlledAccordionMultiple, setControlledAccordionMultiple] =
     useState<string[]>(["item-a"]);
+  const [controlledCollapsibleOpen, setControlledCollapsibleOpen] =
+    useState(false);
   const initialFocusRef = useRef<HTMLButtonElement | null>(null);
   const drawerInitialFocusRef = useRef<HTMLInputElement | null>(null);
   const externalFocusRef = useRef<HTMLButtonElement | null>(null);
@@ -2297,6 +2303,192 @@ export default function UIPlaygroundClient() {
           </div>
         </PlaygroundSection>
 
+
+        <PlaygroundSection
+          title="Collapsible"
+          description="Bloco expansível independente com estado controlado e não controlado, disabled, forceMount e compatibilidade contextual."
+        >
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className={collapsibleDemoClasses}>
+              <h3 className="font-semibold">Básico</h3>
+              <CollapsibleDemo />
+            </div>
+
+            <div className={collapsibleDemoClasses}>
+              <h3 className="font-semibold">Default Open</h3>
+              <Collapsible defaultOpen>
+                <CollapsibleTrigger className={collapsibleTriggerClasses}>
+                  Seção aberta inicialmente
+                </CollapsibleTrigger>
+                <CollapsibleContent className={collapsibleContentClasses}>
+                  Este conteúdo começa visível e pode ser recolhido.
+                </CollapsibleContent>
+              </Collapsible>
+            </div>
+
+            <div className={collapsibleDemoClasses}>
+              <h3 className="font-semibold">Controlado</h3>
+              <p className="text-sm text-hp-muted">
+                Estado: {controlledCollapsibleOpen ? "aberto" : "fechado"}
+              </p>
+              <Collapsible
+                open={controlledCollapsibleOpen}
+                onOpenChange={setControlledCollapsibleOpen}
+              >
+                <CollapsibleTrigger className={collapsibleTriggerClasses}>
+                  Alternar estado controlado
+                </CollapsibleTrigger>
+                <CollapsibleContent className={collapsibleContentClasses}>
+                  O estado acima deve acompanhar a abertura e o fechamento.
+                </CollapsibleContent>
+              </Collapsible>
+            </div>
+
+            <div className={collapsibleDemoClasses}>
+              <h3 className="font-semibold">Disabled</h3>
+              <Collapsible disabled>
+                <CollapsibleTrigger className={collapsibleTriggerClasses}>
+                  Trigger desabilitado
+                </CollapsibleTrigger>
+                <CollapsibleContent className={collapsibleContentClasses}>
+                  Este conteúdo não deve abrir pelo Trigger.
+                </CollapsibleContent>
+              </Collapsible>
+            </div>
+
+            <div className={collapsibleDemoClasses}>
+              <h3 className="font-semibold">forceMount</h3>
+              <p className="text-sm text-hp-muted">
+                O conteúdo permanece montado quando fechado, usando hidden.
+              </p>
+              <Collapsible>
+                <CollapsibleTrigger className={collapsibleTriggerClasses}>
+                  Mostrar conteúdo montado
+                </CollapsibleTrigger>
+                <CollapsibleContent
+                  forceMount
+                  className={collapsibleContentClasses}
+                >
+                  Este elemento permanece no DOM mesmo no estado fechado.
+                </CollapsibleContent>
+              </Collapsible>
+            </div>
+
+            <div className={collapsibleDemoClasses}>
+              <h3 className="font-semibold">Conteúdo interativo</h3>
+              <Collapsible>
+                <CollapsibleTrigger className={collapsibleTriggerClasses}>
+                  Abrir ações
+                </CollapsibleTrigger>
+                <CollapsibleContent className={collapsibleContentClasses}>
+                  <div className="space-y-3">
+                    <p>
+                      O conteúdo expandido pode conter controles interativos.
+                    </p>
+                    <button className={collapsibleActionClasses}>
+                      Ação demonstrativa
+                    </button>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            </div>
+
+            <div className={collapsibleDemoClasses}>
+              <h3 className="font-semibold">Conteúdo longo</h3>
+              <Collapsible defaultOpen>
+                <CollapsibleTrigger className={collapsibleTriggerClasses}>
+                  Detalhes completos
+                </CollapsibleTrigger>
+                <CollapsibleContent className={collapsibleContentClasses}>
+                  <div className="space-y-3">
+                    <p>
+                      Este cenário valida leitura, espaçamento e comportamento
+                      com um bloco maior de informações.
+                    </p>
+                    <p>
+                      O Collapsible deve expandir e recolher sem afetar os
+                      componentes vizinhos do Playground.
+                    </p>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            </div>
+
+            <div className={collapsibleDemoClasses}>
+              <h3 className="font-semibold">Múltiplos independentes</h3>
+              <div className="w-full space-y-3">
+                <Collapsible>
+                  <CollapsibleTrigger className={collapsibleTriggerClasses}>
+                    Primeiro bloco
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className={collapsibleContentClasses}>
+                    Primeiro conteúdo independente.
+                  </CollapsibleContent>
+                </Collapsible>
+
+                <Collapsible>
+                  <CollapsibleTrigger className={collapsibleTriggerClasses}>
+                    Segundo bloco
+                  </CollapsibleTrigger>
+                  <CollapsibleContent className={collapsibleContentClasses}>
+                    Segundo conteúdo independente.
+                  </CollapsibleContent>
+                </Collapsible>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-4">
+            <Dialog>
+              <DialogTrigger className={dialogTriggerClasses}>
+                Collapsible no Dialog
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Contexto Dialog</DialogTitle>
+                  <DialogDescription>
+                    O Collapsible deve funcionar normalmente dentro do modal.
+                  </DialogDescription>
+                </DialogHeader>
+                <CollapsibleDemo />
+                <DialogFooter>
+                  <DialogClose className={dialogSecondaryClasses}>
+                    Fechar Dialog
+                  </DialogClose>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <Drawer>
+              <DrawerTrigger className={drawerTriggerClasses}>
+                Collapsible no Drawer
+              </DrawerTrigger>
+              <DrawerOverlay />
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle>Contexto Drawer</DrawerTitle>
+                  <DrawerDescription>
+                    O Collapsible deve funcionar normalmente dentro do Drawer.
+                  </DrawerDescription>
+                </DrawerHeader>
+                <div className="p-[var(--space-6)]">
+                  <CollapsibleDemo />
+                </div>
+                <DrawerFooter>
+                  <DrawerClose className={drawerSecondaryClasses}>
+                    Fechar Drawer
+                  </DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <ShadowCollapsibleDemo mode="open" />
+            <ShadowCollapsibleDemo mode="closed" />
+          </div>
+        </PlaygroundSection>
+
         <PlaygroundSection
           title="Dialog"
           description="Validação de abertura, fechamento, foco, backdrop, Escape, estado controlado e múltiplos modais."
@@ -3706,6 +3898,67 @@ function ShadowAccordionDemo({ mode }: { mode: ShadowRootMode }) {
       <h3 className="font-semibold">ShadowRoot {mode}</h3>
       <div ref={wrapperRef} />
       {mountPoint ? createPortal(<AccordionDemo />, mountPoint) : null}
+    </div>
+  );
+}
+
+
+const collapsibleDemoClasses =
+  "flex min-w-0 flex-col items-start gap-3 rounded-[var(--radius-lg)] border border-hp-border bg-hp-surface p-[var(--space-4)]";
+const collapsibleTriggerClasses =
+  "w-full justify-between border border-hp-border bg-hp-surface";
+const collapsibleContentClasses =
+  "mt-2 rounded-[var(--radius-md)] border border-hp-border bg-hp-surface-subtle p-[var(--space-4)]";
+const collapsibleActionClasses =
+  "inline-flex min-h-[var(--layout-touch-target)] items-center justify-center rounded-[var(--radius-md)] border border-hp-border px-[var(--space-3)] py-[var(--space-2)] text-sm font-medium outline-none transition-colors hover:bg-hp-surface focus-visible:ring-2 focus-visible:ring-[var(--color-focus)] focus-visible:ring-offset-2";
+
+function CollapsibleDemo() {
+  return (
+    <Collapsible>
+      <CollapsibleTrigger className={collapsibleTriggerClasses}>
+        Mostrar detalhes
+      </CollapsibleTrigger>
+      <CollapsibleContent className={collapsibleContentClasses}>
+        Conteúdo demonstrativo do Collapsible oficial da HPTECH Platform.
+      </CollapsibleContent>
+    </Collapsible>
+  );
+}
+
+function ShadowCollapsibleDemo({
+  mode,
+}: {
+  mode: ShadowRootMode;
+}) {
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const [mountPoint, setMountPoint] = useState<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+
+    if (wrapper === null) return;
+
+    const host = document.createElement("div");
+    const root = host.attachShadow({ mode });
+    const target = document.createElement("div");
+
+    root.append(target);
+    wrapper.append(host);
+    setMountPoint(target);
+
+    return () => {
+      setMountPoint(null);
+      host.remove();
+    };
+  }, [mode]);
+
+  return (
+    <div className={collapsibleDemoClasses}>
+      <h3 className="font-semibold">ShadowRoot {mode}</h3>
+      <div ref={wrapperRef} />
+      {mountPoint
+        ? createPortal(<CollapsibleDemo />, mountPoint)
+        : null}
     </div>
   );
 }
