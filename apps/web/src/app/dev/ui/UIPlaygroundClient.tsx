@@ -3,6 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
+import Accordion, {
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/Accordion";
 import Alert from "@/components/ui/Alert";
 import Avatar from "@/components/ui/Avatar";
 import Badge from "@/components/ui/Badge";
@@ -129,6 +134,10 @@ export default function UIPlaygroundClient() {
   const [hoverCardCloseDelay, setHoverCardCloseDelay] = useState(150);
   const [controlledNavigationValue, setControlledNavigationValue] =
     useState<string | null>(null);
+  const [controlledAccordionValue, setControlledAccordionValue] =
+    useState("item-1");
+  const [controlledAccordionMultiple, setControlledAccordionMultiple] =
+    useState<string[]>(["item-a"]);
   const initialFocusRef = useRef<HTMLButtonElement | null>(null);
   const drawerInitialFocusRef = useRef<HTMLInputElement | null>(null);
   const externalFocusRef = useRef<HTMLButtonElement | null>(null);
@@ -2021,6 +2030,273 @@ export default function UIPlaygroundClient() {
           </div>
         </PlaygroundSection>
 
+
+        <PlaygroundSection
+          title="Accordion"
+          description="Seções expansíveis com modos single e multiple, estado controlado, collapsible, disabled e navegação por teclado."
+        >
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className={accordionDemoClasses}>
+              <h3 className="font-semibold">Single</h3>
+              <p className="text-sm text-hp-muted">
+                Apenas um item permanece aberto por vez.
+              </p>
+              <Accordion defaultValue="single-1">
+                <AccordionItem value="single-1">
+                  <AccordionTrigger>O que é a HPTECH Platform?</AccordionTrigger>
+                  <AccordionContent>
+                    Base demonstrativa do Design System da HPTECH Platform.
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="single-2">
+                  <AccordionTrigger>Como funciona?</AccordionTrigger>
+                  <AccordionContent>
+                    Cada componente é validado tecnicamente e visualmente antes do commit.
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="single-3">
+                  <AccordionTrigger>Onde é usado?</AccordionTrigger>
+                  <AccordionContent>
+                    Em experiências web reutilizáveis da plataforma.
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </div>
+
+            <div className={accordionDemoClasses}>
+              <h3 className="font-semibold">Single + Collapsible</h3>
+              <p className="text-sm text-hp-muted">
+                O item aberto pode ser fechado novamente.
+              </p>
+              <Accordion collapsible defaultValue="collapsible-1">
+                <AccordionItem value="collapsible-1">
+                  <AccordionTrigger>Primeiro item</AccordionTrigger>
+                  <AccordionContent>
+                    Clique novamente no Trigger para fechar.
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="collapsible-2">
+                  <AccordionTrigger>Segundo item</AccordionTrigger>
+                  <AccordionContent>
+                    Ao abrir este, o anterior é fechado.
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </div>
+
+            <div className={accordionDemoClasses}>
+              <h3 className="font-semibold">Multiple</h3>
+              <p className="text-sm text-hp-muted">
+                Vários itens podem permanecer abertos simultaneamente.
+              </p>
+              <Accordion
+                type="multiple"
+                defaultValue={["multiple-1", "multiple-2"]}
+              >
+                <AccordionItem value="multiple-1">
+                  <AccordionTrigger>CRM</AccordionTrigger>
+                  <AccordionContent>
+                    Gestão demonstrativa de leads e relacionamento.
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="multiple-2">
+                  <AccordionTrigger>Agenda</AccordionTrigger>
+                  <AccordionContent>
+                    Organização demonstrativa de compromissos e atendimentos.
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="multiple-3">
+                  <AccordionTrigger>Financeiro</AccordionTrigger>
+                  <AccordionContent>
+                    Visão demonstrativa de indicadores financeiros.
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </div>
+
+            <div className={accordionDemoClasses}>
+              <h3 className="font-semibold">Controlado — Single</h3>
+              <p className="text-sm text-hp-muted">
+                Valor atual: {controlledAccordionValue || "nenhum"}
+              </p>
+              <Accordion
+                value={controlledAccordionValue}
+                onValueChange={(value) =>
+                  setControlledAccordionValue(
+                    typeof value === "string" ? value : "",
+                  )
+                }
+                collapsible
+              >
+                <AccordionItem value="item-1">
+                  <AccordionTrigger>Item 1</AccordionTrigger>
+                  <AccordionContent>
+                    Estado controlado externamente.
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="item-2">
+                  <AccordionTrigger>Item 2</AccordionTrigger>
+                  <AccordionContent>
+                    Alterar este item atualiza o estado acima.
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </div>
+
+            <div className={accordionDemoClasses}>
+              <h3 className="font-semibold">Controlado — Multiple</h3>
+              <p className="text-sm text-hp-muted">
+                Abertos: {controlledAccordionMultiple.join(", ") || "nenhum"}
+              </p>
+              <Accordion
+                type="multiple"
+                value={controlledAccordionMultiple}
+                onValueChange={(value) =>
+                  setControlledAccordionMultiple(
+                    Array.isArray(value) ? value : [],
+                  )
+                }
+              >
+                <AccordionItem value="item-a">
+                  <AccordionTrigger>Item A</AccordionTrigger>
+                  <AccordionContent>
+                    Pode permanecer aberto com outros itens.
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="item-b">
+                  <AccordionTrigger>Item B</AccordionTrigger>
+                  <AccordionContent>
+                    Estado multiple controlado externamente.
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="item-c">
+                  <AccordionTrigger>Item C</AccordionTrigger>
+                  <AccordionContent>
+                    Também pode ser combinado com A e B.
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </div>
+
+            <div className={accordionDemoClasses}>
+              <h3 className="font-semibold">Disabled</h3>
+              <Accordion defaultValue="enabled-item">
+                <AccordionItem value="enabled-item">
+                  <AccordionTrigger>Item disponível</AccordionTrigger>
+                  <AccordionContent>
+                    Este item funciona normalmente.
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="disabled-item" disabled>
+                  <AccordionTrigger>Item desabilitado</AccordionTrigger>
+                  <AccordionContent>
+                    Este conteúdo não deve ser aberto pelo usuário.
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="enabled-item-2">
+                  <AccordionTrigger>Outro item disponível</AccordionTrigger>
+                  <AccordionContent>
+                    A navegação por teclado deve ignorar o item desabilitado.
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </div>
+
+            <div className={accordionDemoClasses}>
+              <h3 className="font-semibold">Loop desativado</h3>
+              <p className="text-sm text-hp-muted">
+                ArrowDown e ArrowUp param nas extremidades.
+              </p>
+              <Accordion loop={false}>
+                <AccordionItem value="loop-1">
+                  <AccordionTrigger>Primeiro</AccordionTrigger>
+                  <AccordionContent>Primeiro conteúdo.</AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="loop-2">
+                  <AccordionTrigger>Segundo</AccordionTrigger>
+                  <AccordionContent>Segundo conteúdo.</AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="loop-3">
+                  <AccordionTrigger>Último</AccordionTrigger>
+                  <AccordionContent>Último conteúdo.</AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </div>
+
+            <div className={accordionDemoClasses}>
+              <h3 className="font-semibold">Conteúdo longo</h3>
+              <Accordion collapsible defaultValue="long-1">
+                <AccordionItem value="long-1">
+                  <AccordionTrigger>Detalhes completos</AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-3">
+                      <p>
+                        Este cenário valida múltiplos parágrafos e conteúdo mais extenso dentro da região expandida.
+                      </p>
+                      <p>
+                        O layout deve manter largura, espaçamento, leitura e foco sem quebrar o restante do Playground.
+                      </p>
+                      <button className={accordionActionClasses}>
+                        Ação demonstrativa
+                      </button>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-4">
+            <Dialog>
+              <DialogTrigger className={dialogTriggerClasses}>
+                Accordion no Dialog
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Contexto Dialog</DialogTitle>
+                  <DialogDescription>
+                    O Accordion deve funcionar normalmente dentro do modal.
+                  </DialogDescription>
+                </DialogHeader>
+                <AccordionDemo />
+                <DialogFooter>
+                  <DialogClose className={dialogSecondaryClasses}>
+                    Fechar Dialog
+                  </DialogClose>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <Drawer>
+              <DrawerTrigger className={drawerTriggerClasses}>
+                Accordion no Drawer
+              </DrawerTrigger>
+              <DrawerOverlay />
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle>Contexto Drawer</DrawerTitle>
+                  <DrawerDescription>
+                    O Accordion deve funcionar normalmente dentro do Drawer.
+                  </DrawerDescription>
+                </DrawerHeader>
+                <div className="p-[var(--space-6)]">
+                  <AccordionDemo />
+                </div>
+                <DrawerFooter>
+                  <DrawerClose className={drawerSecondaryClasses}>
+                    Fechar Drawer
+                  </DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <ShadowAccordionDemo mode="open" />
+            <ShadowAccordionDemo mode="closed" />
+          </div>
+        </PlaygroundSection>
+
         <PlaygroundSection
           title="Dialog"
           description="Validação de abertura, fechamento, foco, backdrop, Escape, estado controlado e múltiplos modais."
@@ -3367,6 +3643,69 @@ function ShadowNavigationMenuDemo({
       {mountPoint
         ? createPortal(<NavigationMenuDemo />, mountPoint)
         : null}
+    </div>
+  );
+}
+
+
+const accordionDemoClasses =
+  "flex min-w-0 flex-col items-start gap-3 rounded-[var(--radius-lg)] border border-hp-border bg-hp-surface p-[var(--space-4)]";
+const accordionActionClasses =
+  "inline-flex min-h-[var(--layout-touch-target)] items-center justify-center rounded-[var(--radius-md)] border border-hp-border px-[var(--space-3)] py-[var(--space-2)] text-sm font-medium outline-none transition-colors hover:bg-hp-surface-subtle focus-visible:ring-2 focus-visible:ring-[var(--color-focus)] focus-visible:ring-offset-2";
+
+function AccordionDemo() {
+  return (
+    <Accordion collapsible defaultValue="demo-1">
+      <AccordionItem value="demo-1">
+        <AccordionTrigger>Primeira seção</AccordionTrigger>
+        <AccordionContent>
+          Conteúdo demonstrativo da primeira seção.
+        </AccordionContent>
+      </AccordionItem>
+      <AccordionItem value="demo-2">
+        <AccordionTrigger>Segunda seção</AccordionTrigger>
+        <AccordionContent>
+          Conteúdo demonstrativo da segunda seção.
+        </AccordionContent>
+      </AccordionItem>
+      <AccordionItem value="demo-3">
+        <AccordionTrigger>Terceira seção</AccordionTrigger>
+        <AccordionContent>
+          Conteúdo demonstrativo da terceira seção.
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
+  );
+}
+
+function ShadowAccordionDemo({ mode }: { mode: ShadowRootMode }) {
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const [mountPoint, setMountPoint] = useState<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+
+    if (wrapper === null) return;
+
+    const host = document.createElement("div");
+    const root = host.attachShadow({ mode });
+    const target = document.createElement("div");
+
+    root.append(target);
+    wrapper.append(host);
+    setMountPoint(target);
+
+    return () => {
+      setMountPoint(null);
+      host.remove();
+    };
+  }, [mode]);
+
+  return (
+    <div className={accordionDemoClasses}>
+      <h3 className="font-semibold">ShadowRoot {mode}</h3>
+      <div ref={wrapperRef} />
+      {mountPoint ? createPortal(<AccordionDemo />, mountPoint) : null}
     </div>
   );
 }

@@ -251,6 +251,20 @@
   --navigation-menu-item-focus: var(--color-surface-subtle);
   --navigation-menu-item-active: var(--color-action-primary-soft);
 
+  /* Accordion */
+  --accordion-background: var(--color-surface);
+  --accordion-foreground: var(--color-text);
+  --accordion-border: var(--color-border);
+  --accordion-radius: var(--radius-lg);
+  --accordion-trigger-padding-x: var(--space-4);
+  --accordion-trigger-padding-y: var(--space-3);
+  --accordion-trigger-hover: var(--color-surface-subtle);
+  --accordion-trigger-focus: var(--color-surface-subtle);
+  --accordion-icon-color: var(--color-text-muted);
+  --accordion-content-padding-x: var(--space-4);
+  --accordion-content-padding-bottom: var(--space-4);
+  --accordion-content-foreground: var(--color-text-muted);
+
   /* Z-index */
   --z-popover: 70;
   --z-tooltip: 75;
