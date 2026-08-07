@@ -236,6 +236,21 @@
   --hover-card-padding: var(--space-4);
   --hover-card-width: 20rem;
 
+  /* Navigation Menu */
+  --navigation-menu-foreground: var(--color-text);
+  --navigation-menu-gap: var(--space-1);
+  --navigation-menu-trigger-radius: var(--radius-md);
+  --navigation-menu-trigger-padding-x: var(--space-3);
+  --navigation-menu-trigger-padding-y: var(--space-2);
+  --navigation-menu-trigger-hover: var(--color-surface-subtle);
+  --navigation-menu-trigger-focus: var(--color-surface-subtle);
+  --navigation-menu-trigger-active: var(--color-action-primary-soft);
+  --navigation-menu-content-min-width: 16rem;
+  --navigation-menu-content-max-width: 36rem;
+  --navigation-menu-item-hover: var(--color-surface-subtle);
+  --navigation-menu-item-focus: var(--color-surface-subtle);
+  --navigation-menu-item-active: var(--color-action-primary-soft);
+
   /* Z-index */
   --z-popover: 70;
   --z-tooltip: 75;

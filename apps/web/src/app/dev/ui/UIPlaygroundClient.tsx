@@ -63,6 +63,16 @@ import Menubar, {
   MenubarSeparator,
   MenubarTrigger,
 } from "@/components/ui/Menubar";
+import NavigationMenu, {
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLabel,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuMenu,
+  NavigationMenuSeparator,
+  NavigationMenuTrigger,
+} from "@/components/ui/NavigationMenu";
 import Popover, {
   PopoverClose,
   PopoverContent,
@@ -117,6 +127,8 @@ export default function UIPlaygroundClient() {
     useState(false);
   const [hoverCardOpenDelay, setHoverCardOpenDelay] = useState(300);
   const [hoverCardCloseDelay, setHoverCardCloseDelay] = useState(150);
+  const [controlledNavigationValue, setControlledNavigationValue] =
+    useState<string | null>(null);
   const initialFocusRef = useRef<HTMLButtonElement | null>(null);
   const drawerInitialFocusRef = useRef<HTMLInputElement | null>(null);
   const externalFocusRef = useRef<HTMLButtonElement | null>(null);
@@ -1744,6 +1756,271 @@ export default function UIPlaygroundClient() {
           </div>
         </PlaygroundSection>
 
+
+        <PlaygroundSection
+          title="Navigation Menu"
+          description="Navegação principal com links diretos, menus expansíveis, estado ativo e conteúdo contextual."
+        >
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className={navigationMenuDemoClasses}>
+              <h3 className="font-semibold">Básico</h3>
+              <p className="text-sm text-hp-muted">
+                Links diretos e menus expansíveis na mesma navegação.
+              </p>
+              <NavigationMenuDemo />
+            </div>
+
+            <div className={navigationMenuDemoClasses}>
+              <h3 className="font-semibold">Controlado</h3>
+              <p className="text-sm text-hp-muted">
+                Menu ativo: {controlledNavigationValue ?? "nenhum"}
+              </p>
+              <NavigationMenu
+                value={controlledNavigationValue}
+                onValueChange={setControlledNavigationValue}
+                aria-label="Navegação controlada"
+              >
+                <NavigationMenuList>
+                  <NavigationMenuLink href="#inicio-controlado" active>
+                    Início
+                  </NavigationMenuLink>
+
+                  <NavigationMenuMenu value="produtos-controlado">
+                    <NavigationMenuTrigger>Produtos</NavigationMenuTrigger>
+                    <NavigationMenuContent>
+                      <NavigationMenuLabel>Produtos</NavigationMenuLabel>
+                      <NavigationMenuLink href="#sites-controlado">
+                        Sites premium
+                      </NavigationMenuLink>
+                      <NavigationMenuLink href="#landing-controlado">
+                        Landing pages
+                      </NavigationMenuLink>
+                    </NavigationMenuContent>
+                  </NavigationMenuMenu>
+
+                  <NavigationMenuMenu value="empresa-controlado">
+                    <NavigationMenuTrigger>Empresa</NavigationMenuTrigger>
+                    <NavigationMenuContent>
+                      <NavigationMenuLink href="#sobre-controlado">
+                        Sobre a HPTECH
+                      </NavigationMenuLink>
+                      <NavigationMenuLink href="#contato-controlado">
+                        Contato
+                      </NavigationMenuLink>
+                    </NavigationMenuContent>
+                  </NavigationMenuMenu>
+                </NavigationMenuList>
+              </NavigationMenu>
+            </div>
+
+            <div className={navigationMenuDemoClasses}>
+              <h3 className="font-semibold">Link ativo</h3>
+              <NavigationMenu aria-label="Navegação com item ativo">
+                <NavigationMenuList>
+                  <NavigationMenuLink href="#dashboard-nav" active>
+                    Dashboard
+                  </NavigationMenuLink>
+                  <NavigationMenuLink href="#crm-nav">CRM</NavigationMenuLink>
+                  <NavigationMenuLink href="#agenda-nav">
+                    Agenda
+                  </NavigationMenuLink>
+                </NavigationMenuList>
+              </NavigationMenu>
+            </div>
+
+            <div className={navigationMenuDemoClasses}>
+              <h3 className="font-semibold">Trigger desabilitado</h3>
+              <NavigationMenu aria-label="Navegação com trigger desabilitado">
+                <NavigationMenuList>
+                  <NavigationMenuMenu value="solucoes-disabled">
+                    <NavigationMenuTrigger>Soluções</NavigationMenuTrigger>
+                    <NavigationMenuContent>
+                      <NavigationMenuLink href="#sites-disabled">
+                        Sites
+                      </NavigationMenuLink>
+                    </NavigationMenuContent>
+                  </NavigationMenuMenu>
+
+                  <NavigationMenuMenu value="recursos-disabled">
+                    <NavigationMenuTrigger disabled>
+                      Recursos indisponíveis
+                    </NavigationMenuTrigger>
+                    <NavigationMenuContent>
+                      <NavigationMenuLink href="#nao-abrir">
+                        Não deve abrir
+                      </NavigationMenuLink>
+                    </NavigationMenuContent>
+                  </NavigationMenuMenu>
+                </NavigationMenuList>
+              </NavigationMenu>
+            </div>
+
+            <div className={navigationMenuDemoClasses}>
+              <h3 className="font-semibold">
+                Label, Separator e Danger
+              </h3>
+              <NavigationMenu aria-label="Navegação completa">
+                <NavigationMenuList>
+                  <NavigationMenuMenu value="conta-navigation">
+                    <NavigationMenuTrigger>Conta</NavigationMenuTrigger>
+                    <NavigationMenuContent>
+                      <NavigationMenuLabel>
+                        Conta demonstrativa
+                      </NavigationMenuLabel>
+                      <NavigationMenuLink href="#perfil-navigation">
+                        Perfil
+                      </NavigationMenuLink>
+                      <NavigationMenuLink
+                        href="#preferencias-navigation"
+                        inset
+                      >
+                        Preferências
+                      </NavigationMenuLink>
+                      <NavigationMenuSeparator />
+                      <NavigationMenuLink
+                        href="#sair-navigation"
+                        variant="danger"
+                      >
+                        Encerrar sessão fictícia
+                      </NavigationMenuLink>
+                    </NavigationMenuContent>
+                  </NavigationMenuMenu>
+
+                  <NavigationMenuLink href="#ajuda-navigation">
+                    Ajuda
+                  </NavigationMenuLink>
+                </NavigationMenuList>
+              </NavigationMenu>
+            </div>
+
+            <div className={navigationMenuDemoClasses}>
+              <h3 className="font-semibold">Conteúdo amplo</h3>
+              <NavigationMenu aria-label="Navegação com conteúdo amplo">
+                <NavigationMenuList>
+                  <NavigationMenuMenu value="plataforma-ampla">
+                    <NavigationMenuTrigger>Plataforma</NavigationMenuTrigger>
+                    <NavigationMenuContent className="w-[32rem]">
+                      <NavigationMenuLabel>
+                        Ecossistema HPTECH
+                      </NavigationMenuLabel>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        <NavigationMenuLink href="#crm-amplo">
+                          CRM e Leads
+                        </NavigationMenuLink>
+                        <NavigationMenuLink href="#agenda-ampla">
+                          Agenda
+                        </NavigationMenuLink>
+                        <NavigationMenuLink href="#financeiro-amplo">
+                          Financeiro
+                        </NavigationMenuLink>
+                        <NavigationMenuLink href="#relatorios-amplo">
+                          Relatórios
+                        </NavigationMenuLink>
+                      </div>
+                    </NavigationMenuContent>
+                  </NavigationMenuMenu>
+
+                  <NavigationMenuLink href="#precos-amplo">
+                    Preços
+                  </NavigationMenuLink>
+                </NavigationMenuList>
+              </NavigationMenu>
+            </div>
+
+            <div className={navigationMenuDemoClasses}>
+              <h3 className="font-semibold">Loop desativado</h3>
+              <p className="text-sm text-hp-muted">
+                ArrowLeft e ArrowRight param nas extremidades.
+              </p>
+              <NavigationMenu
+                loop={false}
+                aria-label="Navegação sem loop"
+              >
+                <NavigationMenuList>
+                  <NavigationMenuMenu value="primeiro-navigation">
+                    <NavigationMenuTrigger>Primeiro</NavigationMenuTrigger>
+                    <NavigationMenuContent>
+                      <NavigationMenuItem>Ação A</NavigationMenuItem>
+                    </NavigationMenuContent>
+                  </NavigationMenuMenu>
+
+                  <NavigationMenuMenu value="segundo-navigation">
+                    <NavigationMenuTrigger>Segundo</NavigationMenuTrigger>
+                    <NavigationMenuContent>
+                      <NavigationMenuItem>Ação B</NavigationMenuItem>
+                    </NavigationMenuContent>
+                  </NavigationMenuMenu>
+
+                  <NavigationMenuMenu value="ultimo-navigation">
+                    <NavigationMenuTrigger>Último</NavigationMenuTrigger>
+                    <NavigationMenuContent>
+                      <NavigationMenuItem>Ação C</NavigationMenuItem>
+                    </NavigationMenuContent>
+                  </NavigationMenuMenu>
+                </NavigationMenuList>
+              </NavigationMenu>
+            </div>
+
+            <div className={navigationMenuDemoClasses}>
+              <h3 className="font-semibold">Troca por hover</h3>
+              <p className="text-sm text-hp-muted">
+                Abra um menu e passe o ponteiro sobre outro Trigger.
+              </p>
+              <NavigationMenuDemo />
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-4">
+            <Dialog>
+              <DialogTrigger className={dialogTriggerClasses}>
+                Navigation Menu no Dialog
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Contexto Dialog</DialogTitle>
+                  <DialogDescription>
+                    Os menus devem permanecer na camada correta.
+                  </DialogDescription>
+                </DialogHeader>
+                <NavigationMenuDemo />
+                <DialogFooter>
+                  <DialogClose className={dialogSecondaryClasses}>
+                    Fechar Dialog
+                  </DialogClose>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <Drawer>
+              <DrawerTrigger className={drawerTriggerClasses}>
+                Navigation Menu no Drawer
+              </DrawerTrigger>
+              <DrawerOverlay />
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle>Contexto Drawer</DrawerTitle>
+                  <DrawerDescription>
+                    Os menus usam o Drawer como portal contextual.
+                  </DrawerDescription>
+                </DrawerHeader>
+                <div className="overflow-x-auto p-[var(--space-6)]">
+                  <NavigationMenuDemo />
+                </div>
+                <DrawerFooter>
+                  <DrawerClose className={drawerSecondaryClasses}>
+                    Fechar Drawer
+                  </DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <ShadowNavigationMenuDemo mode="open" />
+            <ShadowNavigationMenuDemo mode="closed" />
+          </div>
+        </PlaygroundSection>
+
         <PlaygroundSection
           title="Dialog"
           description="Validação de abertura, fechamento, foco, backdrop, Escape, estado controlado e múltiplos modais."
@@ -3000,6 +3277,95 @@ function ShadowHoverCardDemo({ mode }: { mode: ShadowRootMode }) {
             </HoverCard>,
             mountPoint,
           )
+        : null}
+    </div>
+  );
+}
+
+
+const navigationMenuDemoClasses =
+  "flex min-w-0 flex-col items-start gap-3 overflow-x-auto rounded-[var(--radius-lg)] border border-hp-border bg-hp-surface p-[var(--space-4)]";
+
+function NavigationMenuDemo() {
+  return (
+    <NavigationMenu aria-label="Navegação demonstrativa">
+      <NavigationMenuList>
+        <NavigationMenuLink href="#inicio-demo" active>
+          Início
+        </NavigationMenuLink>
+
+        <NavigationMenuMenu value="solucoes-demo">
+          <NavigationMenuTrigger>Soluções</NavigationMenuTrigger>
+          <NavigationMenuContent>
+            <NavigationMenuLabel>Soluções</NavigationMenuLabel>
+            <NavigationMenuLink href="#sites-demo">
+              Sites premium
+            </NavigationMenuLink>
+            <NavigationMenuLink href="#landing-demo">
+              Landing pages
+            </NavigationMenuLink>
+            <NavigationMenuLink href="#plataforma-demo">
+              HPTECH Platform
+            </NavigationMenuLink>
+          </NavigationMenuContent>
+        </NavigationMenuMenu>
+
+        <NavigationMenuMenu value="empresa-demo">
+          <NavigationMenuTrigger>Empresa</NavigationMenuTrigger>
+          <NavigationMenuContent>
+            <NavigationMenuLabel>Empresa</NavigationMenuLabel>
+            <NavigationMenuLink href="#sobre-demo">
+              Sobre
+            </NavigationMenuLink>
+            <NavigationMenuLink href="#contato-demo">
+              Contato
+            </NavigationMenuLink>
+          </NavigationMenuContent>
+        </NavigationMenuMenu>
+
+        <NavigationMenuLink href="#precos-demo">
+          Preços
+        </NavigationMenuLink>
+      </NavigationMenuList>
+    </NavigationMenu>
+  );
+}
+
+function ShadowNavigationMenuDemo({
+  mode,
+}: {
+  mode: ShadowRootMode;
+}) {
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const [mountPoint, setMountPoint] = useState<HTMLDivElement | null>(
+    null,
+  );
+
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+
+    if (wrapper === null) return;
+
+    const host = document.createElement("div");
+    const root = host.attachShadow({ mode });
+    const target = document.createElement("div");
+
+    root.append(target);
+    wrapper.append(host);
+    setMountPoint(target);
+
+    return () => {
+      setMountPoint(null);
+      host.remove();
+    };
+  }, [mode]);
+
+  return (
+    <div className={navigationMenuDemoClasses}>
+      <h3 className="font-semibold">ShadowRoot {mode}</h3>
+      <div ref={wrapperRef} />
+      {mountPoint
+        ? createPortal(<NavigationMenuDemo />, mountPoint)
         : null}
     </div>
   );
