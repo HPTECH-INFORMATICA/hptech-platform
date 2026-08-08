@@ -99,6 +99,7 @@ import Tooltip, {
 } from "@/components/ui/Tooltip";
 import Radio from "@/components/ui/Radio";
 import SearchBox from "@/components/ui/SearchBox";
+import ScrollArea from "@/components/ui/ScrollArea";
 import Select from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
 import Switch from "@/components/ui/Switch";
@@ -2489,6 +2490,205 @@ export default function UIPlaygroundClient() {
           </div>
         </PlaygroundSection>
 
+
+        <PlaygroundSection
+          title="Scroll Area"
+          description="Área de rolagem reutilizável com orientações vertical, horizontal e bidirecional, estados de borda e foco por teclado."
+        >
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className={scrollAreaDemoClasses}>
+              <h3 className="font-semibold">Vertical</h3>
+              <ScrollArea className="h-52 w-full rounded-[var(--radius-lg)] border border-hp-border">
+                <div className="space-y-3 p-[var(--space-4)]">
+                  {Array.from({ length: 16 }, (_, index) => (
+                    <div
+                      key={index}
+                      className="rounded-[var(--radius-md)] border border-hp-border bg-hp-surface-subtle p-[var(--space-3)] text-sm"
+                    >
+                      Item vertical {index + 1}
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+
+            <div className={scrollAreaDemoClasses}>
+              <h3 className="font-semibold">Horizontal</h3>
+              <ScrollArea
+                orientation="horizontal"
+                className="h-36 w-full rounded-[var(--radius-lg)] border border-hp-border"
+              >
+                <div className="flex w-max gap-3 p-[var(--space-4)]">
+                  {Array.from({ length: 12 }, (_, index) => (
+                    <div
+                      key={index}
+                      className="flex h-20 w-40 shrink-0 items-center justify-center rounded-[var(--radius-md)] border border-hp-border bg-hp-surface-subtle text-sm"
+                    >
+                      Card {index + 1}
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+
+            <div className={scrollAreaDemoClasses}>
+              <h3 className="font-semibold">Both</h3>
+              <ScrollArea
+                orientation="both"
+                className="h-52 w-full rounded-[var(--radius-lg)] border border-hp-border"
+              >
+                <div className="grid w-[52rem] grid-cols-4 gap-3 p-[var(--space-4)]">
+                  {Array.from({ length: 24 }, (_, index) => (
+                    <div
+                      key={index}
+                      className="flex h-20 items-center justify-center rounded-[var(--radius-md)] border border-hp-border bg-hp-surface-subtle text-sm"
+                    >
+                      Bloco {index + 1}
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+
+            <div className={scrollAreaDemoClasses}>
+              <h3 className="font-semibold">Conteúdo curto</h3>
+              <p className="text-sm text-hp-muted">
+                Sem overflow, nenhuma rolagem deve ser necessária.
+              </p>
+              <ScrollArea className="h-40 w-full rounded-[var(--radius-lg)] border border-hp-border">
+                <div className="p-[var(--space-4)] text-sm">
+                  Conteúdo menor que o viewport.
+                </div>
+              </ScrollArea>
+            </div>
+
+            <div className={scrollAreaDemoClasses}>
+              <h3 className="font-semibold">Foco por teclado</h3>
+              <p className="text-sm text-hp-muted">
+                Use Tab para focar o viewport e as setas/PageUp/PageDown para rolar.
+              </p>
+              <ScrollArea className="h-48 w-full rounded-[var(--radius-lg)] border border-hp-border">
+                <div className="space-y-2 p-[var(--space-4)]">
+                  {Array.from({ length: 18 }, (_, index) => (
+                    <p key={index} className="text-sm">
+                      Linha de navegação por teclado {index + 1}
+                    </p>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+
+            <div className={scrollAreaDemoClasses}>
+              <h3 className="font-semibold">Conteúdo interativo</h3>
+              <ScrollArea className="h-48 w-full rounded-[var(--radius-lg)] border border-hp-border">
+                <div className="space-y-3 p-[var(--space-4)]">
+                  {Array.from({ length: 10 }, (_, index) => (
+                    <button
+                      key={index}
+                      className={scrollAreaActionClasses}
+                    >
+                      Ação demonstrativa {index + 1}
+                    </button>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+
+            <div className={scrollAreaDemoClasses}>
+              <h3 className="font-semibold">Viewport customizado</h3>
+              <ScrollArea
+                className="h-48 w-full rounded-[var(--radius-lg)] border border-hp-border"
+                viewportClassName="p-[var(--space-4)]"
+              >
+                <div className="space-y-3">
+                  {Array.from({ length: 14 }, (_, index) => (
+                    <div
+                      key={index}
+                      className="rounded-[var(--radius-md)] bg-hp-surface-subtle p-[var(--space-3)] text-sm"
+                    >
+                      Conteúdo customizado {index + 1}
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+
+            <div className={scrollAreaDemoClasses}>
+              <h3 className="font-semibold">Áreas independentes</h3>
+              <div className="grid w-full grid-cols-2 gap-3">
+                <ScrollArea className="h-40 rounded-[var(--radius-lg)] border border-hp-border">
+                  <div className="space-y-2 p-3">
+                    {Array.from({ length: 12 }, (_, index) => (
+                      <div key={index} className="text-sm">
+                        A-{index + 1}
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+                <ScrollArea className="h-40 rounded-[var(--radius-lg)] border border-hp-border">
+                  <div className="space-y-2 p-3">
+                    {Array.from({ length: 12 }, (_, index) => (
+                      <div key={index} className="text-sm">
+                        B-{index + 1}
+                      </div>
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-4">
+            <Dialog>
+              <DialogTrigger className={dialogTriggerClasses}>
+                Scroll Area no Dialog
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Contexto Dialog</DialogTitle>
+                  <DialogDescription>
+                    A rolagem deve permanecer contida dentro do modal.
+                  </DialogDescription>
+                </DialogHeader>
+                <ScrollAreaDemo />
+                <DialogFooter>
+                  <DialogClose className={dialogSecondaryClasses}>
+                    Fechar Dialog
+                  </DialogClose>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <Drawer>
+              <DrawerTrigger className={drawerTriggerClasses}>
+                Scroll Area no Drawer
+              </DrawerTrigger>
+              <DrawerOverlay />
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle>Contexto Drawer</DrawerTitle>
+                  <DrawerDescription>
+                    A área rolável deve funcionar normalmente dentro do Drawer.
+                  </DrawerDescription>
+                </DrawerHeader>
+                <div className="p-[var(--space-6)]">
+                  <ScrollAreaDemo />
+                </div>
+                <DrawerFooter>
+                  <DrawerClose className={drawerSecondaryClasses}>
+                    Fechar Drawer
+                  </DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <ShadowScrollAreaDemo mode="open" />
+            <ShadowScrollAreaDemo mode="closed" />
+          </div>
+        </PlaygroundSection>
+
         <PlaygroundSection
           title="Dialog"
           description="Validação de abertura, fechamento, foco, backdrop, Escape, estado controlado e múltiplos modais."
@@ -3958,6 +4158,66 @@ function ShadowCollapsibleDemo({
       <div ref={wrapperRef} />
       {mountPoint
         ? createPortal(<CollapsibleDemo />, mountPoint)
+        : null}
+    </div>
+  );
+}
+
+
+const scrollAreaDemoClasses =
+  "flex min-w-0 flex-col items-start gap-3 rounded-[var(--radius-lg)] border border-hp-border bg-hp-surface p-[var(--space-4)]";
+const scrollAreaActionClasses =
+  "flex min-h-[var(--layout-touch-target)] w-full items-center rounded-[var(--radius-md)] border border-hp-border px-[var(--space-3)] py-[var(--space-2)] text-left text-sm font-medium outline-none transition-colors hover:bg-hp-surface-subtle focus-visible:ring-2 focus-visible:ring-[var(--color-focus)] focus-visible:ring-offset-2";
+
+function ScrollAreaDemo() {
+  return (
+    <ScrollArea className="h-48 w-full rounded-[var(--radius-lg)] border border-hp-border">
+      <div className="space-y-2 p-[var(--space-4)]">
+        {Array.from({ length: 14 }, (_, index) => (
+          <div
+            key={index}
+            className="rounded-[var(--radius-md)] border border-hp-border bg-hp-surface-subtle p-[var(--space-3)] text-sm"
+          >
+            Item demonstrativo {index + 1}
+          </div>
+        ))}
+      </div>
+    </ScrollArea>
+  );
+}
+
+function ShadowScrollAreaDemo({
+  mode,
+}: {
+  mode: ShadowRootMode;
+}) {
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const [mountPoint, setMountPoint] = useState<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (wrapper === null) return;
+
+    const host = document.createElement("div");
+    const root = host.attachShadow({ mode });
+    const target = document.createElement("div");
+
+    root.append(target);
+    wrapper.append(host);
+    setMountPoint(target);
+
+    return () => {
+      setMountPoint(null);
+      host.remove();
+    };
+  }, [mode]);
+
+  return (
+    <div className={scrollAreaDemoClasses}>
+      <h3 className="font-semibold">ShadowRoot {mode}</h3>
+      <div ref={wrapperRef} />
+      {mountPoint
+        ? createPortal(<ScrollAreaDemo />, mountPoint)
         : null}
     </div>
   );

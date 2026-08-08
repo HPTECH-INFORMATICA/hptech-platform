@@ -274,6 +274,10 @@
   --collapsible-trigger-hover: var(--color-surface-subtle);
   --collapsible-trigger-focus: var(--color-surface-subtle);
 
+  /* Scroll Area */
+  --scroll-area-track: var(--color-surface-subtle);
+  --scroll-area-thumb: var(--color-border-strong);
+
   /* Z-index */
   --z-popover: 70;
   --z-tooltip: 75;
