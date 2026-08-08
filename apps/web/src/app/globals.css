@@ -182,16 +182,12 @@
   --dropdown-menu-foreground: var(--color-text);
   --dropdown-menu-border: var(--color-border);
   --dropdown-menu-shadow: var(--shadow-lg);
-
   --dropdown-menu-radius: var(--radius-lg);
   --dropdown-menu-padding: var(--space-2);
-
   --dropdown-menu-min-width: 14rem;
   --dropdown-menu-max-width: 24rem;
-
   --dropdown-menu-item-focus: var(--color-surface-hover);
   --dropdown-menu-separator: var(--color-border);
-
   --z-dropdown-menu: 72;
 
   /* Context Menu */
@@ -199,16 +195,12 @@
   --context-menu-foreground: var(--dropdown-menu-foreground);
   --context-menu-border: var(--dropdown-menu-border);
   --context-menu-shadow: var(--dropdown-menu-shadow);
-
   --context-menu-radius: var(--dropdown-menu-radius);
   --context-menu-padding: var(--dropdown-menu-padding);
-
   --context-menu-min-width: var(--dropdown-menu-min-width);
   --context-menu-max-width: var(--dropdown-menu-max-width);
-
   --context-menu-item-focus: var(--dropdown-menu-item-focus);
   --context-menu-separator: var(--dropdown-menu-separator);
-
   --z-context-menu: 73;
 
   /* Menubar */
@@ -219,7 +211,6 @@
   --menubar-radius: var(--radius-lg);
   --menubar-padding: var(--space-1);
   --menubar-gap: var(--space-1);
-
   --menubar-trigger-radius: var(--radius-md);
   --menubar-trigger-padding-x: var(--space-3);
   --menubar-trigger-padding-y: var(--space-2);
@@ -318,6 +309,12 @@
   --breadcrumb-focus-radius: var(--radius-sm);
   --breadcrumb-font-size: var(--font-size-text-sm);
   --breadcrumb-line-height: var(--line-height-compact);
+
+  /* Pagination */
+  --pagination-gap: var(--space-1);
+  --pagination-item-size: var(--layout-touch-target);
+  --pagination-item-padding-x: var(--space-3);
+  --pagination-foreground: var(--color-text-muted);
 
   /* Z-index */
   --z-popover: 70;

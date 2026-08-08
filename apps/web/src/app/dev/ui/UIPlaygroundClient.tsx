@@ -83,6 +83,7 @@ import NavigationMenu, {
   NavigationMenuSeparator,
   NavigationMenuTrigger,
 } from "@/components/ui/NavigationMenu";
+import Pagination from "@/components/ui/Pagination";
 import Popover, {
   PopoverClose,
   PopoverContent,
@@ -161,6 +162,9 @@ export default function UIPlaygroundClient() {
     useState("centro");
   const [controlledToggleGroupMultiple, setControlledToggleGroupMultiple] =
     useState<string[]>(["negrito"]);
+  const [controlledPaginationPage, setControlledPaginationPage] = useState(5);
+  const [dynamicPaginationPage, setDynamicPaginationPage] = useState(10);
+  const [dynamicPaginationTotal, setDynamicPaginationTotal] = useState(12);
   const initialFocusRef = useRef<HTMLButtonElement | null>(null);
   const drawerInitialFocusRef = useRef<HTMLInputElement | null>(null);
   const externalFocusRef = useRef<HTMLButtonElement | null>(null);
@@ -3348,6 +3352,171 @@ export default function UIPlaygroundClient() {
         </PlaygroundSection>
 
         <PlaygroundSection
+          title="Pagination"
+          description="Navegação controlada e não controlada com limites seguros, ellipsis determinístico e controles acessíveis."
+        >
+          <div className="grid gap-4 lg:grid-cols-2">
+            <PaginationDemoCard title="Básico e página intermediária">
+              <Pagination defaultPage={5} totalPages={10} />
+              <p className="text-xs text-hp-muted">
+                Inclui primeira, anterior, números, próxima e última.
+              </p>
+            </PaginationDemoCard>
+
+            <PaginationDemoCard title="Primeira página">
+              <Pagination page={1} totalPages={10} />
+            </PaginationDemoCard>
+
+            <PaginationDemoCard title="Última página">
+              <Pagination page={10} totalPages={10} />
+            </PaginationDemoCard>
+
+            <PaginationDemoCard title="Poucas páginas sem ellipsis">
+              <Pagination defaultPage={2} totalPages={4} />
+            </PaginationDemoCard>
+
+            <PaginationDemoCard title="Muitas páginas com ellipsis">
+              <Pagination defaultPage={25} totalPages={50} />
+            </PaginationDemoCard>
+
+            <PaginationDemoCard title="siblingCount = 2">
+              <Pagination
+                defaultPage={10}
+                totalPages={20}
+                siblingCount={2}
+              />
+            </PaginationDemoCard>
+
+            <PaginationDemoCard title="boundaryCount = 2">
+              <Pagination
+                defaultPage={10}
+                totalPages={20}
+                boundaryCount={2}
+              />
+            </PaginationDemoCard>
+
+            <PaginationDemoCard title="Controlled">
+              <p className="text-sm text-hp-muted">
+                Página atual: {controlledPaginationPage}
+              </p>
+              <Pagination
+                page={controlledPaginationPage}
+                totalPages={12}
+                onPageChange={setControlledPaginationPage}
+              />
+            </PaginationDemoCard>
+
+            <PaginationDemoCard title="Uncontrolled">
+              <Pagination defaultPage={3} totalPages={8} />
+            </PaginationDemoCard>
+
+            <PaginationDemoCard title="Disabled global">
+              <Pagination defaultPage={3} totalPages={8} disabled />
+            </PaginationDemoCard>
+
+            <PaginationDemoCard title="totalPages = 1">
+              <Pagination totalPages={1} />
+            </PaginationDemoCard>
+
+            <PaginationDemoCard title="Redução dinâmica de totalPages">
+              <p className="text-sm text-hp-muted">
+                Página {dynamicPaginationPage} de {dynamicPaginationTotal}
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const nextTotal = dynamicPaginationTotal === 12 ? 4 : 12;
+                  setDynamicPaginationTotal(nextTotal);
+                  setDynamicPaginationPage((currentPage) =>
+                    Math.min(currentPage, nextTotal),
+                  );
+                }}
+              >
+                {dynamicPaginationTotal === 12
+                  ? "Reduzir para 4 páginas"
+                  : "Restaurar 12 páginas"}
+              </Button>
+              <Pagination
+                page={dynamicPaginationPage}
+                totalPages={dynamicPaginationTotal}
+                onPageChange={setDynamicPaginationPage}
+              />
+            </PaginationDemoCard>
+
+            <PaginationDemoCard title="Mobile equivalente a 390px">
+              <div className="w-full max-w-[390px] overflow-hidden rounded-[var(--radius-md)] border border-hp-border p-[var(--space-2)]">
+                <Pagination defaultPage={24} totalPages={48} />
+              </div>
+              <p className="text-xs text-hp-muted">
+                A rolagem horizontal permanece interna quando necessária.
+              </p>
+            </PaginationDemoCard>
+
+            <PaginationDemoCard title="aria-current e Tab">
+              <Pagination
+                defaultPage={3}
+                totalPages={6}
+                ariaLabel="Paginar resultados demonstrativos"
+              />
+              <p className="text-xs text-hp-muted">
+                Use Tab na ordem visual; a página 3 possui aria-current.
+              </p>
+            </PaginationDemoCard>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-4">
+            <Dialog>
+              <DialogTrigger className={dialogTriggerClasses}>
+                Pagination no Dialog
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Resultados paginados</DialogTitle>
+                  <DialogDescription>
+                    Composição da Pagination dentro do Dialog oficial.
+                  </DialogDescription>
+                </DialogHeader>
+                <PaginationDemo />
+                <DialogFooter>
+                  <DialogClose className={dialogSecondaryClasses}>
+                    Fechar Dialog
+                  </DialogClose>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <Drawer>
+              <DrawerTrigger className={drawerTriggerClasses}>
+                Pagination no Drawer
+              </DrawerTrigger>
+              <DrawerOverlay />
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle>Resultados paginados</DrawerTitle>
+                  <DrawerDescription>
+                    Composição da Pagination dentro do Drawer oficial.
+                  </DrawerDescription>
+                </DrawerHeader>
+                <div className="p-[var(--space-6)]">
+                  <PaginationDemo />
+                </div>
+                <DrawerFooter>
+                  <DrawerClose className={drawerSecondaryClasses}>
+                    Fechar Drawer
+                  </DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <ShadowPaginationDemo mode="open" />
+            <ShadowPaginationDemo mode="closed" />
+          </div>
+        </PlaygroundSection>
+
+        <PlaygroundSection
           title="Dialog"
           description="Validação de abertura, fechamento, foco, backdrop, Escape, estado controlado e múltiplos modais."
         >
@@ -5099,6 +5268,54 @@ function ShadowBreadcrumbDemo({ mode }: { mode: ShadowRootMode }) {
       <div ref={wrapperRef} />
       {mountPoint ? createPortal(<BreadcrumbDemo />, mountPoint) : null}
     </BreadcrumbDemoCard>
+  );
+}
+
+function PaginationDemoCard({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="min-w-0 space-y-3 rounded-[var(--radius-lg)] border border-hp-border bg-hp-surface p-[var(--space-4)]">
+      <h3 className="font-semibold">{title}</h3>
+      {children}
+    </div>
+  );
+}
+
+function PaginationDemo() {
+  return <Pagination defaultPage={4} totalPages={12} />;
+}
+
+function ShadowPaginationDemo({ mode }: { mode: ShadowRootMode }) {
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const [mountPoint, setMountPoint] = useState<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (wrapper === null) return;
+
+    const host = document.createElement("div");
+    const root = host.attachShadow({ mode });
+    const target = document.createElement("div");
+    root.append(target);
+    wrapper.append(host);
+    setMountPoint(target);
+
+    return () => {
+      setMountPoint(null);
+      host.remove();
+    };
+  }, [mode]);
+
+  return (
+    <PaginationDemoCard title={`Pagination em ShadowRoot ${mode}`}>
+      <div ref={wrapperRef} />
+      {mountPoint ? createPortal(<PaginationDemo />, mountPoint) : null}
+    </PaginationDemoCard>
   );
 }
 
