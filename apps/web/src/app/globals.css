@@ -294,6 +294,15 @@
   --tabs-content-radius: var(--radius-lg);
   --tabs-content-foreground: var(--color-text);
 
+  /* Toggle */
+  --toggle-background: var(--color-surface);
+  --toggle-foreground: var(--color-text);
+  --toggle-border: var(--color-border);
+  --toggle-radius: var(--radius-md);
+  --toggle-hover-background: var(--color-surface-subtle);
+  --toggle-active-background: var(--color-action-primary-soft);
+  --toggle-active-foreground: var(--color-text);
+
   /* Z-index */
   --z-popover: 70;
   --z-tooltip: 75;

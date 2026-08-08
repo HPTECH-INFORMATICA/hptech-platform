@@ -96,6 +96,7 @@ import Tabs, {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/Tabs";
+import Toggle from "@/components/ui/Toggle";
 import Tooltip, {
   TooltipContent,
   TooltipTrigger,
@@ -151,6 +152,7 @@ export default function UIPlaygroundClient() {
   const [controlledCollapsibleOpen, setControlledCollapsibleOpen] =
     useState(false);
   const [controlledTabsValue, setControlledTabsValue] = useState("visao");
+  const [controlledTogglePressed, setControlledTogglePressed] = useState(false);
   const initialFocusRef = useRef<HTMLButtonElement | null>(null);
   const drawerInitialFocusRef = useRef<HTMLInputElement | null>(null);
   const externalFocusRef = useRef<HTMLButtonElement | null>(null);
@@ -2945,6 +2947,140 @@ export default function UIPlaygroundClient() {
           </div>
         </PlaygroundSection>
 
+
+        <PlaygroundSection
+          title="Toggle"
+          description="Botão de alternância reutilizável com estados controlado e não controlado, variantes, tamanhos, disabled e semântica aria-pressed."
+        >
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className={toggleDemoClasses}>
+              <h3 className="font-semibold">Básico</h3>
+              <Toggle>Favorito</Toggle>
+            </div>
+
+            <div className={toggleDemoClasses}>
+              <h3 className="font-semibold">Default Pressed</h3>
+              <Toggle defaultPressed>Ativado inicialmente</Toggle>
+            </div>
+
+            <div className={toggleDemoClasses}>
+              <h3 className="font-semibold">Controlado</h3>
+              <p className="text-sm text-hp-muted">
+                Estado: {controlledTogglePressed ? "pressionado" : "solto"}
+              </p>
+              <Toggle
+                pressed={controlledTogglePressed}
+                onPressedChange={setControlledTogglePressed}
+              >
+                Alternar estado
+              </Toggle>
+            </div>
+
+            <div className={toggleDemoClasses}>
+              <h3 className="font-semibold">Disabled</h3>
+              <div className="flex flex-wrap gap-3">
+                <Toggle disabled>Desabilitado</Toggle>
+                <Toggle disabled defaultPressed>
+                  Ativo desabilitado
+                </Toggle>
+              </div>
+            </div>
+
+            <div className={toggleDemoClasses}>
+              <h3 className="font-semibold">Variantes</h3>
+              <div className="flex flex-wrap gap-3">
+                <Toggle variant="default">Default</Toggle>
+                <Toggle variant="outline">Outline</Toggle>
+                <Toggle variant="outline" defaultPressed>
+                  Outline ativo
+                </Toggle>
+              </div>
+            </div>
+
+            <div className={toggleDemoClasses}>
+              <h3 className="font-semibold">Tamanhos</h3>
+              <div className="flex flex-wrap items-center gap-3">
+                <Toggle size="sm">Small</Toggle>
+                <Toggle size="md">Medium</Toggle>
+                <Toggle size="lg">Large</Toggle>
+              </div>
+            </div>
+
+            <div className={toggleDemoClasses}>
+              <h3 className="font-semibold">Conteúdo composto</h3>
+              <div className="flex flex-wrap gap-3">
+                <Toggle variant="outline">
+                  <span aria-hidden="true">★</span>
+                  Destaque
+                </Toggle>
+                <Toggle variant="outline" defaultPressed>
+                  <span aria-hidden="true">✓</span>
+                  Selecionado
+                </Toggle>
+              </div>
+            </div>
+
+            <div className={toggleDemoClasses}>
+              <h3 className="font-semibold">Ações independentes</h3>
+              <div className="flex flex-wrap gap-3">
+                <Toggle>Negrito</Toggle>
+                <Toggle>Itálico</Toggle>
+                <Toggle>Sublinhado</Toggle>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-4">
+            <Dialog>
+              <DialogTrigger className={dialogTriggerClasses}>
+                Toggle no Dialog
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Contexto Dialog</DialogTitle>
+                  <DialogDescription>
+                    O Toggle deve funcionar normalmente dentro do modal.
+                  </DialogDescription>
+                </DialogHeader>
+                <ToggleDemo />
+                <DialogFooter>
+                  <DialogClose className={dialogSecondaryClasses}>
+                    Fechar Dialog
+                  </DialogClose>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <Drawer>
+              <DrawerTrigger className={drawerTriggerClasses}>
+                Toggle no Drawer
+              </DrawerTrigger>
+              <DrawerOverlay />
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle>Contexto Drawer</DrawerTitle>
+                  <DrawerDescription>
+                    O Toggle deve funcionar normalmente dentro do Drawer.
+                  </DrawerDescription>
+                </DrawerHeader>
+                <div className="p-[var(--space-6)]">
+                  <ToggleDemo />
+                </div>
+                <DrawerFooter>
+                  <DrawerClose className={drawerSecondaryClasses}>
+                    Fechar Drawer
+                  </DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <ShadowToggleDemo mode="open" />
+            <ShadowToggleDemo mode="closed" />
+          </div>
+        </PlaygroundSection>
+
         <PlaygroundSection
           title="Dialog"
           description="Validação de abertura, fechamento, foco, backdrop, Escape, estado controlado e múltiplos modais."
@@ -4535,6 +4671,51 @@ function ShadowTabsDemo({ mode }: { mode: ShadowRootMode }) {
       <h3 className="font-semibold">ShadowRoot {mode}</h3>
       <div ref={wrapperRef} />
       {mountPoint ? createPortal(<TabsDemo />, mountPoint) : null}
+    </div>
+  );
+}
+
+
+const toggleDemoClasses =
+  "flex min-w-0 flex-col items-start gap-3 rounded-[var(--radius-lg)] border border-hp-border bg-hp-surface p-[var(--space-4)]";
+
+function ToggleDemo() {
+  return (
+    <div className="flex flex-wrap gap-3">
+      <Toggle>Favorito</Toggle>
+      <Toggle variant="outline">Outline</Toggle>
+      <Toggle defaultPressed>Ativo</Toggle>
+    </div>
+  );
+}
+
+function ShadowToggleDemo({ mode }: { mode: ShadowRootMode }) {
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const [mountPoint, setMountPoint] = useState<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (wrapper === null) return;
+
+    const host = document.createElement("div");
+    const root = host.attachShadow({ mode });
+    const target = document.createElement("div");
+
+    root.append(target);
+    wrapper.append(host);
+    setMountPoint(target);
+
+    return () => {
+      setMountPoint(null);
+      host.remove();
+    };
+  }, [mode]);
+
+  return (
+    <div className={toggleDemoClasses}>
+      <h3 className="font-semibold">ShadowRoot {mode}</h3>
+      <div ref={wrapperRef} />
+      {mountPoint ? createPortal(<ToggleDemo />, mountPoint) : null}
     </div>
   );
 }
