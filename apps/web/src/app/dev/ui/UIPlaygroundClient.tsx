@@ -91,6 +91,11 @@ import Popover, {
   type PopoverAlign,
   type PopoverSide,
 } from "@/components/ui/Popover";
+import Tabs, {
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/Tabs";
 import Tooltip, {
   TooltipContent,
   TooltipTrigger,
@@ -145,6 +150,7 @@ export default function UIPlaygroundClient() {
     useState<string[]>(["item-a"]);
   const [controlledCollapsibleOpen, setControlledCollapsibleOpen] =
     useState(false);
+  const [controlledTabsValue, setControlledTabsValue] = useState("visao");
   const initialFocusRef = useRef<HTMLButtonElement | null>(null);
   const drawerInitialFocusRef = useRef<HTMLInputElement | null>(null);
   const externalFocusRef = useRef<HTMLButtonElement | null>(null);
@@ -2689,6 +2695,256 @@ export default function UIPlaygroundClient() {
           </div>
         </PlaygroundSection>
 
+
+        <PlaygroundSection
+          title="Tabs"
+          description="Navegação por abas com orientação horizontal e vertical, ativação automática ou manual, estado controlado e navegação por teclado."
+        >
+          <div className="grid gap-4 lg:grid-cols-2">
+            <div className={tabsDemoClasses}>
+              <h3 className="font-semibold">Horizontal</h3>
+              <Tabs defaultValue="visao">
+                <TabsList>
+                  <TabsTrigger value="visao">Visão geral</TabsTrigger>
+                  <TabsTrigger value="detalhes">Detalhes</TabsTrigger>
+                  <TabsTrigger value="historico">Histórico</TabsTrigger>
+                </TabsList>
+                <TabsContent value="visao" className={tabsContentClasses}>
+                  Conteúdo da visão geral.
+                </TabsContent>
+                <TabsContent value="detalhes" className={tabsContentClasses}>
+                  Conteúdo de detalhes.
+                </TabsContent>
+                <TabsContent value="historico" className={tabsContentClasses}>
+                  Conteúdo do histórico.
+                </TabsContent>
+              </Tabs>
+            </div>
+
+            <div className={tabsDemoClasses}>
+              <h3 className="font-semibold">Vertical</h3>
+              <Tabs defaultValue="perfil" orientation="vertical">
+                <div className="flex gap-4">
+                  <TabsList>
+                    <TabsTrigger value="perfil">Perfil</TabsTrigger>
+                    <TabsTrigger value="seguranca">Segurança</TabsTrigger>
+                    <TabsTrigger value="notificacoes">Notificações</TabsTrigger>
+                  </TabsList>
+                  <div className="min-w-0 flex-1">
+                    <TabsContent value="perfil" className={tabsContentClasses}>
+                      Configurações de perfil.
+                    </TabsContent>
+                    <TabsContent value="seguranca" className={tabsContentClasses}>
+                      Configurações de segurança.
+                    </TabsContent>
+                    <TabsContent value="notificacoes" className={tabsContentClasses}>
+                      Configurações de notificações.
+                    </TabsContent>
+                  </div>
+                </div>
+              </Tabs>
+            </div>
+
+            <div className={tabsDemoClasses}>
+              <h3 className="font-semibold">Controlado</h3>
+              <p className="text-sm text-hp-muted">
+                Aba ativa: {controlledTabsValue}
+              </p>
+              <Tabs
+                value={controlledTabsValue}
+                onValueChange={setControlledTabsValue}
+              >
+                <TabsList>
+                  <TabsTrigger value="visao">Visão</TabsTrigger>
+                  <TabsTrigger value="crm">CRM</TabsTrigger>
+                  <TabsTrigger value="agenda">Agenda</TabsTrigger>
+                </TabsList>
+                <TabsContent value="visao" className={tabsContentClasses}>
+                  Estado controlado da visão.
+                </TabsContent>
+                <TabsContent value="crm" className={tabsContentClasses}>
+                  Estado controlado do CRM.
+                </TabsContent>
+                <TabsContent value="agenda" className={tabsContentClasses}>
+                  Estado controlado da Agenda.
+                </TabsContent>
+              </Tabs>
+            </div>
+
+            <div className={tabsDemoClasses}>
+              <h3 className="font-semibold">Ativação manual</h3>
+              <p className="text-sm text-hp-muted">
+                Use as setas para mover o foco e Enter ou Espaço para ativar.
+              </p>
+              <Tabs defaultValue="um" activationMode="manual">
+                <TabsList>
+                  <TabsTrigger value="um">Um</TabsTrigger>
+                  <TabsTrigger value="dois">Dois</TabsTrigger>
+                  <TabsTrigger value="tres">Três</TabsTrigger>
+                </TabsList>
+                <TabsContent value="um" className={tabsContentClasses}>
+                  Conteúdo Um.
+                </TabsContent>
+                <TabsContent value="dois" className={tabsContentClasses}>
+                  Conteúdo Dois.
+                </TabsContent>
+                <TabsContent value="tres" className={tabsContentClasses}>
+                  Conteúdo Três.
+                </TabsContent>
+              </Tabs>
+            </div>
+
+            <div className={tabsDemoClasses}>
+              <h3 className="font-semibold">Trigger desabilitado</h3>
+              <Tabs defaultValue="ativo">
+                <TabsList>
+                  <TabsTrigger value="ativo">Ativo</TabsTrigger>
+                  <TabsTrigger value="bloqueado" disabled>
+                    Desabilitado
+                  </TabsTrigger>
+                  <TabsTrigger value="outro">Outro</TabsTrigger>
+                </TabsList>
+                <TabsContent value="ativo" className={tabsContentClasses}>
+                  Conteúdo ativo.
+                </TabsContent>
+                <TabsContent value="bloqueado" className={tabsContentClasses}>
+                  Este conteúdo não deve ser acessado pelo trigger desabilitado.
+                </TabsContent>
+                <TabsContent value="outro" className={tabsContentClasses}>
+                  Outro conteúdo.
+                </TabsContent>
+              </Tabs>
+            </div>
+
+            <div className={tabsDemoClasses}>
+              <h3 className="font-semibold">Tabs desabilitado</h3>
+              <Tabs defaultValue="primeiro" disabled>
+                <TabsList>
+                  <TabsTrigger value="primeiro">Primeiro</TabsTrigger>
+                  <TabsTrigger value="segundo">Segundo</TabsTrigger>
+                </TabsList>
+                <TabsContent value="primeiro" className={tabsContentClasses}>
+                  A navegação está desabilitada.
+                </TabsContent>
+                <TabsContent value="segundo" className={tabsContentClasses}>
+                  Segundo conteúdo.
+                </TabsContent>
+              </Tabs>
+            </div>
+
+            <div className={tabsDemoClasses}>
+              <h3 className="font-semibold">Loop desativado</h3>
+              <p className="text-sm text-hp-muted">
+                ArrowLeft e ArrowRight param nas extremidades.
+              </p>
+              <Tabs defaultValue="inicio" loop={false}>
+                <TabsList>
+                  <TabsTrigger value="inicio">Início</TabsTrigger>
+                  <TabsTrigger value="meio">Meio</TabsTrigger>
+                  <TabsTrigger value="fim">Fim</TabsTrigger>
+                </TabsList>
+                <TabsContent value="inicio" className={tabsContentClasses}>
+                  Primeiro painel.
+                </TabsContent>
+                <TabsContent value="meio" className={tabsContentClasses}>
+                  Painel intermediário.
+                </TabsContent>
+                <TabsContent value="fim" className={tabsContentClasses}>
+                  Último painel.
+                </TabsContent>
+              </Tabs>
+            </div>
+
+            <div className={tabsDemoClasses}>
+              <h3 className="font-semibold">forceMount</h3>
+              <Tabs defaultValue="visivel">
+                <TabsList>
+                  <TabsTrigger value="visivel">Visível</TabsTrigger>
+                  <TabsTrigger value="montado">Montado</TabsTrigger>
+                </TabsList>
+                <TabsContent value="visivel" className={tabsContentClasses}>
+                  Painel visível.
+                </TabsContent>
+                <TabsContent
+                  value="montado"
+                  forceMount
+                  className={tabsContentClasses}
+                >
+                  Este painel permanece montado quando inativo.
+                </TabsContent>
+              </Tabs>
+            </div>
+
+            <div className={tabsDemoClasses}>
+              <h3 className="font-semibold">Conteúdo interativo</h3>
+              <Tabs defaultValue="acoes">
+                <TabsList>
+                  <TabsTrigger value="acoes">Ações</TabsTrigger>
+                  <TabsTrigger value="dados">Dados</TabsTrigger>
+                </TabsList>
+                <TabsContent value="acoes" className={tabsContentClasses}>
+                  <button className={tabsActionClasses}>
+                    Ação demonstrativa
+                  </button>
+                </TabsContent>
+                <TabsContent value="dados" className={tabsContentClasses}>
+                  Conteúdo de dados demonstrativo.
+                </TabsContent>
+              </Tabs>
+            </div>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-4">
+            <Dialog>
+              <DialogTrigger className={dialogTriggerClasses}>
+                Tabs no Dialog
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Contexto Dialog</DialogTitle>
+                  <DialogDescription>
+                    As abas devem funcionar normalmente dentro do modal.
+                  </DialogDescription>
+                </DialogHeader>
+                <TabsDemo />
+                <DialogFooter>
+                  <DialogClose className={dialogSecondaryClasses}>
+                    Fechar Dialog
+                  </DialogClose>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <Drawer>
+              <DrawerTrigger className={drawerTriggerClasses}>
+                Tabs no Drawer
+              </DrawerTrigger>
+              <DrawerOverlay />
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle>Contexto Drawer</DrawerTitle>
+                  <DrawerDescription>
+                    As abas devem funcionar normalmente dentro do Drawer.
+                  </DrawerDescription>
+                </DrawerHeader>
+                <div className="p-[var(--space-6)]">
+                  <TabsDemo />
+                </div>
+                <DrawerFooter>
+                  <DrawerClose className={drawerSecondaryClasses}>
+                    Fechar Drawer
+                  </DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <ShadowTabsDemo mode="open" />
+            <ShadowTabsDemo mode="closed" />
+          </div>
+        </PlaygroundSection>
+
         <PlaygroundSection
           title="Dialog"
           description="Validação de abertura, fechamento, foco, backdrop, Escape, estado controlado e múltiplos modais."
@@ -4219,6 +4475,66 @@ function ShadowScrollAreaDemo({
       {mountPoint
         ? createPortal(<ScrollAreaDemo />, mountPoint)
         : null}
+    </div>
+  );
+}
+
+
+const tabsDemoClasses =
+  "flex min-w-0 flex-col items-start gap-3 rounded-[var(--radius-lg)] border border-hp-border bg-hp-surface p-[var(--space-4)]";
+const tabsContentClasses =
+  "border border-hp-border bg-hp-surface-subtle p-[var(--space-4)] text-sm";
+const tabsActionClasses =
+  "inline-flex min-h-[var(--layout-touch-target)] items-center justify-center rounded-[var(--radius-md)] border border-hp-border px-[var(--space-3)] py-[var(--space-2)] text-sm font-medium outline-none transition-colors hover:bg-hp-surface focus-visible:ring-2 focus-visible:ring-[var(--color-focus)] focus-visible:ring-offset-2";
+
+function TabsDemo() {
+  return (
+    <Tabs defaultValue="primeira">
+      <TabsList>
+        <TabsTrigger value="primeira">Primeira</TabsTrigger>
+        <TabsTrigger value="segunda">Segunda</TabsTrigger>
+        <TabsTrigger value="terceira">Terceira</TabsTrigger>
+      </TabsList>
+      <TabsContent value="primeira" className={tabsContentClasses}>
+        Conteúdo demonstrativo da primeira aba.
+      </TabsContent>
+      <TabsContent value="segunda" className={tabsContentClasses}>
+        Conteúdo demonstrativo da segunda aba.
+      </TabsContent>
+      <TabsContent value="terceira" className={tabsContentClasses}>
+        Conteúdo demonstrativo da terceira aba.
+      </TabsContent>
+    </Tabs>
+  );
+}
+
+function ShadowTabsDemo({ mode }: { mode: ShadowRootMode }) {
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const [mountPoint, setMountPoint] = useState<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (wrapper === null) return;
+
+    const host = document.createElement("div");
+    const root = host.attachShadow({ mode });
+    const target = document.createElement("div");
+
+    root.append(target);
+    wrapper.append(host);
+    setMountPoint(target);
+
+    return () => {
+      setMountPoint(null);
+      host.remove();
+    };
+  }, [mode]);
+
+  return (
+    <div className={tabsDemoClasses}>
+      <h3 className="font-semibold">ShadowRoot {mode}</h3>
+      <div ref={wrapperRef} />
+      {mountPoint ? createPortal(<TabsDemo />, mountPoint) : null}
     </div>
   );
 }

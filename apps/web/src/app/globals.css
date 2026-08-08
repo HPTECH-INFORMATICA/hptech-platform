@@ -278,6 +278,22 @@
   --scroll-area-track: var(--color-surface-subtle);
   --scroll-area-thumb: var(--color-border-strong);
 
+  /* Tabs */
+  --tabs-list-gap: var(--space-1);
+  --tabs-list-radius: var(--radius-lg);
+  --tabs-list-padding: var(--space-1);
+  --tabs-list-background: var(--color-surface-subtle);
+  --tabs-trigger-radius: var(--radius-md);
+  --tabs-trigger-padding-x: var(--space-3);
+  --tabs-trigger-padding-y: var(--space-2);
+  --tabs-trigger-foreground: var(--color-text-muted);
+  --tabs-trigger-hover: var(--color-surface);
+  --tabs-trigger-active-background: var(--color-surface);
+  --tabs-trigger-active-foreground: var(--color-text);
+  --tabs-content-gap: var(--space-4);
+  --tabs-content-radius: var(--radius-lg);
+  --tabs-content-foreground: var(--color-text);
+
   /* Z-index */
   --z-popover: 70;
   --z-tooltip: 75;
