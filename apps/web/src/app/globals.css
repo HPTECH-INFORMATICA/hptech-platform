@@ -303,6 +303,12 @@
   --toggle-active-background: var(--color-action-primary-soft);
   --toggle-active-foreground: var(--color-text);
 
+  /* Toggle Group */
+  --toggle-group-background: var(--color-surface-subtle);
+  --toggle-group-gap: var(--space-1);
+  --toggle-group-padding: var(--space-1);
+  --toggle-group-radius: var(--radius-lg);
+
   /* Z-index */
   --z-popover: 70;
   --z-tooltip: 75;

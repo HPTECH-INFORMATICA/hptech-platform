@@ -97,6 +97,9 @@ import Tabs, {
   TabsTrigger,
 } from "@/components/ui/Tabs";
 import Toggle from "@/components/ui/Toggle";
+import ToggleGroup, {
+  ToggleGroupItem,
+} from "@/components/ui/ToggleGroup";
 import Tooltip, {
   TooltipContent,
   TooltipTrigger,
@@ -153,6 +156,10 @@ export default function UIPlaygroundClient() {
     useState(false);
   const [controlledTabsValue, setControlledTabsValue] = useState("visao");
   const [controlledTogglePressed, setControlledTogglePressed] = useState(false);
+  const [controlledToggleGroupSingle, setControlledToggleGroupSingle] =
+    useState("centro");
+  const [controlledToggleGroupMultiple, setControlledToggleGroupMultiple] =
+    useState<string[]>(["negrito"]);
   const initialFocusRef = useRef<HTMLButtonElement | null>(null);
   const drawerInitialFocusRef = useRef<HTMLInputElement | null>(null);
   const externalFocusRef = useRef<HTMLButtonElement | null>(null);
@@ -3082,6 +3089,132 @@ export default function UIPlaygroundClient() {
         </PlaygroundSection>
 
         <PlaygroundSection
+          title="ToggleGroup"
+          description="Seleção exclusiva ou múltipla com navegação por teclado, orientação e estados controlados."
+        >
+          <div className="grid gap-4 lg:grid-cols-2">
+            <ToggleGroupDemoCard title="Single">
+              <ToggleGroup type="single" defaultValue="dia" aria-label="Período">
+                <ToggleGroupItem value="dia">Dia</ToggleGroupItem>
+                <ToggleGroupItem value="semana">Semana</ToggleGroupItem>
+                <ToggleGroupItem value="mes">Mês</ToggleGroupItem>
+              </ToggleGroup>
+            </ToggleGroupDemoCard>
+
+            <ToggleGroupDemoCard title="Multiple">
+              <ToggleGroup type="multiple" defaultValue={["negrito"]} aria-label="Formatação">
+                <ToggleGroupItem value="negrito">Negrito</ToggleGroupItem>
+                <ToggleGroupItem value="italico">Itálico</ToggleGroupItem>
+                <ToggleGroupItem value="sublinhado">Sublinhado</ToggleGroupItem>
+              </ToggleGroup>
+            </ToggleGroupDemoCard>
+
+            <ToggleGroupDemoCard title="Controlled Single">
+              <p className="text-sm text-hp-muted">Valor: {controlledToggleGroupSingle || "nenhum"}</p>
+              <ToggleGroup
+                type="single"
+                value={controlledToggleGroupSingle}
+                onValueChange={setControlledToggleGroupSingle}
+                aria-label="Alinhamento controlado"
+              >
+                <ToggleGroupItem value="inicio">Início</ToggleGroupItem>
+                <ToggleGroupItem value="centro">Centro</ToggleGroupItem>
+                <ToggleGroupItem value="fim">Fim</ToggleGroupItem>
+              </ToggleGroup>
+            </ToggleGroupDemoCard>
+
+            <ToggleGroupDemoCard title="Controlled Multiple">
+              <p className="text-sm text-hp-muted">
+                Valores: {controlledToggleGroupMultiple.join(", ") || "nenhum"}
+              </p>
+              <ToggleGroup
+                type="multiple"
+                value={controlledToggleGroupMultiple}
+                onValueChange={setControlledToggleGroupMultiple}
+                aria-label="Formatação controlada"
+              >
+                <ToggleGroupItem value="negrito">Negrito</ToggleGroupItem>
+                <ToggleGroupItem value="italico">Itálico</ToggleGroupItem>
+                <ToggleGroupItem value="codigo">Código</ToggleGroupItem>
+              </ToggleGroup>
+            </ToggleGroupDemoCard>
+
+            <ToggleGroupDemoCard title="Disabled global">
+              <ToggleGroup type="single" defaultValue="ativo" disabled aria-label="Grupo desabilitado">
+                <ToggleGroupItem value="ativo">Ativo</ToggleGroupItem>
+                <ToggleGroupItem value="inativo">Inativo</ToggleGroupItem>
+              </ToggleGroup>
+            </ToggleGroupDemoCard>
+
+            <ToggleGroupDemoCard title="Item disabled">
+              <ToggleGroup type="single" aria-label="Item desabilitado">
+                <ToggleGroupItem value="primeiro">Primeiro</ToggleGroupItem>
+                <ToggleGroupItem value="indisponivel" disabled>Indisponível</ToggleGroupItem>
+                <ToggleGroupItem value="ultimo">Último</ToggleGroupItem>
+              </ToggleGroup>
+            </ToggleGroupDemoCard>
+
+            <ToggleGroupDemoCard title="Horizontal e Keyboard">
+              <ToggleGroup type="single" orientation="horizontal" aria-label="Navegação horizontal">
+                <ToggleGroupItem value="a">A</ToggleGroupItem>
+                <ToggleGroupItem value="b">B</ToggleGroupItem>
+                <ToggleGroupItem value="c">C</ToggleGroupItem>
+              </ToggleGroup>
+              <p className="text-xs text-hp-muted">ArrowLeft, ArrowRight, Home e End.</p>
+            </ToggleGroupDemoCard>
+
+            <ToggleGroupDemoCard title="Vertical">
+              <ToggleGroup type="single" orientation="vertical" aria-label="Navegação vertical">
+                <ToggleGroupItem value="acima">Acima</ToggleGroupItem>
+                <ToggleGroupItem value="centro">Centro</ToggleGroupItem>
+                <ToggleGroupItem value="abaixo">Abaixo</ToggleGroupItem>
+              </ToggleGroup>
+              <p className="text-xs text-hp-muted">ArrowUp, ArrowDown, Home e End.</p>
+            </ToggleGroupDemoCard>
+
+            <ToggleGroupDemoCard title="Loop false">
+              <ToggleGroup type="single" loop={false} aria-label="Navegação sem loop">
+                <ToggleGroupItem value="inicio">Início</ToggleGroupItem>
+                <ToggleGroupItem value="meio">Meio</ToggleGroupItem>
+                <ToggleGroupItem value="fim">Fim</ToggleGroupItem>
+              </ToggleGroup>
+            </ToggleGroupDemoCard>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-4">
+            <Dialog>
+              <DialogTrigger className={dialogTriggerClasses}>ToggleGroup no Dialog</DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Preferência de visualização</DialogTitle>
+                  <DialogDescription>Seleção exclusiva dentro do Dialog.</DialogDescription>
+                </DialogHeader>
+                <ToggleGroupDemo />
+                <DialogFooter><DialogClose className={dialogSecondaryClasses}>Fechar Dialog</DialogClose></DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <Drawer>
+              <DrawerTrigger className={drawerTriggerClasses}>ToggleGroup no Drawer</DrawerTrigger>
+              <DrawerOverlay />
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle>Preferências rápidas</DrawerTitle>
+                  <DrawerDescription>Seleção múltipla dentro do Drawer.</DrawerDescription>
+                </DrawerHeader>
+                <div className="p-[var(--space-6)]"><ToggleGroupDemo multiple /></div>
+                <DrawerFooter><DrawerClose className={drawerSecondaryClasses}>Fechar Drawer</DrawerClose></DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <ShadowToggleGroupDemo mode="open" />
+            <ShadowToggleGroupDemo mode="closed" />
+          </div>
+        </PlaygroundSection>
+
+        <PlaygroundSection
           title="Dialog"
           description="Validação de abertura, fechamento, foco, backdrop, Escape, estado controlado e múltiplos modais."
         >
@@ -4716,6 +4849,66 @@ function ShadowToggleDemo({ mode }: { mode: ShadowRootMode }) {
       <h3 className="font-semibold">ShadowRoot {mode}</h3>
       <div ref={wrapperRef} />
       {mountPoint ? createPortal(<ToggleDemo />, mountPoint) : null}
+    </div>
+  );
+}
+
+function ToggleGroupDemoCard({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={toggleDemoClasses}>
+      <h3 className="font-semibold">{title}</h3>
+      {children}
+    </div>
+  );
+}
+
+function ToggleGroupDemo({ multiple = false }: { multiple?: boolean }) {
+  return multiple ? (
+    <ToggleGroup type="multiple" defaultValue={["email"]} aria-label="Canais de contato">
+      <ToggleGroupItem value="email">E-mail</ToggleGroupItem>
+      <ToggleGroupItem value="whatsapp">WhatsApp</ToggleGroupItem>
+      <ToggleGroupItem value="telefone">Telefone</ToggleGroupItem>
+    </ToggleGroup>
+  ) : (
+    <ToggleGroup type="single" defaultValue="lista" aria-label="Visualização">
+      <ToggleGroupItem value="lista">Lista</ToggleGroupItem>
+      <ToggleGroupItem value="grade">Grade</ToggleGroupItem>
+    </ToggleGroup>
+  );
+}
+
+function ShadowToggleGroupDemo({ mode }: { mode: ShadowRootMode }) {
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const [mountPoint, setMountPoint] = useState<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (wrapper === null) return;
+
+    const host = document.createElement("div");
+    const root = host.attachShadow({ mode });
+    const target = document.createElement("div");
+    root.append(target);
+    wrapper.append(host);
+    setMountPoint(target);
+
+    return () => {
+      setMountPoint(null);
+      host.remove();
+    };
+  }, [mode]);
+
+  return (
+    <div className={toggleDemoClasses}>
+      <h3 className="font-semibold">ToggleGroup em ShadowRoot {mode}</h3>
+      <div ref={wrapperRef} />
+      {mountPoint ? createPortal(<ToggleGroupDemo multiple />, mountPoint) : null}
     </div>
   );
 }
