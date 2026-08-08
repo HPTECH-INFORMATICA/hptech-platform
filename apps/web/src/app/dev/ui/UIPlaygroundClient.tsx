@@ -11,6 +11,7 @@ import Accordion, {
 import Alert from "@/components/ui/Alert";
 import Avatar from "@/components/ui/Avatar";
 import Badge from "@/components/ui/Badge";
+import Breadcrumb from "@/components/ui/Breadcrumb";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Checkbox from "@/components/ui/Checkbox";
@@ -3215,6 +3216,138 @@ export default function UIPlaygroundClient() {
         </PlaygroundSection>
 
         <PlaygroundSection
+          title="Breadcrumb"
+          description="Hierarquia contextual acessível com links nativos, página atual, condensação responsiva e composição em overlays."
+        >
+          <div className="grid gap-4 lg:grid-cols-2">
+            <BreadcrumbDemoCard title="Simples e separador padrão">
+              <Breadcrumb
+                items={[{ label: "Início", href: "#breadcrumb-inicio" }]}
+                currentLabel="CRM"
+              />
+              <p className="text-xs text-hp-muted">
+                Use Tab para validar o link; a página atual não recebe foco.
+              </p>
+            </BreadcrumbDemoCard>
+
+            <BreadcrumbDemoCard title="Um único nível">
+              <Breadcrumb items={[]} currentLabel="Centro Comercial" />
+            </BreadcrumbDemoCard>
+
+            <BreadcrumbDemoCard title="Centro, módulo e página">
+              <Breadcrumb
+                items={[
+                  { label: "Centro Comercial", href: "#centro-comercial" },
+                  { label: "CRM", href: "#crm" },
+                ]}
+                currentLabel="Leads"
+              />
+            </BreadcrumbDemoCard>
+
+            <BreadcrumbDemoCard title="Separador customizado">
+              <Breadcrumb
+                items={[
+                  { label: "Centro Clínico", href: "#centro-clinico" },
+                  { label: "Agenda", href: "#agenda" },
+                ]}
+                currentLabel="Agendamentos"
+                separator={<span aria-hidden="true">›</span>}
+              />
+            </BreadcrumbDemoCard>
+
+            <BreadcrumbDemoCard title="maxItems e DropdownMenu">
+              <Breadcrumb
+                items={[
+                  { label: "HPTECH", href: "#hptech" },
+                  { label: "Centro Administrativo", href: "#administrativo" },
+                  { label: "Configurações", href: "#configuracoes" },
+                  { label: "Equipe", href: "#equipe" },
+                  { label: "Permissões", href: "#permissoes" },
+                ]}
+                currentLabel="Editar perfil"
+                maxItems={4}
+              />
+              <p className="text-xs text-hp-muted">
+                A origem e a página atual permanecem; os níveis intermediários
+                ficam acessíveis no menu.
+              </p>
+            </BreadcrumbDemoCard>
+
+            <BreadcrumbDemoCard title="Labels longos e overflow">
+              <div className="w-full max-w-[390px] overflow-hidden rounded-[var(--radius-md)] border border-hp-border p-[var(--space-3)]">
+                <Breadcrumb
+                  items={[
+                    {
+                      label: "Centro Operacional de Inteligência Artificial",
+                      href: "#centro-inteligencia",
+                    },
+                    {
+                      label: "Automações e recomendações assistidas",
+                      href: "#automacoes",
+                    },
+                  ]}
+                  currentLabel="Configuração detalhada da recomendação"
+                />
+              </div>
+              <p className="text-xs text-hp-muted">
+                Cenário equivalente a 390px; os nomes acessíveis permanecem
+                completos apesar do truncamento visual.
+              </p>
+            </BreadcrumbDemoCard>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-4">
+            <Dialog>
+              <DialogTrigger className={dialogTriggerClasses}>
+                Breadcrumb no Dialog
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Navegação contextual</DialogTitle>
+                  <DialogDescription>
+                    Composição do Breadcrumb dentro do Dialog oficial.
+                  </DialogDescription>
+                </DialogHeader>
+                <BreadcrumbDemo />
+                <DialogFooter>
+                  <DialogClose className={dialogSecondaryClasses}>
+                    Fechar Dialog
+                  </DialogClose>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <Drawer>
+              <DrawerTrigger className={drawerTriggerClasses}>
+                Breadcrumb no Drawer
+              </DrawerTrigger>
+              <DrawerOverlay />
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle>Navegação contextual</DrawerTitle>
+                  <DrawerDescription>
+                    Composição do Breadcrumb dentro do Drawer oficial.
+                  </DrawerDescription>
+                </DrawerHeader>
+                <div className="p-[var(--space-6)]">
+                  <BreadcrumbDemo />
+                </div>
+                <DrawerFooter>
+                  <DrawerClose className={drawerSecondaryClasses}>
+                    Fechar Drawer
+                  </DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <ShadowBreadcrumbDemo mode="open" />
+            <ShadowBreadcrumbDemo mode="closed" />
+          </div>
+        </PlaygroundSection>
+
+        <PlaygroundSection
           title="Dialog"
           description="Validação de abertura, fechamento, foco, backdrop, Escape, estado controlado e múltiplos modais."
         >
@@ -4910,6 +5043,62 @@ function ShadowToggleGroupDemo({ mode }: { mode: ShadowRootMode }) {
       <div ref={wrapperRef} />
       {mountPoint ? createPortal(<ToggleGroupDemo multiple />, mountPoint) : null}
     </div>
+  );
+}
+
+function BreadcrumbDemoCard({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="min-w-0 space-y-3 rounded-[var(--radius-lg)] border border-hp-border bg-hp-surface p-[var(--space-4)]">
+      <h3 className="font-semibold">{title}</h3>
+      {children}
+    </div>
+  );
+}
+
+function BreadcrumbDemo() {
+  return (
+    <Breadcrumb
+      items={[
+        { label: "Centro Comercial", href: "#demo-centro" },
+        { label: "CRM", href: "#demo-crm" },
+      ]}
+      currentLabel="Leads"
+    />
+  );
+}
+
+function ShadowBreadcrumbDemo({ mode }: { mode: ShadowRootMode }) {
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const [mountPoint, setMountPoint] = useState<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (wrapper === null) return;
+
+    const host = document.createElement("div");
+    const root = host.attachShadow({ mode });
+    const target = document.createElement("div");
+    root.append(target);
+    wrapper.append(host);
+    setMountPoint(target);
+
+    return () => {
+      setMountPoint(null);
+      host.remove();
+    };
+  }, [mode]);
+
+  return (
+    <BreadcrumbDemoCard title={`Breadcrumb em ShadowRoot ${mode}`}>
+      <div ref={wrapperRef} />
+      {mountPoint ? createPortal(<BreadcrumbDemo />, mountPoint) : null}
+    </BreadcrumbDemoCard>
   );
 }
 
