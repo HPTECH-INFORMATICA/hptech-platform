@@ -114,6 +114,15 @@ import ScrollArea from "@/components/ui/ScrollArea";
 import Select from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
 import Switch from "@/components/ui/Switch";
+import Table, {
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableFooter,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/Table";
 import Textarea from "@/components/ui/Textarea";
 import useToast from "@/hooks/useToast";
 
@@ -3517,6 +3526,276 @@ export default function UIPlaygroundClient() {
         </PlaygroundSection>
 
         <PlaygroundSection
+          title="Table"
+          description="Primitives tabulares semânticas e composáveis, independentes de sorting, filtros, paginação e estado de DataGrid."
+        >
+          <div className="grid gap-4 lg:grid-cols-2">
+            <TableDemoCard title="Básico, Header, Body e Caption">
+              <Table>
+                <TableCaption>Leads demonstrativos do Centro Comercial.</TableCaption>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead scope="col">Nome</TableHead>
+                    <TableHead scope="col">Origem</TableHead>
+                    <TableHead scope="col">Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableHead scope="row">Marina Costa</TableHead>
+                    <TableCell>Indicação</TableCell>
+                    <TableCell>Qualificação</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableHead scope="row">Lucas Almeida</TableHead>
+                    <TableCell>Landing page</TableCell>
+                    <TableCell>Novo</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </TableDemoCard>
+
+            <TableDemoCard title="Footer, striped e compact">
+              <Table striped density="compact">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead scope="col">Categoria</TableHead>
+                    <TableHead scope="col" className="text-right">
+                      Quantidade
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>Novos</TableCell>
+                    <TableCell className="text-right">12</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Em atendimento</TableCell>
+                    <TableCell className="text-right">8</TableCell>
+                  </TableRow>
+                </TableBody>
+                <TableFooter>
+                  <TableRow>
+                    <TableHead scope="row">Total</TableHead>
+                    <TableCell className="text-right">20</TableCell>
+                  </TableRow>
+                </TableFooter>
+              </Table>
+            </TableDemoCard>
+
+            <TableDemoCard title="Avatar, Badge, Checkbox e ações">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead scope="col" className="w-12">
+                      <span className="sr-only">Selecionar</span>
+                    </TableHead>
+                    <TableHead scope="col">Contato</TableHead>
+                    <TableHead scope="col">Status</TableHead>
+                    <TableHead scope="col" className="text-right">
+                      Ações
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow selected aria-selected="true">
+                    <TableCell>
+                      <Checkbox
+                        label={<span className="sr-only">Selecionar Marina Costa</span>}
+                        defaultChecked
+                        className="w-auto"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar name="Marina Costa" size="sm" />
+                        <span className="font-medium">Marina Costa</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="success" dot>
+                        Ativo
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger className={dropdownMenuTriggerClasses}>
+                          Opções
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem>Visualizar</DropdownMenuItem>
+                          <DropdownMenuItem>Editar</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow aria-disabled="true">
+                    <TableCell>
+                      <Checkbox
+                        label={<span className="sr-only">Selecionar Equipe Demo</span>}
+                        disabled
+                        className="w-auto"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <Avatar name="Equipe Demo" size="sm" shape="rounded" />
+                        <span>Equipe Demo</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge>Indisponível</Badge>
+                    </TableCell>
+                    <TableCell className="text-right">Sem ações</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </TableDemoCard>
+
+            <TableDemoCard title="Texto longo e hover de linha">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead scope="col">Registro</TableHead>
+                    <TableHead scope="col">Observação</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableHead scope="row">Exemplo 01</TableHead>
+                    <TableCell className="max-w-xs whitespace-normal">
+                      Conteúdo demonstrativo longo para validar quebra de linha,
+                      leitura, alinhamento vertical e preservação da semântica.
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </TableDemoCard>
+
+            <TableDemoCard title="Estado vazio com EmptyState">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead scope="col">Nome</TableHead>
+                    <TableHead scope="col">Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell colSpan={2}>
+                      <EmptyState
+                        title="Nenhum registro encontrado"
+                        description="A tabela permanece semântica e o estado vazio é composto externamente."
+                        size="sm"
+                      />
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </TableDemoCard>
+
+            <TableDemoCard title="Loading com Skeleton">
+              <Table aria-busy="true">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead scope="col">Nome</TableHead>
+                    <TableHead scope="col">Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {Array.from({ length: 3 }, (_, index) => (
+                    <TableRow key={index}>
+                      <TableCell><Skeleton variant="text" /></TableCell>
+                      <TableCell><Skeleton variant="text" width="60%" /></TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableDemoCard>
+          </div>
+
+          <div className="mt-6 grid gap-4">
+            <TableDemoCard title="Muitas colunas em ScrollArea horizontal">
+              <ScrollArea orientation="horizontal" viewportClassName="pb-2">
+                <div className="min-w-[64rem]">
+                  <WideTableDemo />
+                </div>
+              </ScrollArea>
+            </TableDemoCard>
+
+            <TableDemoCard title="Responsivo e 390px/mobile">
+              <div className="w-full max-w-[390px]">
+                <ScrollArea orientation="horizontal" viewportClassName="pb-2">
+                  <div className="min-w-[44rem]">
+                    <TableDemo />
+                  </div>
+                </ScrollArea>
+              </div>
+            </TableDemoCard>
+
+            <TableDemoCard title="Composição externa com Pagination">
+              <ScrollArea orientation="horizontal" viewportClassName="pb-2">
+                <div className="min-w-[36rem]">
+                  <TableDemo />
+                </div>
+              </ScrollArea>
+              <Pagination defaultPage={2} totalPages={8} />
+            </TableDemoCard>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-4">
+            <Dialog>
+              <DialogTrigger className={dialogTriggerClasses}>
+                Table no Dialog
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Registros demonstrativos</DialogTitle>
+                  <DialogDescription>
+                    Tabela semântica dentro do Dialog oficial.
+                  </DialogDescription>
+                </DialogHeader>
+                <ScrollArea orientation="horizontal" viewportClassName="pb-2">
+                  <div className="min-w-[36rem]"><TableDemo /></div>
+                </ScrollArea>
+                <DialogFooter>
+                  <DialogClose className={dialogSecondaryClasses}>Fechar</DialogClose>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <Drawer>
+              <DrawerTrigger className={drawerTriggerClasses}>
+                Table no Drawer
+              </DrawerTrigger>
+              <DrawerOverlay />
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle>Registros demonstrativos</DrawerTitle>
+                  <DrawerDescription>
+                    Tabela semântica dentro do Drawer oficial.
+                  </DrawerDescription>
+                </DrawerHeader>
+                <div className="p-[var(--space-6)]">
+                  <ScrollArea orientation="horizontal" viewportClassName="pb-2">
+                    <div className="min-w-[36rem]"><TableDemo /></div>
+                  </ScrollArea>
+                </div>
+                <DrawerFooter>
+                  <DrawerClose className={drawerSecondaryClasses}>Fechar</DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <ShadowTableDemo mode="open" />
+            <ShadowTableDemo mode="closed" />
+          </div>
+        </PlaygroundSection>
+
+        <PlaygroundSection
           title="Dialog"
           description="Validação de abertura, fechamento, foco, backdrop, Escape, estado controlado e múltiplos modais."
         >
@@ -5316,6 +5595,114 @@ function ShadowPaginationDemo({ mode }: { mode: ShadowRootMode }) {
       <div ref={wrapperRef} />
       {mountPoint ? createPortal(<PaginationDemo />, mountPoint) : null}
     </PaginationDemoCard>
+  );
+}
+
+function TableDemoCard({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="min-w-0 space-y-3 overflow-hidden rounded-[var(--radius-lg)] border border-hp-border bg-hp-surface p-[var(--space-4)]">
+      <h3 className="font-semibold">{title}</h3>
+      {children}
+    </div>
+  );
+}
+
+function TableDemo() {
+  return (
+    <Table striped>
+      <TableCaption>Dados inteiramente fictícios para homologação.</TableCaption>
+      <TableHeader>
+        <TableRow>
+          <TableHead scope="col">Nome</TableHead>
+          <TableHead scope="col">Centro</TableHead>
+          <TableHead scope="col">Status</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        <TableRow>
+          <TableHead scope="row">Marina Costa</TableHead>
+          <TableCell>Comercial</TableCell>
+          <TableCell><Badge variant="success">Ativo</Badge></TableCell>
+        </TableRow>
+        <TableRow>
+          <TableHead scope="row">Lucas Almeida</TableHead>
+          <TableCell>Clínico</TableCell>
+          <TableCell><Badge variant="info">Em análise</Badge></TableCell>
+        </TableRow>
+      </TableBody>
+    </Table>
+  );
+}
+
+function WideTableDemo() {
+  const headers = [
+    "Nome",
+    "Empresa",
+    "Centro",
+    "Módulo",
+    "Origem",
+    "Responsável",
+    "Status",
+    "Atualização",
+  ];
+
+  return (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          {headers.map((header) => (
+            <TableHead key={header} scope="col">{header}</TableHead>
+          ))}
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        <TableRow>
+          <TableHead scope="row">Marina Costa</TableHead>
+          <TableCell>Clínica Exemplo</TableCell>
+          <TableCell>Comercial</TableCell>
+          <TableCell>CRM</TableCell>
+          <TableCell>Indicação</TableCell>
+          <TableCell>Equipe Demo</TableCell>
+          <TableCell><Badge variant="success">Ativo</Badge></TableCell>
+          <TableCell>Hoje, 14:30</TableCell>
+        </TableRow>
+      </TableBody>
+    </Table>
+  );
+}
+
+function ShadowTableDemo({ mode }: { mode: ShadowRootMode }) {
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const [mountPoint, setMountPoint] = useState<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (wrapper === null) return;
+
+    const host = document.createElement("div");
+    const root = host.attachShadow({ mode });
+    const target = document.createElement("div");
+    root.append(target);
+    wrapper.append(host);
+    setMountPoint(target);
+
+    return () => {
+      setMountPoint(null);
+      host.remove();
+    };
+  }, [mode]);
+
+  return (
+    <TableDemoCard title={`Table em ShadowRoot ${mode}`}>
+      <div ref={wrapperRef} />
+      {mountPoint ? createPortal(<TableDemo />, mountPoint) : null}
+    </TableDemoCard>
   );
 }
 

@@ -316,6 +316,27 @@
   --pagination-item-padding-x: var(--space-3);
   --pagination-foreground: var(--color-text-muted);
 
+  /* Table */
+  --table-background: var(--color-surface);
+  --table-foreground: var(--color-text);
+  --table-border: var(--color-border);
+  --table-header-background: var(--color-surface-subtle);
+  --table-header-foreground: var(--color-text);
+  --table-footer-background: var(--color-surface-subtle);
+  --table-footer-foreground: var(--color-text);
+  --table-row-hover: var(--color-surface-subtle);
+  --table-row-selected: var(--color-action-primary-soft);
+  --table-row-striped: var(--color-background);
+  --table-caption-foreground: var(--color-text-muted);
+  --table-cell-padding-x: var(--space-4);
+  --table-cell-padding-y: var(--space-3);
+  --table-cell-padding-x-compact: var(--space-3);
+  --table-cell-padding-y-compact: var(--space-2);
+  --table-caption-padding-y: var(--space-3);
+  --table-header-height: var(--layout-touch-target);
+  --table-font-size: var(--font-size-text-sm);
+  --table-line-height: var(--line-height-normal);
+
   /* Z-index */
   --z-popover: 70;
   --z-tooltip: 75;
