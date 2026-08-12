@@ -27,6 +27,10 @@ import ContextMenu, {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/components/ui/ContextMenu";
+import DataGrid, {
+  type DataGridColumn,
+  type DataGridSort,
+} from "@/components/ui/DataGrid";
 import Dialog, {
   DialogClose,
   DialogContent,
@@ -174,6 +178,19 @@ export default function UIPlaygroundClient() {
   const [controlledPaginationPage, setControlledPaginationPage] = useState(5);
   const [dynamicPaginationPage, setDynamicPaginationPage] = useState(10);
   const [dynamicPaginationTotal, setDynamicPaginationTotal] = useState(12);
+  const [controlledGridSort, setControlledGridSort] =
+    useState<DataGridSort | null>(null);
+  const [manualGridSort, setManualGridSort] =
+    useState<DataGridSort | null>(null);
+  const [controlledGridSelection, setControlledGridSelection] =
+    useState<readonly string[]>(["lead-1"]);
+  const [controlledGridVisibility, setControlledGridVisibility] = useState<
+    Readonly<Record<string, boolean>>
+  >({ email: true, source: true });
+  const [gridDemoPage, setGridDemoPage] = useState(1);
+  const [crossPageSelection, setCrossPageSelection] = useState<readonly string[]>(
+    ["lead-1"],
+  );
   const initialFocusRef = useRef<HTMLButtonElement | null>(null);
   const drawerInitialFocusRef = useRef<HTMLInputElement | null>(null);
   const externalFocusRef = useRef<HTMLButtonElement | null>(null);
@@ -3796,6 +3813,233 @@ export default function UIPlaygroundClient() {
         </PlaygroundSection>
 
         <PlaygroundSection
+          title="DS-18 — DataGrid"
+          description="Grade genérica com single-sort, seleção múltipla, visibilidade de colunas e estados compostos sobre Table e ScrollArea oficiais."
+        >
+          <div className="grid gap-4">
+            <DataGridDemoCard title="Básico, várias colunas e células compostas">
+              <DataGrid
+                rows={DATA_GRID_ROWS}
+                columns={DATA_GRID_COLUMNS}
+                getRowId={(row) => row.id}
+                getRowLabel={(row) => row.name}
+                caption="Leads fictícios para homologação do DataGrid."
+              />
+              <p className="text-xs text-hp-muted">
+                Inclui Avatar, Badge, texto longo e ações com DropdownMenu.
+              </p>
+            </DataGridDemoCard>
+
+            <div className="grid gap-4 lg:grid-cols-2">
+              <DataGridDemoCard title="Single-sort uncontrolled">
+                <DataGrid
+                  rows={DATA_GRID_ROWS}
+                  columns={DATA_GRID_COMPACT_COLUMNS}
+                  getRowId={(row) => row.id}
+                  getRowLabel={(row) => row.name}
+                  defaultSort={{ columnId: "name", direction: "asc" }}
+                />
+                <p className="text-xs text-hp-muted">
+                  Clique ou use Tab + Enter/Espaço: none → asc → desc → none.
+                </p>
+              </DataGridDemoCard>
+
+              <DataGridDemoCard title="Sorting controlled">
+                <p className="text-sm text-hp-muted">
+                  Estado: {formatGridSort(controlledGridSort)}
+                </p>
+                <DataGrid
+                  rows={DATA_GRID_ROWS}
+                  columns={DATA_GRID_COMPACT_COLUMNS}
+                  getRowId={(row) => row.id}
+                  sort={controlledGridSort}
+                  onSortChange={setControlledGridSort}
+                />
+              </DataGridDemoCard>
+
+              <DataGridDemoCard title="manualSorting/server-side simulado">
+                <p className="text-sm text-hp-muted">
+                  Solicitação: {formatGridSort(manualGridSort)}
+                </p>
+                <DataGrid
+                  rows={DATA_GRID_ROWS}
+                  columns={DATA_GRID_COMPACT_COLUMNS}
+                  getRowId={(row) => row.id}
+                  sort={manualGridSort}
+                  onSortChange={setManualGridSort}
+                  manualSorting
+                />
+                <p className="text-xs text-hp-muted">
+                  A ordem original permanece; somente o callback é emitido.
+                </p>
+              </DataGridDemoCard>
+
+              <DataGridDemoCard title="Seleção, select-all e indeterminate">
+                <DataGrid
+                  rows={DATA_GRID_ROWS}
+                  columns={DATA_GRID_COMPACT_COLUMNS}
+                  getRowId={(row) => row.id}
+                  getRowLabel={(row) => row.name}
+                  selectionMode="multiple"
+                  defaultSelectedRowIds={["lead-1"]}
+                  isRowDisabled={(row) => row.disabled}
+                />
+                <p className="text-xs text-hp-muted">
+                  Uma linha inicia selecionada e a linha desabilitada é ignorada
+                  pelo select-all.
+                </p>
+              </DataGridDemoCard>
+
+              <DataGridDemoCard title="Seleção controlled">
+                <p className="text-sm text-hp-muted">
+                  IDs: {controlledGridSelection.join(", ") || "nenhum"}
+                </p>
+                <DataGrid
+                  rows={DATA_GRID_ROWS}
+                  columns={DATA_GRID_COMPACT_COLUMNS}
+                  getRowId={(row) => row.id}
+                  getRowLabel={(row) => row.name}
+                  selectionMode="multiple"
+                  selectedRowIds={controlledGridSelection}
+                  onSelectedRowIdsChange={setControlledGridSelection}
+                  isRowDisabled={(row) => row.disabled}
+                />
+              </DataGridDemoCard>
+
+              <DataGridDemoCard title="Column visibility controlled">
+                <p className="text-sm text-hp-muted">
+                  Nome é obrigatório e não aparece entre as opções ocultáveis.
+                </p>
+                <DataGrid
+                  rows={DATA_GRID_ROWS}
+                  columns={DATA_GRID_VISIBILITY_COLUMNS}
+                  getRowId={(row) => row.id}
+                  columnVisibility={controlledGridVisibility}
+                  onColumnVisibilityChange={setControlledGridVisibility}
+                />
+              </DataGridDemoCard>
+
+              <DataGridDemoCard title="EmptyState">
+                <DataGrid
+                  rows={[]}
+                  columns={DATA_GRID_COMPACT_COLUMNS}
+                  getRowId={(row) => row.id}
+                  emptyState={
+                    <EmptyState
+                      title="Nenhum lead encontrado"
+                      description="Ajuste os filtros externos para tentar novamente."
+                      size="sm"
+                    />
+                  }
+                />
+              </DataGridDemoCard>
+
+              <DataGridDemoCard title="Loading com Skeleton">
+                <DataGrid
+                  rows={[]}
+                  columns={DATA_GRID_COMPACT_COLUMNS}
+                  getRowId={(row) => row.id}
+                  loading
+                  loadingRowCount={4}
+                />
+              </DataGridDemoCard>
+
+              <DataGridDemoCard title="Density comfortable e striped">
+                <DataGrid
+                  rows={DATA_GRID_ROWS}
+                  columns={DATA_GRID_COMPACT_COLUMNS}
+                  getRowId={(row) => row.id}
+                  density="comfortable"
+                  striped
+                />
+              </DataGridDemoCard>
+
+              <DataGridDemoCard title="Density compact">
+                <DataGrid
+                  rows={DATA_GRID_ROWS}
+                  columns={DATA_GRID_COMPACT_COLUMNS}
+                  getRowId={(row) => row.id}
+                  density="compact"
+                />
+              </DataGridDemoCard>
+            </div>
+
+            <DataGridDemoCard title="390px/mobile e ScrollArea horizontal">
+              <div className="w-full max-w-[390px]">
+                <DataGrid
+                  rows={DATA_GRID_ROWS}
+                  columns={DATA_GRID_COLUMNS}
+                  getRowId={(row) => row.id}
+                  getRowLabel={(row) => row.name}
+                  selectionMode="multiple"
+                />
+              </div>
+            </DataGridDemoCard>
+
+            <DataGridDemoCard title="Pagination externa e seleção entre páginas">
+              <p className="text-sm text-hp-muted">
+                Página {gridDemoPage}; selecionados preservados: {crossPageSelection.join(", ") || "nenhum"}
+              </p>
+              <DataGrid
+                rows={gridDemoPage === 1 ? DATA_GRID_ROWS.slice(0, 2) : DATA_GRID_ROWS.slice(2)}
+                columns={DATA_GRID_COMPACT_COLUMNS}
+                getRowId={(row) => row.id}
+                getRowLabel={(row) => row.name}
+                selectionMode="multiple"
+                selectedRowIds={crossPageSelection}
+                onSelectedRowIdsChange={setCrossPageSelection}
+                isRowDisabled={(row) => row.disabled}
+              />
+              <Pagination
+                page={gridDemoPage}
+                totalPages={2}
+                onPageChange={setGridDemoPage}
+              />
+            </DataGridDemoCard>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-4">
+            <Dialog>
+              <DialogTrigger className={dialogTriggerClasses}>DataGrid no Dialog</DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Leads demonstrativos</DialogTitle>
+                  <DialogDescription>
+                    Sorting, seleção e configuração de colunas dentro do Dialog.
+                  </DialogDescription>
+                </DialogHeader>
+                <DataGridDemo />
+                <DialogFooter>
+                  <DialogClose className={dialogSecondaryClasses}>Fechar</DialogClose>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <Drawer>
+              <DrawerTrigger className={drawerTriggerClasses}>DataGrid no Drawer</DrawerTrigger>
+              <DrawerOverlay />
+              <DrawerContent size="lg">
+                <DrawerHeader>
+                  <DrawerTitle>Leads demonstrativos</DrawerTitle>
+                  <DrawerDescription>
+                    Sorting, seleção e configuração de colunas dentro do Drawer.
+                  </DrawerDescription>
+                </DrawerHeader>
+                <div className="p-[var(--space-6)]"><DataGridDemo /></div>
+                <DrawerFooter>
+                  <DrawerClose className={drawerSecondaryClasses}>Fechar</DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <ShadowDataGridDemo mode="open" />
+            <ShadowDataGridDemo mode="closed" />
+          </div>
+        </PlaygroundSection>
+
+        <PlaygroundSection
           title="Dialog"
           description="Validação de abertura, fechamento, foco, backdrop, Escape, estado controlado e múltiplos modais."
         >
@@ -5703,6 +5947,219 @@ function ShadowTableDemo({ mode }: { mode: ShadowRootMode }) {
       <div ref={wrapperRef} />
       {mountPoint ? createPortal(<TableDemo />, mountPoint) : null}
     </TableDemoCard>
+  );
+}
+
+type DataGridDemoRow = {
+  id: string;
+  name: string;
+  email: string;
+  source: string;
+  status: "Novo" | "Qualificado" | "Em atendimento" | "Arquivado";
+  owner: string;
+  notes: string;
+  createdAt: Date;
+  disabled: boolean;
+};
+
+const DATA_GRID_ROWS: readonly DataGridDemoRow[] = [
+  {
+    id: "lead-1",
+    name: "Marina Costa",
+    email: "marina@example.test",
+    source: "Indicação",
+    status: "Qualificado",
+    owner: "Equipe Demo",
+    notes: "Busca uma demonstração completa da plataforma para a Clínica Exemplo.",
+    createdAt: new Date("2026-08-01T10:00:00Z"),
+    disabled: false,
+  },
+  {
+    id: "lead-2",
+    name: "Lucas Almeida",
+    email: "lucas@example.test",
+    source: "Landing page",
+    status: "Novo",
+    owner: "Equipe Demo",
+    notes: "Contato demonstrativo sem qualquer dado pessoal real.",
+    createdAt: new Date("2026-08-03T14:30:00Z"),
+    disabled: false,
+  },
+  {
+    id: "lead-3",
+    name: "Clínica Exemplo",
+    email: "contato@example.test",
+    source: "Evento",
+    status: "Em atendimento",
+    owner: "HPTECH Demo",
+    notes: "Texto longo para validar largura, quebra visual e rolagem horizontal controlada.",
+    createdAt: new Date("2026-08-05T09:15:00Z"),
+    disabled: false,
+  },
+  {
+    id: "lead-4",
+    name: "Registro Bloqueado",
+    email: "bloqueado@example.test",
+    source: "Importação",
+    status: "Arquivado",
+    owner: "Equipe Demo",
+    notes: "Linha desabilitada para validar seleção e select-all.",
+    createdAt: new Date("2026-08-07T16:45:00Z"),
+    disabled: true,
+  },
+];
+
+function DataGridActions() {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger className={dropdownMenuTriggerClasses}>
+        Ações
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem>Visualizar</DropdownMenuItem>
+        <DropdownMenuItem>Editar demonstração</DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+const DATA_GRID_COLUMNS: readonly DataGridColumn<DataGridDemoRow>[] = [
+  {
+    id: "name",
+    header: "Nome",
+    getValue: (row) => row.name,
+    getSortValue: (row) => row.name,
+    renderCell: ({ row }) => (
+      <div className="flex items-center gap-3">
+        <Avatar name={row.name} size="sm" />
+        <span className="font-medium">{row.name}</span>
+      </div>
+    ),
+    sortable: true,
+    hideable: false,
+    minWidth: "13rem",
+  },
+  {
+    id: "email",
+    header: "E-mail",
+    getValue: (row) => row.email,
+    sortable: true,
+    minWidth: "14rem",
+  },
+  {
+    id: "source",
+    header: "Origem",
+    getValue: (row) => row.source,
+    sortable: true,
+    minWidth: "10rem",
+  },
+  {
+    id: "status",
+    header: "Status",
+    getValue: (row) => row.status,
+    renderCell: ({ row }) => (
+      <Badge variant={row.status === "Arquivado" ? "neutral" : "info"}>
+        {row.status}
+      </Badge>
+    ),
+    minWidth: "10rem",
+  },
+  {
+    id: "owner",
+    header: "Responsável",
+    getValue: (row) => row.owner,
+    minWidth: "10rem",
+  },
+  {
+    id: "notes",
+    header: "Observações",
+    getValue: (row) => row.notes,
+    renderCell: ({ value }) => (
+      <span className="block max-w-72 whitespace-normal">{String(value)}</span>
+    ),
+    minWidth: "18rem",
+  },
+  {
+    id: "actions",
+    header: "Ações",
+    headerAriaLabel: "Ações da linha",
+    renderCell: () => <DataGridActions />,
+    hideable: false,
+    align: "end",
+    minWidth: "8rem",
+  },
+];
+
+const DATA_GRID_COMPACT_COLUMNS: readonly DataGridColumn<DataGridDemoRow>[] =
+  DATA_GRID_COLUMNS.filter((column) =>
+    ["name", "source", "status"].includes(column.id),
+  );
+
+const DATA_GRID_VISIBILITY_COLUMNS: readonly DataGridColumn<DataGridDemoRow>[] =
+  DATA_GRID_COLUMNS.filter((column) =>
+    ["name", "email", "source"].includes(column.id),
+  );
+
+function formatGridSort(sort: DataGridSort | null): string {
+  return sort ? `${sort.columnId} / ${sort.direction}` : "nenhum";
+}
+
+function DataGridDemoCard({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="min-w-0 space-y-3 rounded-[var(--radius-lg)] border border-hp-border bg-hp-surface p-[var(--space-4)]">
+      <h3 className="font-semibold">{title}</h3>
+      {children}
+    </div>
+  );
+}
+
+function DataGridDemo() {
+  return (
+    <DataGrid
+      rows={DATA_GRID_ROWS}
+      columns={DATA_GRID_VISIBILITY_COLUMNS}
+      getRowId={(row) => row.id}
+      getRowLabel={(row) => row.name}
+      selectionMode="multiple"
+      defaultSelectedRowIds={["lead-1"]}
+      isRowDisabled={(row) => row.disabled}
+      striped
+    />
+  );
+}
+
+function ShadowDataGridDemo({ mode }: { mode: ShadowRootMode }) {
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const [mountPoint, setMountPoint] = useState<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (wrapper === null) return;
+
+    const host = document.createElement("div");
+    const root = host.attachShadow({ mode });
+    const target = document.createElement("div");
+    root.append(target);
+    wrapper.append(host);
+    setMountPoint(target);
+
+    return () => {
+      setMountPoint(null);
+      host.remove();
+    };
+  }, [mode]);
+
+  return (
+    <DataGridDemoCard title={`DataGrid em ShadowRoot ${mode}`}>
+      <div ref={wrapperRef} />
+      {mountPoint ? createPortal(<DataGridDemo />, mountPoint) : null}
+    </DataGridDemoCard>
   );
 }
 

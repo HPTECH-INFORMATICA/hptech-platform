@@ -337,6 +337,21 @@
   --table-font-size: var(--font-size-text-sm);
   --table-line-height: var(--line-height-normal);
 
+  /* Data Grid */
+  --data-grid-gap: var(--space-3);
+  --data-grid-border: var(--table-border);
+  --data-grid-foreground: var(--table-foreground);
+  --data-grid-muted-foreground: var(--color-text-muted);
+  --data-grid-sort-indicator: var(--color-text-muted);
+  --data-grid-sort-gap: var(--space-2);
+  --data-grid-control-background: var(--color-surface);
+  --data-grid-control-hover: var(--color-surface-subtle);
+  --data-grid-control-padding-x: var(--space-3);
+  --data-grid-control-radius: var(--radius-md);
+  --data-grid-radius: var(--radius-lg);
+  --data-grid-scroll-padding: var(--space-2);
+  --data-grid-selection-width: var(--layout-touch-target);
+
   /* Z-index */
   --z-popover: 70;
   --z-tooltip: 75;
