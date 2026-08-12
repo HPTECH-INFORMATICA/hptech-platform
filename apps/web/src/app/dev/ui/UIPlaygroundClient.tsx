@@ -14,6 +14,11 @@ import Badge from "@/components/ui/Badge";
 import Breadcrumb from "@/components/ui/Breadcrumb";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
+import Calendar, {
+  type CalendarDate,
+  type CalendarMonth,
+  type CalendarRange,
+} from "@/components/ui/Calendar";
 import Checkbox from "@/components/ui/Checkbox";
 import EmptyState from "@/components/ui/EmptyState";
 import Collapsible, {
@@ -191,6 +196,12 @@ export default function UIPlaygroundClient() {
   const [crossPageSelection, setCrossPageSelection] = useState<readonly string[]>(
     ["lead-1"],
   );
+  const [controlledCalendarDate, setControlledCalendarDate] =
+    useState<CalendarDate>("2026-08-12");
+  const [controlledCalendarRange, setControlledCalendarRange] =
+    useState<CalendarRange>({ from: "2026-08-10", to: "2026-08-14" });
+  const [controlledCalendarMonth, setControlledCalendarMonth] =
+    useState<CalendarMonth>("2026-08");
   const initialFocusRef = useRef<HTMLButtonElement | null>(null);
   const drawerInitialFocusRef = useRef<HTMLInputElement | null>(null);
   const externalFocusRef = useRef<HTMLButtonElement | null>(null);
@@ -4040,6 +4051,147 @@ export default function UIPlaygroundClient() {
         </PlaygroundSection>
 
         <PlaygroundSection
+          title="DS-19 — Calendar"
+          description="Seleção acessível de dias civis com single, range, mês controlável, limites, locale e teclado completo."
+        >
+          <div className="grid gap-4 lg:grid-cols-2">
+            <CalendarDemoCard title="Básico, today e single uncontrolled">
+              <Calendar
+                mode="single"
+                defaultValue="2026-08-12"
+                defaultMonth="2026-08"
+                ariaLabel="Data do atendimento"
+              />
+            </CalendarDemoCard>
+
+            <CalendarDemoCard title="Single controlled">
+              <p className="text-sm text-hp-muted">Selecionada: {controlledCalendarDate}</p>
+              <Calendar
+                mode="single"
+                value={controlledCalendarDate}
+                onValueChange={(value) => value && setControlledCalendarDate(value)}
+                defaultMonth="2026-08"
+              />
+            </CalendarDemoCard>
+
+            <CalendarDemoCard title="Range incompleto e reinício">
+              <Calendar
+                mode="range"
+                defaultValue={{ from: "2026-08-11" }}
+                defaultMonth="2026-08"
+              />
+              <p className="text-xs text-hp-muted">
+                Complete o intervalo; um novo clique após completá-lo reinicia a seleção.
+              </p>
+            </CalendarDemoCard>
+
+            <CalendarDemoCard title="Range controlled e segundo clique anterior">
+              <p className="text-sm text-hp-muted">
+                Range: {controlledCalendarRange.from} → {controlledCalendarRange.to ?? "incompleto"}
+              </p>
+              <Calendar
+                mode="range"
+                value={controlledCalendarRange}
+                onValueChange={(value) => value && setControlledCalendarRange(value)}
+                defaultMonth="2026-08"
+              />
+            </CalendarDemoCard>
+
+            <CalendarDemoCard title="Range bloqueado por disabled, minDate e maxDate">
+              <Calendar
+                mode="range"
+                defaultValue={{ from: "2026-08-10" }}
+                defaultMonth="2026-08"
+                minDate="2026-08-05"
+                maxDate="2026-08-25"
+                isDateDisabled={(date) => date === "2026-08-15"}
+              />
+              <p className="text-xs text-hp-muted">
+                O dia 15 está indisponível e nenhum range pode atravessá-lo.
+              </p>
+            </CalendarDemoCard>
+
+            <CalendarDemoCard title="Today disabled">
+              <Calendar
+                mode="single"
+                defaultMonth="2026-08"
+                isDateDisabled={(date) => date === "2026-08-12"}
+              />
+            </CalendarDemoCard>
+
+            <CalendarDemoCard title="Mês controlled">
+              <p className="text-sm text-hp-muted">Mês: {controlledCalendarMonth}</p>
+              <Calendar
+                mode="single"
+                month={controlledCalendarMonth}
+                onMonthChange={setControlledCalendarMonth}
+              />
+            </CalendarDemoCard>
+
+            <CalendarDemoCard title="Mês uncontrolled, pt-BR e domingo inicial">
+              <Calendar mode="single" defaultMonth="2026-08" locale="pt-BR" weekStartsOn={0} />
+            </CalendarDemoCard>
+
+            <CalendarDemoCard title="Locale alternativo e segunda-feira inicial">
+              <Calendar mode="single" defaultMonth="2026-08" locale="en-US" weekStartsOn={1} />
+            </CalendarDemoCard>
+
+            <CalendarDemoCard title="Outside days ocultos">
+              <Calendar mode="single" defaultMonth="2026-08" showOutsideDays={false} />
+            </CalendarDemoCard>
+
+            <CalendarDemoCard title="Outside days visíveis e fixedWeeks">
+              <Calendar mode="single" defaultMonth="2026-08" showOutsideDays fixedWeeks />
+            </CalendarDemoCard>
+
+            <CalendarDemoCard title="Teclado, roving focus e mudança de mês">
+              <Calendar mode="single" defaultValue="2026-08-31" defaultMonth="2026-08" />
+              <p className="text-xs text-hp-muted">
+                Use setas, Home, End, PageUp, PageDown, Shift+PageUp/PageDown, Enter e Espaço.
+              </p>
+            </CalendarDemoCard>
+
+            <CalendarDemoCard title="390px, light/dark e reduced motion">
+              <div className="w-full max-w-[390px]">
+                <Calendar mode="range" defaultValue={{ from: "2026-08-08", to: "2026-08-18" }} defaultMonth="2026-08" />
+              </div>
+            </CalendarDemoCard>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-4">
+            <Dialog>
+              <DialogTrigger className={dialogTriggerClasses}>Calendar no Dialog</DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Escolher data</DialogTitle>
+                  <DialogDescription>Calendar Core dentro do Dialog oficial.</DialogDescription>
+                </DialogHeader>
+                <CalendarDemo />
+                <DialogFooter><DialogClose className={dialogSecondaryClasses}>Fechar</DialogClose></DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <Drawer>
+              <DrawerTrigger className={drawerTriggerClasses}>Calendar no Drawer</DrawerTrigger>
+              <DrawerOverlay />
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle>Escolher período</DrawerTitle>
+                  <DrawerDescription>Calendar Core dentro do Drawer oficial.</DrawerDescription>
+                </DrawerHeader>
+                <div className="p-[var(--space-6)]"><CalendarDemo mode="range" /></div>
+                <DrawerFooter><DrawerClose className={drawerSecondaryClasses}>Fechar</DrawerClose></DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <ShadowCalendarDemo mode="open" />
+            <ShadowCalendarDemo mode="closed" />
+          </div>
+        </PlaygroundSection>
+
+        <PlaygroundSection
           title="Dialog"
           description="Validação de abertura, fechamento, foco, backdrop, Escape, estado controlado e múltiplos modais."
         >
@@ -6160,6 +6312,60 @@ function ShadowDataGridDemo({ mode }: { mode: ShadowRootMode }) {
       <div ref={wrapperRef} />
       {mountPoint ? createPortal(<DataGridDemo />, mountPoint) : null}
     </DataGridDemoCard>
+  );
+}
+
+function CalendarDemoCard({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="min-w-0 space-y-3 rounded-[var(--radius-lg)] border border-hp-border bg-hp-surface p-[var(--space-4)]">
+      <h3 className="font-semibold">{title}</h3>
+      {children}
+    </div>
+  );
+}
+
+function CalendarDemo({ mode = "single" }: { mode?: "single" | "range" }) {
+  return mode === "single" ? (
+    <Calendar mode="single" defaultValue="2026-08-12" defaultMonth="2026-08" />
+  ) : (
+    <Calendar
+      mode="range"
+      defaultValue={{ from: "2026-08-10", to: "2026-08-14" }}
+      defaultMonth="2026-08"
+    />
+  );
+}
+
+function ShadowCalendarDemo({ mode }: { mode: ShadowRootMode }) {
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const [mountPoint, setMountPoint] = useState<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (wrapper === null) return;
+    const host = document.createElement("div");
+    const root = host.attachShadow({ mode });
+    const target = document.createElement("div");
+    root.append(target);
+    wrapper.append(host);
+    setMountPoint(target);
+    return () => {
+      setMountPoint(null);
+      host.remove();
+    };
+  }, [mode]);
+
+  return (
+    <CalendarDemoCard title={`Calendar em ShadowRoot ${mode}`}>
+      <div ref={wrapperRef} />
+      {mountPoint ? createPortal(<CalendarDemo />, mountPoint) : null}
+    </CalendarDemoCard>
   );
 }
 

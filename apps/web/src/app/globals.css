@@ -352,6 +352,30 @@
   --data-grid-scroll-padding: var(--space-2);
   --data-grid-selection-width: var(--layout-touch-target);
 
+  /* Calendar */
+  --calendar-max-width: 23rem;
+  --calendar-cell-size: var(--layout-touch-target);
+  --calendar-touch-target: var(--layout-touch-target);
+  --calendar-weekday-height: var(--space-8);
+  --calendar-gap: var(--space-1);
+  --calendar-header-gap: var(--space-3);
+  --calendar-padding: var(--space-4);
+  --calendar-background: var(--color-surface);
+  --calendar-foreground: var(--color-text);
+  --calendar-muted-foreground: var(--color-text-muted);
+  --calendar-outside-foreground: var(--color-text-subtle);
+  --calendar-disabled-foreground: var(--color-text-subtle);
+  --calendar-border: var(--color-border);
+  --calendar-day-hover: var(--color-surface-subtle);
+  --calendar-today-ring: var(--color-action-primary);
+  --calendar-selected-background: var(--color-action-primary);
+  --calendar-selected-foreground: var(--color-text-inverse);
+  --calendar-range-background: var(--color-action-primary-soft);
+  --calendar-range-foreground: var(--color-text);
+  --calendar-focus: var(--color-focus);
+  --calendar-radius: var(--radius-lg);
+  --calendar-day-radius: var(--radius-md);
+
   /* Z-index */
   --z-popover: 70;
   --z-tooltip: 75;
