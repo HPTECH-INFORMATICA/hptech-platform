@@ -21,6 +21,27 @@
   - Categoria: INTERAÇÃO
 - DS-20 — DatePicker
   - Categoria: COMPOSIÇÃO
+- DS-21 — PageHeader
+  - Categoria: COMPOSIÇÃO
+  - Objetivo arquitetural: fornecer a estrutura transversal oficial para os cabeçalhos das páginas da plataforma.
+  - Responsabilidades:
+    - breadcrumb opcional;
+    - título semântico;
+    - descrição opcional;
+    - metadata opcional;
+    - ações;
+    - responsividade;
+    - composição independente de domínio.
+  - Não responsabilidades:
+    - roteamento;
+    - permissões;
+    - fetch;
+    - estado global;
+    - filtros;
+    - conteúdo da página;
+    - regras de negócio;
+    - tenant;
+    - telemetria.
 
 #### Dependências arquiteturais
 
@@ -31,22 +52,25 @@
 
 #### Fila posterior sem numeração oficial
 
-A fila posterior ainda não possui numeração oficial e permanece sujeita a um novo Gate arquitetural:
+A fila posterior ainda não possui numeração oficial e permanece sujeita a um novo Gate arquitetural para cada sprint:
 
-- PageHeader
 - Section
 - Filters
-- Progress
-- Loading
-- StatusIndicator
+- StatCard/KPI Card
+- ChartCard
 - Timeline
+- StatusIndicator
 - KanbanColumn
 - KanbanCard
-- StatCard/KPI Card
-- ChartCard/Charts
+- Progress
+- Loading
 - Stepper
 - FileUpload
 - Componentes de IA
+
+Section e Filters são as candidatas prioritárias imediatamente após PageHeader. Essa prioridade não oficializa DS-22 nem DS-23.
+
+Após as fundações transversais imediatamente necessárias, o Design System não avançará por uma longa fila especulativa. O desenvolvimento voltará a ser orientado pelos módulos consumidores reais, que determinarão a prioridade dos componentes posteriores.
 
 ---
 
