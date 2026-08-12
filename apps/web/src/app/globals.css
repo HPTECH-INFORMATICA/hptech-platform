@@ -376,6 +376,18 @@
   --calendar-radius: var(--radius-lg);
   --calendar-day-radius: var(--radius-md);
 
+  /* Date Picker */
+  --date-picker-gap: var(--space-2);
+  --date-picker-control-gap: var(--space-2);
+  --date-picker-range-gap: var(--space-3);
+  --date-picker-trigger-size: var(--layout-touch-target);
+  --date-picker-trigger-radius: var(--radius-md);
+  --date-picker-trigger-border: var(--color-border-strong);
+  --date-picker-trigger-background: var(--color-surface);
+  --date-picker-trigger-foreground: var(--color-text);
+  --date-picker-trigger-hover: var(--color-surface-subtle);
+  --date-picker-popover-width: var(--calendar-max-width);
+
   /* Z-index */
   --z-popover: 70;
   --z-tooltip: 75;

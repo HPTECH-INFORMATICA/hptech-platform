@@ -36,6 +36,9 @@ import DataGrid, {
   type DataGridColumn,
   type DataGridSort,
 } from "@/components/ui/DataGrid";
+import DatePicker, {
+  type DatePickerInvalidReason,
+} from "@/components/ui/DatePicker";
 import Dialog, {
   DialogClose,
   DialogContent,
@@ -202,6 +205,13 @@ export default function UIPlaygroundClient() {
     useState<CalendarRange>({ from: "2026-08-10", to: "2026-08-14" });
   const [controlledCalendarMonth, setControlledCalendarMonth] =
     useState<CalendarMonth>("2026-08");
+  const [controlledDatePickerDate, setControlledDatePickerDate] =
+    useState<CalendarDate | null>("2026-08-12");
+  const [controlledDatePickerRange, setControlledDatePickerRange] =
+    useState<CalendarRange | null>({ from: "2026-08-10", to: "2026-08-14" });
+  const [controlledDatePickerOpen, setControlledDatePickerOpen] = useState(false);
+  const [datePickerInvalidReason, setDatePickerInvalidReason] =
+    useState<DatePickerInvalidReason | null>(null);
   const initialFocusRef = useRef<HTMLButtonElement | null>(null);
   const drawerInitialFocusRef = useRef<HTMLInputElement | null>(null);
   const externalFocusRef = useRef<HTMLButtonElement | null>(null);
@@ -4192,6 +4202,213 @@ export default function UIPlaygroundClient() {
         </PlaygroundSection>
 
         <PlaygroundSection
+          title="DS-20 — DatePicker"
+          description="Composição oficial de Input, Popover e Calendar para valores civis single e range."
+        >
+          <div className="grid gap-4 lg:grid-cols-2">
+            <DatePickerDemoCard title="Single vazio e uncontrolled">
+              <DatePicker
+                mode="single"
+                label="Data do atendimento"
+                placeholder="DD/MM/AAAA"
+              />
+            </DatePickerDemoCard>
+
+            <DatePickerDemoCard title="Single preenchido e Calendar → Input">
+              <DatePicker
+                mode="single"
+                label="Data de retorno"
+                defaultValue="2026-08-12"
+                description="Selecione pelo calendário ou digite uma data."
+              />
+            </DatePickerDemoCard>
+
+            <DatePickerDemoCard title="Single controlled">
+              <p className="text-sm text-hp-muted">
+                Valor civil: {controlledDatePickerDate ?? "null"}
+              </p>
+              <DatePicker
+                mode="single"
+                label="Data controlada"
+                value={controlledDatePickerDate}
+                onValueChange={setControlledDatePickerDate}
+              />
+            </DatePickerDemoCard>
+
+            <DatePickerDemoCard title="Digitação, blur, Enter e Escape">
+              <DatePicker
+                mode="single"
+                label="Data digitável"
+                defaultValue="2026-08-12"
+                description="Teste texto parcial, Enter, blur e Escape restaurando o último valor aceito."
+                onInvalidValue={(_, reason) => setDatePickerInvalidReason(reason)}
+              />
+              <p className="text-xs text-hp-muted">
+                Última invalidez: {datePickerInvalidReason ?? "nenhuma"}. Teste 1/02/2026 e 31/02/2026.
+              </p>
+            </DatePickerDemoCard>
+
+            <DatePickerDemoCard title="MM/DD/YYYY e locale alternativo">
+              <DatePicker
+                mode="single"
+                label="Date"
+                defaultValue="2026-08-20"
+                inputFormat="MM/DD/YYYY"
+                locale="en-US"
+                placeholder="MM/DD/YYYY"
+              />
+            </DatePickerDemoCard>
+
+            <DatePickerDemoCard title="minDate, maxDate e disabled date">
+              <DatePicker
+                mode="single"
+                label="Período permitido"
+                defaultValue="2026-08-12"
+                minDate="2026-08-05"
+                maxDate="2026-08-25"
+                isDateDisabled={(date) => date === "2026-08-15"}
+              />
+            </DatePickerDemoCard>
+
+            <DatePickerDemoCard title="Disabled e readOnly">
+              <div className="space-y-4">
+                <DatePicker mode="single" label="Data desabilitada" defaultValue="2026-08-12" disabled />
+                <DatePicker mode="single" label="Data somente leitura" defaultValue="2026-08-12" readOnly />
+              </div>
+            </DatePickerDemoCard>
+
+            <DatePickerDemoCard title="Required">
+              <DatePicker mode="single" label="Data obrigatória" required />
+            </DatePickerDemoCard>
+
+            <DatePickerDemoCard title="Open controlled">
+              <p className="text-sm text-hp-muted">
+                Popover: {controlledDatePickerOpen ? "aberto" : "fechado"}
+              </p>
+              <DatePicker
+                mode="single"
+                label="Abertura controlada"
+                value={controlledDatePickerDate}
+                onValueChange={setControlledDatePickerDate}
+                open={controlledDatePickerOpen}
+                onOpenChange={setControlledDatePickerOpen}
+              />
+            </DatePickerDemoCard>
+
+            <DatePickerDemoCard title="Open uncontrolled, outside click e foco restaurado">
+              <DatePicker
+                mode="single"
+                label="Abertura local"
+                defaultOpen={false}
+                defaultValue="2026-08-12"
+              />
+              <p className="text-xs text-hp-muted">
+                Ao abrir, o foco inicial deve cair no dia roving. Escape restaura o foco ao trigger.
+              </p>
+            </DatePickerDemoCard>
+
+            <DatePickerDemoCard title="Range vazio e dois Inputs">
+              <DatePicker mode="range" label="Período" />
+            </DatePickerDemoCard>
+
+            <DatePickerDemoCard title="Range incompleto uncontrolled">
+              <DatePicker
+                mode="range"
+                label="Período parcial"
+                defaultValue={{ from: "2026-08-10" }}
+              />
+            </DatePickerDemoCard>
+
+            <DatePickerDemoCard title="Range completo controlled">
+              <p className="text-sm text-hp-muted">
+                Valor: {controlledDatePickerRange
+                  ? `${controlledDatePickerRange.from} → ${controlledDatePickerRange.to ?? "incompleto"}`
+                  : "null"}
+              </p>
+              <DatePicker
+                mode="range"
+                label="Período controlado"
+                value={controlledDatePickerRange}
+                onValueChange={setControlledDatePickerRange}
+              />
+            </DatePickerDemoCard>
+
+            <DatePickerDemoCard title="Range invertido e bloqueado por disabled">
+              <DatePicker
+                mode="range"
+                label="Período validado"
+                defaultValue={{ from: "2026-08-10" }}
+                isDateDisabled={(date) => date === "2026-08-15"}
+                onInvalidValue={(_, reason) => setDatePickerInvalidReason(reason)}
+              />
+              <p className="text-xs text-hp-muted">
+                Digitação invertida não é reordenada; ranges atravessando 15/08 são bloqueados.
+              </p>
+            </DatePickerDemoCard>
+
+            <DatePickerDemoCard title="Form single e form range">
+              <form className="space-y-4" onSubmit={(event) => event.preventDefault()}>
+                <DatePicker
+                  mode="single"
+                  label="Data serializada"
+                  name="appointment_date"
+                  defaultValue="2026-08-12"
+                />
+                <DatePicker
+                  mode="range"
+                  label="Período serializado"
+                  name="period"
+                  defaultValue={{ from: "2026-08-10", to: "2026-08-14" }}
+                />
+                <Button type="submit" variant="secondary">Validar formulário</Button>
+              </form>
+            </DatePickerDemoCard>
+
+            <DatePickerDemoCard title="390px, light/dark e reduced motion">
+              <div className="w-full max-w-[390px]">
+                <DatePicker
+                  mode="range"
+                  label="Período responsivo"
+                  defaultValue={{ from: "2026-08-10", to: "2026-08-14" }}
+                />
+              </div>
+            </DatePickerDemoCard>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-4">
+            <Dialog>
+              <DialogTrigger className={dialogTriggerClasses}>DatePicker no Dialog</DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Selecionar data</DialogTitle>
+                  <DialogDescription>DatePicker no portal contextual do Dialog.</DialogDescription>
+                </DialogHeader>
+                <DatePickerDemo />
+                <DialogFooter><DialogClose className={dialogSecondaryClasses}>Fechar</DialogClose></DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <Drawer>
+              <DrawerTrigger className={drawerTriggerClasses}>DatePicker no Drawer</DrawerTrigger>
+              <DrawerOverlay />
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle>Selecionar período</DrawerTitle>
+                  <DrawerDescription>DatePicker no portal contextual do Drawer.</DrawerDescription>
+                </DrawerHeader>
+                <div className="p-[var(--space-6)]"><DatePickerDemo mode="range" /></div>
+                <DrawerFooter><DrawerClose className={drawerSecondaryClasses}>Fechar</DrawerClose></DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <ShadowDatePickerDemo mode="open" />
+            <ShadowDatePickerDemo mode="closed" />
+          </div>
+        </PlaygroundSection>
+
+        <PlaygroundSection
           title="Dialog"
           description="Validação de abertura, fechamento, foco, backdrop, Escape, estado controlado e múltiplos modais."
         >
@@ -6366,6 +6583,60 @@ function ShadowCalendarDemo({ mode }: { mode: ShadowRootMode }) {
       <div ref={wrapperRef} />
       {mountPoint ? createPortal(<CalendarDemo />, mountPoint) : null}
     </CalendarDemoCard>
+  );
+}
+
+function DatePickerDemoCard({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="min-w-0 space-y-3 rounded-[var(--radius-lg)] border border-hp-border bg-hp-surface p-[var(--space-4)]">
+      <h3 className="font-semibold">{title}</h3>
+      {children}
+    </div>
+  );
+}
+
+function DatePickerDemo({ mode = "single" }: { mode?: "single" | "range" }) {
+  return mode === "single" ? (
+    <DatePicker mode="single" label="Data" defaultValue="2026-08-12" />
+  ) : (
+    <DatePicker
+      mode="range"
+      label="Período"
+      defaultValue={{ from: "2026-08-10", to: "2026-08-14" }}
+    />
+  );
+}
+
+function ShadowDatePickerDemo({ mode }: { mode: ShadowRootMode }) {
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const [mountPoint, setMountPoint] = useState<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (wrapper === null) return;
+    const host = document.createElement("div");
+    const root = host.attachShadow({ mode });
+    const target = document.createElement("div");
+    root.append(target);
+    wrapper.append(host);
+    setMountPoint(target);
+    return () => {
+      setMountPoint(null);
+      host.remove();
+    };
+  }, [mode]);
+
+  return (
+    <DatePickerDemoCard title={`DatePicker em ShadowRoot ${mode}`}>
+      <div ref={wrapperRef} />
+      {mountPoint ? createPortal(<DatePickerDemo />, mountPoint) : null}
+    </DatePickerDemoCard>
   );
 }
 
