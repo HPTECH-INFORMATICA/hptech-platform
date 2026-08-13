@@ -95,6 +95,7 @@ import NavigationMenu, {
   NavigationMenuSeparator,
   NavigationMenuTrigger,
 } from "@/components/ui/NavigationMenu";
+import PageHeader from "@/components/ui/PageHeader";
 import Pagination from "@/components/ui/Pagination";
 import Popover, {
   PopoverClose,
@@ -4409,6 +4410,164 @@ export default function UIPlaygroundClient() {
         </PlaygroundSection>
 
         <PlaygroundSection
+          title="DS-21 — PageHeader"
+          description="Cabeçalho estrutural oficial para páginas, com hierarquia semântica, composição externa e responsividade."
+        >
+          <div className="grid min-w-0 gap-4 lg:grid-cols-2">
+            <PageHeaderDemoCard title="Somente título — h1">
+              <PageHeader title="Visão operacional" />
+            </PageHeaderDemoCard>
+
+            <PageHeaderDemoCard title="Título e descrição — h2">
+              <PageHeader
+                titleAs="h2"
+                title="Agenda da equipe"
+                description="Acompanhe os atendimentos planejados para a equipe demonstrativa."
+              />
+            </PageHeaderDemoCard>
+
+            <PageHeaderDemoCard title="Breadcrumb oficial">
+              <PageHeader
+                title="Detalhes do paciente"
+                description="Contexto estrutural sem acoplamento ao roteamento."
+                breadcrumb={
+                  <Breadcrumb
+                    items={[
+                      { label: "Início", href: "/" },
+                      { label: "Agenda", href: "/agenda" },
+                    ]}
+                    currentLabel="Paciente"
+                  />
+                }
+              />
+            </PageHeaderDemoCard>
+
+            <PageHeaderDemoCard title="Metadata textual e Badge">
+              <PageHeader
+                title="Clínica Exemplo"
+                description="Metadata permanece textual e não depende exclusivamente de cor."
+                metadata={
+                  <>
+                    <span>Atualizado hoje às 14:30</span>
+                    <Badge variant="success">Operação ativa</Badge>
+                  </>
+                }
+              />
+            </PageHeaderDemoCard>
+
+            <PageHeaderDemoCard title="Uma ação">
+              <PageHeader
+                title="Leads"
+                description="A ação é composta externamente pelo módulo consumidor."
+                actions={<Button>Novo lead</Button>}
+              />
+            </PageHeaderDemoCard>
+
+            <PageHeaderDemoCard title="Múltiplas ações — Button + IconButton">
+              <PageHeader
+                title="Relatórios"
+                description="Os controles quebram linha sem desaparecer em telas estreitas."
+                actions={
+                  <>
+                    <Button variant="outline">Exportar</Button>
+                    <Button>Gerar relatório</Button>
+                    <IconButton
+                      label="Mais opções do relatório"
+                      icon={<span aria-hidden="true">⋯</span>}
+                    />
+                  </>
+                }
+              />
+            </PageHeaderDemoCard>
+
+            <PageHeaderDemoCard title="Título e descrição longos">
+              <PageHeader
+                title="Painel consolidado de relacionamento, atendimento e acompanhamento operacional da empresa demonstrativa"
+                description="Este conteúdo deliberadamente expandido valida a quebra natural de linhas, a tradução para idiomas com palavras mais extensas e a preservação integral das ações e metadados sem ampliar horizontalmente a viewport."
+                metadata={<span>Período demonstrativo: agosto de 2026</span>}
+                actions={
+                  <>
+                    <Button variant="outline">Comparar períodos</Button>
+                    <Button>Atualizar informações</Button>
+                  </>
+                }
+              />
+            </PageHeaderDemoCard>
+
+            <PageHeaderDemoCard title="390px, light e dark">
+              <div className="w-full max-w-[390px]">
+                <PageHeader
+                  title="Cabeçalho responsivo com conteúdo essencial preservado"
+                  description="Descrição longa para validar o empilhamento em largura mobile."
+                  metadata={<Badge variant="info">Demonstração</Badge>}
+                  actions={
+                    <>
+                      <Button variant="outline">Ação secundária</Button>
+                      <Button>Ação principal</Button>
+                    </>
+                  }
+                />
+              </div>
+            </PageHeaderDemoCard>
+          </div>
+
+          <div className="mt-6 flex flex-wrap gap-4">
+            <Dialog>
+              <DialogTrigger className={dialogTriggerClasses}>
+                PageHeader no Dialog
+              </DialogTrigger>
+              <DialogContent>
+                <DialogTitle className="sr-only">
+                  PageHeader composto no Dialog
+                </DialogTitle>
+                <PageHeader
+                  titleAs="h2"
+                  title="Revisar informações"
+                  description="O PageHeader não interfere no foco ou no fechamento do Dialog."
+                  metadata={<Badge variant="warning">Revisão necessária</Badge>}
+                  actions={<Button>Confirmar revisão</Button>}
+                />
+                <DialogFooter>
+                  <DialogClose className={dialogSecondaryClasses}>
+                    Fechar
+                  </DialogClose>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <Drawer>
+              <DrawerTrigger className={drawerTriggerClasses}>
+                PageHeader no Drawer
+              </DrawerTrigger>
+              <DrawerOverlay />
+              <DrawerContent>
+                <DrawerTitle className="sr-only">
+                  PageHeader composto no Drawer
+                </DrawerTitle>
+                <div className="p-[var(--space-6)]">
+                  <PageHeader
+                    titleAs="h2"
+                    title="Configurações da empresa"
+                    description="A composição respeita o ciclo de foco e dismiss do Drawer."
+                    actions={<Button>Salvar alterações</Button>}
+                  />
+                </div>
+                <DrawerFooter>
+                  <DrawerClose className={drawerSecondaryClasses}>
+                    Fechar
+                  </DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <ShadowPageHeaderDemo mode="open" />
+            <ShadowPageHeaderDemo mode="closed" />
+          </div>
+        </PlaygroundSection>
+
+        <PlaygroundSection
           title="Dialog"
           description="Validação de abertura, fechamento, foco, backdrop, Escape, estado controlado e múltiplos modais."
         >
@@ -6637,6 +6796,61 @@ function ShadowDatePickerDemo({ mode }: { mode: ShadowRootMode }) {
       <div ref={wrapperRef} />
       {mountPoint ? createPortal(<DatePickerDemo />, mountPoint) : null}
     </DatePickerDemoCard>
+  );
+}
+
+function PageHeaderDemoCard({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="min-w-0 space-y-4 rounded-[var(--radius-lg)] border border-hp-border bg-hp-surface p-[var(--space-4)]">
+      <h3 className="font-semibold">{title}</h3>
+      {children}
+    </div>
+  );
+}
+
+function ShadowPageHeaderDemo({ mode }: { mode: ShadowRootMode }) {
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const [mountPoint, setMountPoint] = useState<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (wrapper === null) return;
+
+    const host = document.createElement("div");
+    const root = host.attachShadow({ mode });
+    const target = document.createElement("div");
+    root.append(target);
+    wrapper.append(host);
+    setMountPoint(target);
+
+    return () => {
+      setMountPoint(null);
+      host.remove();
+    };
+  }, [mode]);
+
+  return (
+    <PageHeaderDemoCard title={`PageHeader em ShadowRoot ${mode}`}>
+      <div ref={wrapperRef} />
+      {mountPoint
+        ? createPortal(
+            <PageHeader
+              titleAs="h2"
+              title={`Contexto ShadowRoot ${mode}`}
+              description="Composição sem consulta ao document, window ou seletores globais."
+              metadata={<span>Conteúdo acessível demonstrativo</span>}
+              actions={<Button variant="outline">Ação demonstrativa</Button>}
+            />,
+            mountPoint,
+          )
+        : null}
+    </PageHeaderDemoCard>
   );
 }
 
