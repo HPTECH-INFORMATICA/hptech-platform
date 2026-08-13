@@ -42,6 +42,53 @@
     - regras de negócio;
     - tenant;
     - telemetria.
+- DS-22 — Section
+  - Categoria: COMPOSIÇÃO
+  - Objetivo arquitetural: fornecer agrupamento semântico oficial para áreas internas das páginas da HPTECH Platform.
+  - Responsabilidades:
+    - raiz semântica `<section>`;
+    - título opcional;
+    - descrição opcional;
+    - ações opcionais;
+    - conteúdo;
+    - espaçamento estrutural;
+    - responsividade;
+    - composição independente de domínio.
+  - Relação estrutural:
+    - PageHeader fornece contexto, título principal, breadcrumb, metadata e ações principais da página;
+    - Section agrupa internamente o conteúdo por assunto, normalmente com heading `h2`;
+    - subseções legítimas podem usar heading `h3`;
+    - Card fornece superfície visual, pode ser composto dentro de Section e não substitui Section.
+  - Contrato preliminar para o Gate de implementação:
+
+    ```ts
+    export type SectionProps = React.HTMLAttributes<HTMLElement> & {
+      title?: ReactNode;
+      description?: ReactNode;
+      actions?: ReactNode;
+      children: ReactNode;
+      titleAs?: "h2" | "h3";
+    };
+    ```
+
+  - Decisões preliminares:
+    - `children` obrigatório;
+    - `title` opcional;
+    - `titleAs` padrão `h2`, limitado a `h2 | h3`;
+    - `forwardRef<HTMLElement>`;
+    - atributos nativos preservados;
+    - sem metadata ou variants;
+    - sem estados `loading`, `empty` ou `error`;
+    - sem fetch, permissões, filtros, roteamento, domínio ou telemetria;
+    - Skeleton, EmptyState e Alert permanecem composições externas.
+  - Acessibilidade:
+    - quando houver heading, associá-lo semanticamente à Section;
+    - normalmente usar `h2` após o `h1` do PageHeader;
+    - usar `h3` somente em subseção legítima;
+    - não criar `role="region"` automaticamente;
+    - Section sem título não se torna região artificial;
+    - o consumidor pode fornecer `aria-label` ou `aria-labelledby` explicitamente;
+    - ações permanecem depois do heading na ordem do DOM.
 
 #### Dependências arquiteturais
 
@@ -54,7 +101,6 @@
 
 A fila posterior ainda não possui numeração oficial e permanece sujeita a um novo Gate arquitetural para cada sprint:
 
-- Section
 - Filters
 - StatCard/KPI Card
 - ChartCard
@@ -68,7 +114,9 @@ A fila posterior ainda não possui numeração oficial e permanece sujeita a um 
 - FileUpload
 - Componentes de IA
 
-Section e Filters são as candidatas prioritárias imediatamente após PageHeader. Essa prioridade não oficializa DS-22 nem DS-23.
+Filters permanece candidata prioritária, mas não possui numeração oficial. A DS-23 não está oficializada.
+
+Após a DS-22 — Section, um novo Gate arquitetural decidirá entre o retorno ao Dashboard, o retorno ao CRM ou um Gate de Filters baseado em necessidade real. A continuidade para uma DS-23 não é automática.
 
 Após as fundações transversais imediatamente necessárias, o Design System não avançará por uma longa fila especulativa. O desenvolvimento voltará a ser orientado pelos módulos consumidores reais, que determinarão a prioridade dos componentes posteriores.
 
