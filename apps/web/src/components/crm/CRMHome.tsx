@@ -5,6 +5,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import LeadFilters from "./LeadFilters";
 import LeadSearch from "./LeadSearch";
 import LeadTable from "./LeadTable";
+import PageHeader from "@/components/ui/PageHeader";
+import Section from "@/components/ui/Section";
 import {
   getLeadKanban,
   updateLeadPipeline,
@@ -191,24 +193,21 @@ export default function CRMHome() {
 
   return (
     <div className="space-y-6">
-      <header>
-        <p className="text-sm font-medium text-hp-primary">CRM</p>
-        <h1 className="mt-1 text-3xl font-bold text-hp-foreground">
-          Pipeline comercial
-        </h1>
-        <p className="mt-2 text-sm text-hp-muted">
-          Acompanhe os leads e mova cada oportunidade entre os estágios.
-        </p>
-      </header>
+      <PageHeader
+        title="Pipeline comercial"
+        description="Acompanhe os leads e mova cada oportunidade entre os estágios."
+      />
 
-      <div className="flex flex-col gap-3 sm:flex-row">
-        <LeadSearch value={search} onChange={setSearch} />
-        <LeadFilters
-          sources={sources}
-          selectedSource={selectedSource}
-          onSourceChange={setSelectedSource}
-        />
-      </div>
+      <Section title="Consulta de leads">
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <LeadSearch value={search} onChange={setSearch} />
+          <LeadFilters
+            sources={sources}
+            selectedSource={selectedSource}
+            onSourceChange={setSelectedSource}
+          />
+        </div>
+      </Section>
 
       {error && (
         <div
@@ -226,11 +225,13 @@ export default function CRMHome() {
         </div>
       )}
 
-      <LeadTable
-        kanban={filteredKanban}
-        movingLeadId={movingLeadId}
-        onMove={handleMove}
-      />
+      <Section title="Funil comercial">
+        <LeadTable
+          kanban={filteredKanban}
+          movingLeadId={movingLeadId}
+          onMove={handleMove}
+        />
+      </Section>
     </div>
   );
 }
