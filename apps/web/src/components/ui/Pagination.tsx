@@ -79,7 +79,7 @@ function getPaginationTokens(
     if (gap === 2) {
       tokens.push(previousPage + 1);
     } else if (gap > 2) {
-      tokens.push("start-ellipsis");
+      tokens.push(selectedPage <= page ? "start-ellipsis" : "end-ellipsis");
     }
 
     tokens.push(selectedPage);

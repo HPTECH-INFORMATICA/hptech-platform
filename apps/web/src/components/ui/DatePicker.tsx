@@ -192,6 +192,7 @@ function DatePickerInner(
     open,
     defaultOpen = false,
     onOpenChange,
+    onValueChange,
     onInvalidValue,
     className,
     inputClassName,
@@ -283,12 +284,16 @@ function DatePickerInner(
 
   function publishSingle(nextValue: CalendarDate | null): void {
     if (!valueControlled) setInternalSingle(nextValue);
-    if (props.mode === "single") props.onValueChange?.(nextValue);
+    if (props.mode === "single") {
+      (onValueChange as DatePickerSingleProps["onValueChange"])?.(nextValue);
+    }
   }
 
   function publishRange(nextValue: CalendarRange | null): void {
     if (!valueControlled) setInternalRange(nextValue);
-    if (props.mode === "range") props.onValueChange?.(nextValue);
+    if (props.mode === "range") {
+      (onValueChange as DatePickerRangeProps["onValueChange"])?.(nextValue);
+    }
   }
 
   function commitSingle(): void {
@@ -423,7 +428,9 @@ function DatePickerInner(
       setInternalSingle(nextValue);
       setSingleDraft(formatDraft(nextValue, inputFormat));
     }
-    if (props.mode === "single") props.onValueChange?.(nextValue);
+    if (props.mode === "single") {
+      (onValueChange as DatePickerSingleProps["onValueChange"])?.(nextValue);
+    }
     requestOpen(false);
   }
 
@@ -437,7 +444,9 @@ function DatePickerInner(
       setFromDraft(formatDraft(nextValue.from, inputFormat));
       setToDraft(formatDraft(nextValue.to, inputFormat));
     }
-    if (props.mode === "range") props.onValueChange?.(nextValue);
+    if (props.mode === "range") {
+      (onValueChange as DatePickerRangeProps["onValueChange"])?.(nextValue);
+    }
     if (nextValue.to) requestOpen(false);
   }
 

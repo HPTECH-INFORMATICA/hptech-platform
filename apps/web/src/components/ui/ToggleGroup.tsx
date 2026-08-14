@@ -96,6 +96,10 @@ function getEnabledItems(items: Map<HTMLButtonElement, RegisteredItem>): Registe
 const ToggleGroup = forwardRef<HTMLDivElement, ToggleGroupProps>(
   function ToggleGroup(props, forwardedRef) {
     const {
+      type,
+      value,
+      defaultValue,
+      onValueChange,
       children,
       disabled = false,
       orientation = "horizontal",
@@ -105,13 +109,13 @@ const ToggleGroup = forwardRef<HTMLDivElement, ToggleGroupProps>(
       className,
       ...nativeProps
     } = props;
-    const [isControlled] = useState(() => props.value !== undefined);
+    const [isControlled] = useState(() => value !== undefined);
     const [uncontrolledValues, setUncontrolledValues] = useState<string[]>(() =>
-      props.type === "single"
-        ? props.defaultValue
-          ? [props.defaultValue]
+      type === "single"
+        ? defaultValue
+          ? [defaultValue]
           : []
-        : props.defaultValue ?? [],
+        : defaultValue ?? [],
     );
     const itemsRef = useRef(new Map<HTMLButtonElement, RegisteredItem>());
     const [itemsRevision, setItemsRevision] = useState(0);
@@ -120,24 +124,24 @@ const ToggleGroup = forwardRef<HTMLDivElement, ToggleGroupProps>(
     const selectedValues = useMemo(
       () =>
         isControlled
-          ? props.type === "single"
-            ? props.value
-              ? [props.value]
+          ? type === "single"
+            ? value
+              ? [value]
               : []
-            : props.value ?? []
+            : value ?? []
           : uncontrolledValues,
-      [isControlled, props.type, props.value, uncontrolledValues],
+      [isControlled, type, value, uncontrolledValues],
     );
 
     const requestItemChange = useCallback(
       (itemValue: string, pressed: boolean) => {
         if (disabled) return;
 
-        if (props.type === "single") {
+        if (type === "single") {
           const nextValue = pressed ? itemValue : "";
           if (selectedValues[0] === nextValue || (!selectedValues.length && nextValue === "")) return;
           if (!isControlled) setUncontrolledValues(nextValue ? [nextValue] : []);
-          props.onValueChange?.(nextValue);
+          (onValueChange as ToggleGroupSingleProps["onValueChange"])?.(nextValue);
           return;
         }
 
@@ -148,9 +152,9 @@ const ToggleGroup = forwardRef<HTMLDivElement, ToggleGroupProps>(
           : selectedValues.filter((value) => value !== itemValue);
         if (nextValues === selectedValues || nextValues.length === selectedValues.length) return;
         if (!isControlled) setUncontrolledValues(nextValues);
-        props.onValueChange?.(nextValues);
+        (onValueChange as ToggleGroupMultipleProps["onValueChange"])?.(nextValues);
       },
-      [disabled, isControlled, props, selectedValues],
+      [disabled, isControlled, onValueChange, selectedValues, type],
     );
 
     const registerItem = useCallback((item: RegisteredItem) => {
