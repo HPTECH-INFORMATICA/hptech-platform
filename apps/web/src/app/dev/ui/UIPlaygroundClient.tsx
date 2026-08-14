@@ -124,6 +124,7 @@ import Tooltip, {
 import Radio from "@/components/ui/Radio";
 import SearchBox from "@/components/ui/SearchBox";
 import ScrollArea from "@/components/ui/ScrollArea";
+import Section from "@/components/ui/Section";
 import Select from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
 import Switch from "@/components/ui/Switch";
@@ -4568,6 +4569,263 @@ export default function UIPlaygroundClient() {
         </PlaygroundSection>
 
         <PlaygroundSection
+          title="DS-22 — Section"
+          description="Agrupamento semântico interno, neutro e independente de superfícies ou estados de dados."
+        >
+          <div className="grid min-w-0 gap-4 lg:grid-cols-2">
+            <SectionDemoCard title="Somente conteúdo e sem title">
+              <Section>
+                <p className="text-sm text-hp-muted">
+                  Conteúdo agrupado sem heading ou região artificial.
+                </p>
+              </Section>
+            </SectionDemoCard>
+
+            <SectionDemoCard title="Título h2">
+              <Section title="Indicadores operacionais">
+                <p className="text-sm text-hp-muted">
+                  O heading nomeia semanticamente a Section.
+                </p>
+              </Section>
+            </SectionDemoCard>
+
+            <SectionDemoCard title="Título h3 e descrição">
+              <Section
+                titleAs="h3"
+                title="Detalhes do período"
+                description="Subseção legítima com descrição textual opcional."
+              >
+                <p className="text-sm text-hp-muted">
+                  Conteúdo demonstrativo da subseção.
+                </p>
+              </Section>
+            </SectionDemoCard>
+
+            <SectionDemoCard title="Uma ação">
+              <Section
+                title="Próximos atendimentos"
+                description="A ação permanece depois do texto na ordem do DOM."
+                actions={<Button>Adicionar atendimento</Button>}
+              >
+                <Card>Agenda demonstrativa sem dados pessoais reais.</Card>
+              </Section>
+            </SectionDemoCard>
+
+            <SectionDemoCard title="Múltiplas ações">
+              <Section
+                title="Relatórios recentes"
+                actions={
+                  <>
+                    <Button variant="outline">Exportar</Button>
+                    <Button>Gerar relatório</Button>
+                  </>
+                }
+              >
+                <p className="text-sm text-hp-muted">
+                  As ações fazem wrap sem ampliar a viewport.
+                </p>
+              </Section>
+            </SectionDemoCard>
+
+            <SectionDemoCard title="Conteúdo com Card">
+              <Section
+                title="Resumo comercial"
+                description="A superfície visual pertence ao Card composto."
+              >
+                <Card>
+                  <p className="font-semibold">Clínica Exemplo</p>
+                  <p className="mt-2 text-sm text-hp-muted">
+                    Conteúdo fictício em superfície independente.
+                  </p>
+                </Card>
+              </Section>
+            </SectionDemoCard>
+
+            <SectionDemoCard title="Conteúdo com DataGrid">
+              <Section title="Leads demonstrativos">
+                <DataGridDemo />
+              </Section>
+            </SectionDemoCard>
+
+            <SectionDemoCard title="EmptyState composto">
+              <Section title="Resultados da busca">
+                <EmptyState
+                  titleAs="h3"
+                  title="Nenhum resultado"
+                  description="Altere os critérios para consultar outros registros."
+                  action={<Button>Limpar busca</Button>}
+                />
+              </Section>
+            </SectionDemoCard>
+
+            <SectionDemoCard title="Skeleton composto">
+              <Section title="Carregamento estrutural">
+                <div
+                  aria-label="Carregando indicadores"
+                  role="status"
+                  className="space-y-3"
+                >
+                  <Skeleton variant="text" width="45%" />
+                  <Skeleton height="6rem" />
+                </div>
+              </Section>
+            </SectionDemoCard>
+
+            <SectionDemoCard title="Alert composto">
+              <Section title="Integridade operacional">
+                <Alert
+                  variant="warning"
+                  title="Revisão necessária"
+                  description="O estado pertence ao Alert, não à Section."
+                />
+              </Section>
+            </SectionDemoCard>
+
+            <SectionDemoCard title="Título e conteúdo expandidos">
+              <Section
+                title="Acompanhamento consolidado de operações, relacionamentos e atendimentos da empresa demonstrativa"
+                description="Esta descrição extensa valida traduções, expansão textual, quebra natural de linhas e preservação das ações em diferentes larguras sem criar uma superfície automática."
+                actions={
+                  <>
+                    <Button variant="outline">Comparar informações</Button>
+                    <Button>Atualizar visão</Button>
+                  </>
+                }
+              >
+                <p className="break-words text-sm text-hp-muted">
+                  Conteúdo igualmente expandido para confirmar que a Section
+                  permanece flexível, semanticamente organizada e sem largura
+                  fixa arbitrária.
+                </p>
+              </Section>
+            </SectionDemoCard>
+
+            <SectionDemoCard title="390px, light e dark">
+              <div className="w-full max-w-[390px]">
+                <Section
+                  title="Section responsiva com título longo"
+                  description="Descrição que deve quebrar naturalmente na largura mobile."
+                  actions={
+                    <>
+                      <Button variant="outline">Secundária</Button>
+                      <Button>Principal</Button>
+                    </>
+                  }
+                >
+                  <Card>Conteúdo essencial preservado em 390px.</Card>
+                </Section>
+              </div>
+            </SectionDemoCard>
+
+            <SectionDemoCard title="aria-label explícito">
+              <Section
+                title="Heading visual preservado"
+                aria-label="Resumo acessível fornecido pelo consumidor"
+              >
+                <p className="text-sm text-hp-muted">
+                  O nome explícito não é sobrescrito pelo ID interno.
+                </p>
+              </Section>
+            </SectionDemoCard>
+
+            <SectionDemoCard title="aria-labelledby explícito">
+              <p id="section-external-label" className="mb-3 font-semibold">
+                Nome externo da área
+              </p>
+              <Section
+                title="Heading visual da área"
+                aria-labelledby="section-external-label"
+              >
+                <p className="text-sm text-hp-muted">
+                  A associação explícita do consumidor prevalece.
+                </p>
+              </Section>
+            </SectionDemoCard>
+          </div>
+
+          <SectionDemoCard title="PageHeader + múltiplas Sections">
+            <div className="min-w-0 space-y-10">
+              <PageHeader
+                titleAs="h2"
+                title="Painel demonstrativo incorporado"
+                description="O PageHeader estabelece o contexto; as Sections organizam assuntos internos."
+              />
+              <Section titleAs="h3" title="Indicadores">
+                <Card>Métricas demonstrativas.</Card>
+              </Section>
+              <Section titleAs="h3" title="Atividade recente">
+                <Card>Eventos demonstrativos.</Card>
+              </Section>
+              <Section titleAs="h3" title="Próximos passos">
+                <EmptyState
+                  titleAs="h3"
+                  title="Nenhuma ação pendente"
+                  description="A estrutura permanece composta e independente."
+                />
+              </Section>
+            </div>
+          </SectionDemoCard>
+
+          <div className="mt-6 flex flex-wrap gap-4">
+            <Dialog>
+              <DialogTrigger className={dialogTriggerClasses}>
+                Section no Dialog
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Contexto Dialog</DialogTitle>
+                  <DialogDescription>
+                    A Section não interfere no gerenciamento de foco.
+                  </DialogDescription>
+                </DialogHeader>
+                <Section
+                  titleAs="h3"
+                  title="Informações complementares"
+                  actions={<Button variant="outline">Revisar</Button>}
+                >
+                  <Card>Conteúdo demonstrativo no Dialog.</Card>
+                </Section>
+                <DialogFooter>
+                  <DialogClose className={dialogSecondaryClasses}>
+                    Fechar
+                  </DialogClose>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+
+            <Drawer>
+              <DrawerTrigger className={drawerTriggerClasses}>
+                Section no Drawer
+              </DrawerTrigger>
+              <DrawerOverlay />
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle>Contexto Drawer</DrawerTitle>
+                  <DrawerDescription>
+                    A Section permanece neutra no conteúdo lateral.
+                  </DrawerDescription>
+                </DrawerHeader>
+                <div className="p-[var(--space-6)]">
+                  <Section titleAs="h3" title="Preferências demonstrativas">
+                    <Card>Configurações fictícias sem estado de domínio.</Card>
+                  </Section>
+                </div>
+                <DrawerFooter>
+                  <DrawerClose className={drawerSecondaryClasses}>
+                    Fechar
+                  </DrawerClose>
+                </DrawerFooter>
+              </DrawerContent>
+            </Drawer>
+          </div>
+
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <ShadowSectionDemo mode="open" />
+            <ShadowSectionDemo mode="closed" />
+          </div>
+        </PlaygroundSection>
+
+        <PlaygroundSection
           title="Dialog"
           description="Validação de abertura, fechamento, foco, backdrop, Escape, estado controlado e múltiplos modais."
         >
@@ -6851,6 +7109,62 @@ function ShadowPageHeaderDemo({ mode }: { mode: ShadowRootMode }) {
           )
         : null}
     </PageHeaderDemoCard>
+  );
+}
+
+function SectionDemoCard({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="min-w-0 space-y-4 rounded-[var(--radius-lg)] border border-hp-border bg-hp-surface p-[var(--space-4)]">
+      <h3 className="font-semibold">{title}</h3>
+      {children}
+    </div>
+  );
+}
+
+function ShadowSectionDemo({ mode }: { mode: ShadowRootMode }) {
+  const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const [mountPoint, setMountPoint] = useState<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const wrapper = wrapperRef.current;
+    if (wrapper === null) return;
+
+    const host = document.createElement("div");
+    const root = host.attachShadow({ mode });
+    const target = document.createElement("div");
+    root.append(target);
+    wrapper.append(host);
+    setMountPoint(target);
+
+    return () => {
+      setMountPoint(null);
+      host.remove();
+    };
+  }, [mode]);
+
+  return (
+    <SectionDemoCard title={`Section em ShadowRoot ${mode}`}>
+      <div ref={wrapperRef} />
+      {mountPoint
+        ? createPortal(
+            <Section
+              titleAs="h3"
+              title={`Contexto ShadowRoot ${mode}`}
+              description="Composição sem consulta global ao DOM."
+              actions={<Button variant="outline">Ação demonstrativa</Button>}
+            >
+              <Card>Conteúdo composto no ShadowRoot.</Card>
+            </Section>,
+            mountPoint,
+          )
+        : null}
+    </SectionDemoCard>
   );
 }
 
