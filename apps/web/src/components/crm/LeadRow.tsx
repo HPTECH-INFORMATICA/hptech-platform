@@ -1,5 +1,7 @@
 "use client";
 
+import Badge from "@/components/ui/Badge";
+import Select from "@/components/ui/Select";
 import type { Lead, LeadStatus } from "@/types/lead";
 
 type LeadRowProps = {
@@ -16,6 +18,10 @@ export default function LeadRow({
   onMove,
 }: LeadRowProps) {
   const contact = lead.whatsapp ?? lead.phone ?? lead.email;
+  const statusOptions = Object.entries(statusLabels).map(([status, label]) => ({
+    value: status,
+    label,
+  }));
 
   return (
     <article
@@ -29,9 +35,9 @@ export default function LeadRow({
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="truncate font-semibold text-hp-foreground">
+          <h4 className="truncate font-semibold text-hp-foreground">
             {lead.name}
-          </h3>
+          </h4>
           {lead.interest && (
             <p className="mt-1 line-clamp-2 text-sm text-hp-muted">
               {lead.interest}
@@ -52,28 +58,22 @@ export default function LeadRow({
       )}
 
       <div className="mt-4 flex items-center justify-between gap-3">
-        <span className="truncate text-xs font-medium uppercase tracking-wide text-hp-subtle">
+        <Badge variant="neutral" size="sm" className="min-w-0 truncate">
           {lead.source || "Sem origem"}
-        </span>
+        </Badge>
 
-        <label className="sr-only" htmlFor={`lead-status-${lead.id}`}>
-          Estágio de {lead.name}
-        </label>
-        <select
+        <Select
           id={`lead-status-${lead.id}`}
+          label={<span className="sr-only">Estágio de {lead.name}</span>}
           value={lead.pipeline_status}
           disabled={isMoving}
           onChange={(event) =>
             onMove(lead, event.target.value as LeadStatus)
           }
-          className="min-h-11 max-w-40 rounded-[var(--radius-md)] border border-hp-border-strong bg-hp-surface px-3 text-xs text-hp-foreground transition-colors duration-[var(--duration-fast)] hover:border-hp-primary focus:border-hp-primary disabled:cursor-wait disabled:opacity-60"
-        >
-          {Object.entries(statusLabels).map(([status, label]) => (
-            <option key={status} value={status}>
-              {label}
-            </option>
-          ))}
-        </select>
+          options={statusOptions}
+          className="max-w-40"
+          selectClassName="text-xs"
+        />
       </div>
     </article>
   );
