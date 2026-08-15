@@ -1,6 +1,7 @@
 "use client";
 
 import LeadRow from "./LeadRow";
+import Badge from "@/components/ui/Badge";
 import type { Lead, LeadKanban, LeadStatus } from "@/types/lead";
 
 const STATUSES: LeadStatus[] = [
@@ -82,15 +83,15 @@ export default function LeadTable({
               className={`min-h-96 rounded-[var(--radius-lg)] border border-hp-border border-t-4 bg-hp-surface-subtle p-3 ${STATUS_ACCENTS[status]}`}
             >
               <header className="mb-3 flex items-center justify-between gap-2 px-1">
-                <h2
+                <h3
                   id={`kanban-${status}-title`}
                   className="font-semibold text-hp-foreground"
                 >
                   {STATUS_LABELS[status]}
-                </h2>
-                <span className="rounded-full border border-hp-border bg-hp-surface-elevated px-2 py-0.5 text-xs font-semibold text-hp-muted">
+                </h3>
+                <Badge variant="neutral" size="sm">
                   {kanban[status].length}
-                </span>
+                </Badge>
               </header>
 
               <div className="space-y-3">
