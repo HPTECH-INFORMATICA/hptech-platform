@@ -5,8 +5,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import LeadFilters from "./LeadFilters";
 import LeadSearch from "./LeadSearch";
 import LeadTable from "./LeadTable";
+import Alert from "@/components/ui/Alert";
+import Button from "@/components/ui/Button";
+import EmptyState from "@/components/ui/EmptyState";
 import PageHeader from "@/components/ui/PageHeader";
 import Section from "@/components/ui/Section";
+import Skeleton from "@/components/ui/Skeleton";
 import {
   getLeadKanban,
   updateLeadPipeline,
@@ -145,6 +149,11 @@ export default function CRMHome() {
     return result;
   }, [kanban, search, selectedSource]);
 
+  const hasLeads = STATUSES.some((status) => kanban[status].length > 0);
+  const hasFilteredLeads = STATUSES.some(
+    (status) => filteredKanban[status].length > 0,
+  );
+
   const handleMove = useCallback(
     async (lead: Lead, targetStatus: LeadStatus) => {
       if (lead.pipeline_status === targetStatus || movingLeadId) {
@@ -184,9 +193,23 @@ export default function CRMHome() {
       <div
         role="status"
         aria-live="polite"
-        className="flex min-h-80 items-center justify-center text-hp-muted"
+        className="w-full max-w-full space-y-6 overflow-hidden"
       >
-        Carregando Kanban...
+        <span className="sr-only">Carregando Kanban...</span>
+        <Skeleton height={76} radius="lg" />
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <Skeleton height={44} className="flex-1" />
+          <Skeleton height={44} className="w-full sm:w-52" />
+        </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
+          {STATUSES.map((status) => (
+            <div key={status} className="space-y-3">
+              <Skeleton height={40} />
+              <Skeleton height={112} />
+              <Skeleton height={112} />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -210,27 +233,38 @@ export default function CRMHome() {
       </Section>
 
       {error && (
-        <div
-          role="alert"
-          className="flex flex-col gap-3 rounded-[var(--radius-lg)] border border-hp-danger bg-[var(--color-danger-soft)] px-4 py-3 text-sm text-hp-danger sm:flex-row sm:items-center sm:justify-between"
-        >
-          <span>{error}</span>
-          <button
-            type="button"
-            onClick={() => void loadKanban()}
-            className="inline-flex min-h-11 items-center self-start rounded-[var(--radius-md)] px-2 font-semibold underline underline-offset-2 sm:self-auto"
-          >
-            Tentar novamente
-          </button>
-        </div>
+        <Alert
+          variant="danger"
+          live="assertive"
+          description={error}
+          action={
+            <Button variant="outline" onClick={() => void loadKanban()}>
+              Tentar novamente
+            </Button>
+          }
+        />
       )}
 
       <Section title="Funil comercial">
-        <LeadTable
-          kanban={filteredKanban}
-          movingLeadId={movingLeadId}
-          onMove={handleMove}
-        />
+        {!hasLeads ? (
+          <EmptyState
+            title="Nenhum lead encontrado"
+            description="Ainda não existem leads no funil comercial."
+            titleAs="h3"
+          />
+        ) : !hasFilteredLeads ? (
+          <EmptyState
+            title="Nenhum resultado encontrado"
+            description="A busca ou o filtro atual não encontrou leads."
+            titleAs="h3"
+          />
+        ) : (
+          <LeadTable
+            kanban={filteredKanban}
+            movingLeadId={movingLeadId}
+            onMove={handleMove}
+          />
+        )}
       </Section>
     </div>
   );
