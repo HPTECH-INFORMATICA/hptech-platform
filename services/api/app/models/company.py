@@ -1,6 +1,7 @@
 from sqlalchemy import String
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
+from app.core.identity import CompanyStatus, normalize_company_status
 from app.db.base_class import Base
 from app.db.mixins import (
     SoftDeleteMixin,
@@ -53,8 +54,16 @@ class Company(
     status: Mapped[str] = mapped_column(
         String(30),
         nullable=False,
-        default="TRIAL",
+        default=CompanyStatus.TRIAL.value,
     )
+
+    @validates("status")
+    def validate_status(
+        self,
+        _key: str,
+        value: str | CompanyStatus,
+    ) -> str:
+        return normalize_company_status(value)
 
     users = relationship(
         "User",

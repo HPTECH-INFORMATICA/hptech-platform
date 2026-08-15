@@ -2,8 +2,9 @@ import uuid
 
 from sqlalchemy import Boolean, ForeignKey, String
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
+from app.core.identity import UserRole, normalize_user_role
 from app.db.base_class import Base
 from app.db.mixins import (
     SoftDeleteMixin,
@@ -46,8 +47,16 @@ class User(
     role: Mapped[str] = mapped_column(
         String(30),
         nullable=False,
-        default="VIEWER",
+        default=UserRole.VIEWER.value,
     )
+
+    @validates("role")
+    def validate_role(
+        self,
+        _key: str,
+        value: str | UserRole,
+    ) -> str:
+        return normalize_user_role(value)
 
     is_active: Mapped[bool] = mapped_column(
         Boolean,
