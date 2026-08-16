@@ -16,17 +16,6 @@ function getApiUrl(): string {
   return apiUrl.replace(/\/$/, "");
 }
 
-export function backendPathWithLegacyCompany(path: string): string {
-  const companyId = process.env.NEXT_PUBLIC_COMPANY_ID;
-
-  if (!companyId) {
-    return path;
-  }
-
-  const separator = path.includes("?") ? "&" : "?";
-  return `${path}${separator}company_id=${encodeURIComponent(companyId)}`;
-}
-
 export async function authenticatedBackendFetch(
   path: string,
   init?: RequestInit,

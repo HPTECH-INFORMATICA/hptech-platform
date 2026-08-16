@@ -2,14 +2,13 @@ import { NextResponse } from "next/server";
 
 import {
   authenticatedBackendFetch,
-  backendPathWithLegacyCompany,
   MissingSessionError,
 } from "@/server/authenticated-backend";
 
 export async function GET() {
   try {
     const backendResponse = await authenticatedBackendFetch(
-      backendPathWithLegacyCompany("/leads/kanban"),
+      "/leads/kanban",
       { method: "GET" },
     );
 

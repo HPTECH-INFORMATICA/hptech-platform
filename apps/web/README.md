@@ -22,7 +22,7 @@ A partir da raiz do repositório, copie o arquivo de exemplo:
 Copy-Item apps/web/.env.example apps/web/.env.local
 ```
 
-Substitua em `apps/web/.env.local` o UUID fictício de `NEXT_PUBLIC_COMPANY_ID` pelo UUID de uma empresa válida no ambiente utilizado.
+O tenant é derivado da sessão autenticada e não deve ser configurado no frontend.
 
 Mantenha `NEXT_PUBLIC_API_URL` apontando para o backend FastAPI.
 

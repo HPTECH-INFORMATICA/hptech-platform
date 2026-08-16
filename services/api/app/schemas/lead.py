@@ -24,7 +24,7 @@ class LeadBase(BaseModel):
 
 
 class LeadCreate(LeadBase):
-    company_id: uuid.UUID | None = None
+    model_config = ConfigDict(extra="forbid")
 
 
 class LeadUpdate(BaseModel):

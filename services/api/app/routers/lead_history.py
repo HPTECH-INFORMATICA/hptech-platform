@@ -1,13 +1,12 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.identity import AuthenticatedIdentity
 from app.db.session import get_db
 from app.dependencies.auth import get_current_user
-from app.dependencies.tenant import resolve_authenticated_company_id
 from app.schemas.lead_history import (
     LeadHistoryResponse,
 )
@@ -28,16 +27,11 @@ router = APIRouter(
 def list_lead_history(
     lead_id: uuid.UUID,
     identity: Annotated[AuthenticatedIdentity, Depends(get_current_user)],
-    company_id: uuid.UUID | None = Query(default=None),
     db: Session = Depends(get_db),
 ) -> list[LeadHistoryResponse]:
-    authenticated_company_id = resolve_authenticated_company_id(
-        identity,
-        company_id,
-    )
     lead = LeadService.get_by_id(
         db,
-        authenticated_company_id,
+        identity.company.id,
         lead_id,
     )
 
@@ -49,7 +43,7 @@ def list_lead_history(
 
     history = LeadHistoryService.list_by_lead(
         db=db,
-        company_id=authenticated_company_id,
+        company_id=identity.company.id,
         lead_id=lead_id,
     )
 

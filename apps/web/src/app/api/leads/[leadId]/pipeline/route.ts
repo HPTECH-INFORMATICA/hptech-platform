@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 import { isSameOriginMutation } from "@/auth/request";
 import {
   authenticatedBackendFetch,
-  backendPathWithLegacyCompany,
   MissingSessionError,
 } from "@/server/authenticated-backend";
 
@@ -20,9 +19,7 @@ export async function PATCH(request: Request, context: RouteContext) {
 
   try {
     const backendResponse = await authenticatedBackendFetch(
-      backendPathWithLegacyCompany(
-        `/leads/${encodeURIComponent(leadId)}/pipeline`,
-      ),
+      `/leads/${encodeURIComponent(leadId)}/pipeline`,
       {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },

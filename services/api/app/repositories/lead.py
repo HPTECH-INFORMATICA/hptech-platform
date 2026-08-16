@@ -16,7 +16,7 @@ class LeadRepository:
     ) -> Lead:
         lead = Lead(
             company_id=company_id,
-            **data.model_dump(exclude={"company_id"}),
+            **data.model_dump(),
         )
 
         db.add(lead)

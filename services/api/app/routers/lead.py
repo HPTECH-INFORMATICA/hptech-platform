@@ -1,13 +1,12 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.identity import AuthenticatedIdentity
 from app.db.session import get_db
 from app.dependencies.auth import get_current_user
-from app.dependencies.tenant import resolve_authenticated_company_id
 from app.schemas.lead import (
     LeadCreate,
     LeadKanbanResponse,
@@ -33,11 +32,9 @@ def create_lead(
     identity: Annotated[AuthenticatedIdentity, Depends(get_current_user)],
     db: Session = Depends(get_db),
 ) -> LeadResponse:
-    company_id = resolve_authenticated_company_id(identity, data.company_id)
-
     lead = LeadService.create(
         db,
-        company_id,
+        identity.company.id,
         data,
     )
 
@@ -53,16 +50,11 @@ def create_lead(
 )
 def list_leads(
     identity: Annotated[AuthenticatedIdentity, Depends(get_current_user)],
-    company_id: uuid.UUID | None = Query(default=None),
     db: Session = Depends(get_db),
 ) -> list[LeadResponse]:
-    authenticated_company_id = resolve_authenticated_company_id(
-        identity,
-        company_id,
-    )
     return LeadService.list(
         db,
-        authenticated_company_id,
+        identity.company.id,
     )
 
 @router.get(
@@ -71,16 +63,11 @@ def list_leads(
 )
 def get_lead_kanban(
     identity: Annotated[AuthenticatedIdentity, Depends(get_current_user)],
-    company_id: uuid.UUID | None = Query(default=None),
     db: Session = Depends(get_db),
 ) -> LeadKanbanResponse:
-    authenticated_company_id = resolve_authenticated_company_id(
-        identity,
-        company_id,
-    )
     return LeadService.get_kanban(
         db,
-        authenticated_company_id,
+        identity.company.id,
     )
 
 @router.get(
@@ -90,16 +77,11 @@ def get_lead_kanban(
 def get_lead(
     lead_id: uuid.UUID,
     identity: Annotated[AuthenticatedIdentity, Depends(get_current_user)],
-    company_id: uuid.UUID | None = Query(default=None),
     db: Session = Depends(get_db),
 ) -> LeadResponse:
-    authenticated_company_id = resolve_authenticated_company_id(
-        identity,
-        company_id,
-    )
     lead = LeadService.get_by_id(
         db,
-        authenticated_company_id,
+        identity.company.id,
         lead_id,
     )
 
@@ -120,16 +102,11 @@ def update_lead(
     lead_id: uuid.UUID,
     data: LeadUpdate,
     identity: Annotated[AuthenticatedIdentity, Depends(get_current_user)],
-    company_id: uuid.UUID | None = Query(default=None),
     db: Session = Depends(get_db),
 ) -> LeadResponse:
-    authenticated_company_id = resolve_authenticated_company_id(
-        identity,
-        company_id,
-    )
     lead = LeadService.get_by_id(
         db,
-        authenticated_company_id,
+        identity.company.id,
         lead_id,
     )
 
@@ -158,16 +135,11 @@ def update_lead(
 def delete_lead(
     lead_id: uuid.UUID,
     identity: Annotated[AuthenticatedIdentity, Depends(get_current_user)],
-    company_id: uuid.UUID | None = Query(default=None),
     db: Session = Depends(get_db),
 ) -> None:
-    authenticated_company_id = resolve_authenticated_company_id(
-        identity,
-        company_id,
-    )
     lead = LeadService.get_by_id(
         db,
-        authenticated_company_id,
+        identity.company.id,
         lead_id,
     )
 
@@ -192,16 +164,11 @@ def update_lead_pipeline(
     lead_id: uuid.UUID,
     data: LeadPipelineUpdate,
     identity: Annotated[AuthenticatedIdentity, Depends(get_current_user)],
-    company_id: uuid.UUID | None = Query(default=None),
     db: Session = Depends(get_db),
 ) -> LeadResponse:
-    authenticated_company_id = resolve_authenticated_company_id(
-        identity,
-        company_id,
-    )
     lead = LeadService.get_by_id(
         db,
-        authenticated_company_id,
+        identity.company.id,
         lead_id,
     )
 

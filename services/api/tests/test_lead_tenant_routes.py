@@ -151,38 +151,27 @@ async def test_leads_reject_blocked_identity(
     assert response.status_code == 401
 
 
-@pytest.mark.parametrize(
-    ("method", "path", "json"),
-    [
-        ("GET", "/api/v1/leads", None),
-        ("GET", "/api/v1/leads/kanban", None),
-        ("GET", f"/api/v1/leads/{uuid4()}", None),
-        ("PATCH", f"/api/v1/leads/{uuid4()}", {"name": "Atualizado"}),
-        ("DELETE", f"/api/v1/leads/{uuid4()}", None),
-        (
-            "PATCH",
-            f"/api/v1/leads/{uuid4()}/pipeline",
-            {"pipeline_status": "WON"},
-        ),
-        ("GET", f"/api/v1/lead-history/lead/{uuid4()}", None),
-    ],
-)
-async def test_legacy_company_id_mismatch_returns_403(
+async def test_unknown_company_query_cannot_select_tenant(
     client: AsyncClient,
-    method: str,
-    path: str,
-    json: dict[str, str] | None,
+    monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    authenticate_as(make_identity())
+    identity = make_identity()
+    captured: list[UUID] = []
+    authenticate_as(identity)
 
-    response = await client.request(
-        method,
-        path,
+    def list_leads(_db: object, company_id: UUID) -> list[object]:
+        captured.append(company_id)
+        return []
+
+    monkeypatch.setattr(LeadService, "list", list_leads)
+
+    response = await client.get(
+        "/api/v1/leads",
         params={"company_id": str(uuid4())},
-        json=json,
     )
 
-    assert response.status_code == 403
+    assert response.status_code == 200
+    assert captured == [identity.company.id]
 
 
 async def test_create_forces_authenticated_tenant(
@@ -207,7 +196,7 @@ async def test_create_forces_authenticated_tenant(
     assert response.json()["company_id"] == str(identity.company.id)
 
 
-async def test_create_rejects_body_company_mismatch(client: AsyncClient) -> None:
+async def test_create_rejects_company_id_as_unknown_input(client: AsyncClient) -> None:
     authenticate_as(make_identity())
 
     response = await client.post(
@@ -215,7 +204,27 @@ async def test_create_rejects_body_company_mismatch(client: AsyncClient) -> None
         json={"name": "Lead", "company_id": str(uuid4())},
     )
 
-    assert response.status_code == 403
+    assert response.status_code == 422
+
+
+def test_openapi_has_no_company_id_input_contract() -> None:
+    schema = app.openapi()
+    protected_operations = [
+        ("/api/v1/leads", "get"),
+        ("/api/v1/leads/kanban", "get"),
+        ("/api/v1/leads/{lead_id}", "get"),
+        ("/api/v1/leads/{lead_id}", "patch"),
+        ("/api/v1/leads/{lead_id}", "delete"),
+        ("/api/v1/leads/{lead_id}/pipeline", "patch"),
+        ("/api/v1/lead-history/lead/{lead_id}", "get"),
+    ]
+
+    for path, method in protected_operations:
+        parameters = schema["paths"][path][method].get("parameters", [])
+        assert all(parameter["name"] != "company_id" for parameter in parameters)
+
+    lead_create = schema["components"]["schemas"]["LeadCreate"]
+    assert "company_id" not in lead_create.get("properties", {})
 
 
 @pytest.mark.parametrize("endpoint", ["list", "kanban"])
