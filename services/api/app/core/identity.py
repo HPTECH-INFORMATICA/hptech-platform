@@ -1,4 +1,12 @@
+from __future__ import annotations
+
+from dataclasses import dataclass
 from enum import StrEnum
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.company import Company
+    from app.models.user import User
 
 
 class CompanyStatus(StrEnum):
@@ -17,6 +25,13 @@ class UserRole(StrEnum):
     SALES = "SALES"
     FINANCIAL = "FINANCIAL"
     VIEWER = "VIEWER"
+
+
+@dataclass(frozen=True)
+class AuthenticatedIdentity:
+    user: User
+    company: Company
+    role: UserRole
 
 
 def normalize_company_status(value: str | CompanyStatus) -> str:

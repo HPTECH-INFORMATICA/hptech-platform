@@ -1,0 +1,190 @@
+from collections.abc import AsyncIterator
+from unittest.mock import MagicMock
+from uuid import uuid4
+
+import pytest
+from httpx import ASGITransport, AsyncClient
+
+from app.core.identity import (
+    AuthenticatedIdentity,
+    CompanyStatus,
+    UserRole,
+)
+from app.db.session import get_db
+from app.dependencies.auth import get_current_user
+from app.main import app
+from app.models.company import Company
+from app.models.user import User
+from app.repositories.user import UserRepository
+from app.core.security import create_access_token, hash_password
+
+
+pytestmark = pytest.mark.anyio
+
+
+def make_identity() -> AuthenticatedIdentity:
+    company = Company(
+        id=uuid4(),
+        name="Empresa de teste",
+        slug="empresa-teste",
+        status=CompanyStatus.ACTIVE,
+    )
+    user = User(
+        id=uuid4(),
+        company_id=company.id,
+        company=company,
+        name="Usuário de teste",
+        email="usuario@example.com",
+        password_hash=hash_password("senha-segura"),
+        role=UserRole.ADMIN,
+        is_active=True,
+    )
+    return AuthenticatedIdentity(
+        user=user,
+        company=company,
+        role=UserRole.ADMIN,
+    )
+
+
+@pytest.fixture
+async def client() -> AsyncIterator[AsyncClient]:
+    app.dependency_overrides[get_db] = lambda: MagicMock()
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://testserver",
+    ) as test_client:
+        yield test_client
+
+    app.dependency_overrides.clear()
+
+
+async def test_login_returns_bearer_token_without_sensitive_data(
+    client: AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    identity = make_identity()
+    monkeypatch.setattr(
+        UserRepository,
+        "get_unique_by_email",
+        lambda _db, _email: identity.user,
+    )
+
+    response = await client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": "Usuario@Example.COM",
+            "password": "senha-segura",
+        },
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["access_token"]
+    assert body["token_type"] == "bearer"
+    assert body["expires_in"] > 0
+    assert "password" not in body
+    assert "password_hash" not in body
+
+
+@pytest.mark.parametrize(
+    "repository_user,password",
+    [(None, "senha-segura"), (make_identity().user, "senha-incorreta")],
+)
+async def test_login_uses_generic_error_for_invalid_credentials(
+    client: AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+    repository_user: User | None,
+    password: str,
+) -> None:
+    monkeypatch.setattr(
+        UserRepository,
+        "get_unique_by_email",
+        lambda _db, _email: repository_user,
+    )
+
+    response = await client.post(
+        "/api/v1/auth/login",
+        json={
+            "email": "usuario@example.com",
+            "password": password,
+        },
+    )
+
+    assert response.status_code == 401
+    assert response.json() == {"detail": "Email ou senha inválidos."}
+
+
+async def test_auth_me_returns_current_identity_without_sensitive_data(
+    client: AsyncClient,
+) -> None:
+    identity = make_identity()
+    app.dependency_overrides[get_current_user] = lambda: identity
+
+    response = await client.get("/api/v1/auth/me")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "id": str(identity.user.id),
+        "name": identity.user.name,
+        "email": identity.user.email,
+        "role": "ADMIN",
+        "active": True,
+        "company": {
+            "id": str(identity.company.id),
+            "name": identity.company.name,
+            "slug": identity.company.slug,
+            "status": "ACTIVE",
+        },
+    }
+    assert "password_hash" not in response.text
+    assert "JWT_SECRET" not in response.text
+
+
+async def test_auth_me_rejects_missing_token(client: AsyncClient) -> None:
+    response = await client.get("/api/v1/auth/me")
+
+    assert response.status_code == 401
+    assert response.headers["www-authenticate"] == "Bearer"
+
+
+async def test_auth_me_rejects_invalid_token(client: AsyncClient) -> None:
+    response = await client.get(
+        "/api/v1/auth/me",
+        headers={"Authorization": "Bearer token-adulterado"},
+    )
+
+    assert response.status_code == 401
+
+
+@pytest.mark.parametrize(
+    "blocked_state,identity",
+    [
+        ("inactive-user", make_identity()),
+        ("suspended-company", make_identity()),
+    ],
+)
+async def test_auth_me_rejects_identity_blocked_after_token_issuance(
+    client: AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+    blocked_state: str,
+    identity: AuthenticatedIdentity,
+) -> None:
+    if blocked_state == "inactive-user":
+        identity.user.is_active = False
+    else:
+        identity.company.status = CompanyStatus.SUSPENDED
+
+    token = create_access_token(identity.user.id)
+    monkeypatch.setattr(
+        UserRepository,
+        "get_by_id",
+        lambda _db, _user_id: identity.user,
+    )
+
+    response = await client.get(
+        "/api/v1/auth/me",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+
+    assert response.status_code == 401
