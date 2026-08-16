@@ -11,9 +11,17 @@ class LeadHistoryRepository:
     @staticmethod
     def create(
         db: Session,
+        company_id: uuid.UUID,
+        lead_id: uuid.UUID,
+        user_id: uuid.UUID | None,
         data: LeadHistoryCreate,
     ) -> LeadHistory:
-        history = LeadHistory(**data.model_dump())
+        history = LeadHistory(
+            company_id=company_id,
+            lead_id=lead_id,
+            user_id=user_id,
+            **data.model_dump(exclude={"company_id", "lead_id", "user_id"}),
+        )
 
         db.add(history)
         db.flush()

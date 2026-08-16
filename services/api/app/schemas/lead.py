@@ -24,7 +24,7 @@ class LeadBase(BaseModel):
 
 
 class LeadCreate(LeadBase):
-    company_id: uuid.UUID
+    company_id: uuid.UUID | None = None
 
 
 class LeadUpdate(BaseModel):

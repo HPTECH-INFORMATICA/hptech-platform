@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+const dashboardItem = { label: "Dashboard", href: "/dashboard" } as const;
+
 const navigationGroups = [
   {
     id: "commercial",
@@ -47,9 +49,29 @@ export default function Navigation({
   onNavigate,
 }: NavigationProps) {
   const pathname = usePathname();
+  const isDashboardActive =
+    pathname === dashboardItem.href ||
+    pathname.startsWith(`${dashboardItem.href}/`);
 
   return (
     <nav id={id} aria-label="Navegação principal" className="space-y-6">
+      <ul>
+        <li>
+          <Link
+            href={dashboardItem.href}
+            aria-current={isDashboardActive ? "page" : undefined}
+            onClick={onNavigate}
+            className={`flex min-h-11 items-center rounded-[var(--radius-md)] px-3 text-sm font-medium transition-colors duration-[var(--duration-fast)] focus-visible:outline-none ${
+              isDashboardActive
+                ? "bg-hp-primary-soft text-hp-primary"
+                : "text-hp-muted hover:bg-hp-surface-subtle hover:text-hp-foreground"
+            }`}
+          >
+            {dashboardItem.label}
+          </Link>
+        </li>
+      </ul>
+
       {navigationGroups.map((group) => (
         <section key={group.id} aria-labelledby={`nav-${group.id}`}>
           <h2

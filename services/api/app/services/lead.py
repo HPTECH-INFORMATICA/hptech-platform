@@ -18,9 +18,10 @@ class LeadService:
     @staticmethod
     def create(
         db: Session,
+        company_id: uuid.UUID,
         data: LeadCreate,
     ) -> Lead:
-        return LeadRepository.create(db, data)
+        return LeadRepository.create(db, company_id, data)
 
     @staticmethod
     def get_by_id(
@@ -61,6 +62,7 @@ class LeadService:
         db: Session,
         lead: Lead,
         data: LeadPipelineUpdate,
+        user_id: uuid.UUID,
     ) -> Lead:
         previous_status = lead.pipeline_status
 
@@ -72,7 +74,7 @@ class LeadService:
         history_data = LeadHistoryCreate(
             company_id=lead.company_id,
             lead_id=lead.id,
-            user_id=data.user_id,
+            user_id=user_id,
             action="PIPELINE_STATUS_CHANGED",
             previous_value=previous_status,
             new_value=data.pipeline_status,
@@ -81,6 +83,9 @@ class LeadService:
 
         LeadHistoryRepository.create(
             db,
+            lead.company_id,
+            lead.id,
+            user_id,
             history_data,
         )
 

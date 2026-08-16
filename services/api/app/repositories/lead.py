@@ -11,9 +11,13 @@ class LeadRepository:
     @staticmethod
     def create(
         db: Session,
+        company_id: uuid.UUID,
         data: LeadCreate,
     ) -> Lead:
-        lead = Lead(**data.model_dump())
+        lead = Lead(
+            company_id=company_id,
+            **data.model_dump(exclude={"company_id"}),
+        )
 
         db.add(lead)
         db.flush()
