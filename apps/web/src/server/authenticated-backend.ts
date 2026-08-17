@@ -6,6 +6,8 @@ import { SESSION_COOKIE_NAME } from "@/auth/cookie";
 
 export class MissingSessionError extends Error {}
 
+const SAFE_BACKEND_PATH = /^\/[A-Za-z0-9_/%-]+$/;
+
 function getApiUrl(): string {
   const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
@@ -20,8 +22,12 @@ export async function authenticatedBackendFetch(
   path: string,
   init?: RequestInit,
 ): Promise<Response> {
-  if (!path.startsWith("/")) {
-    throw new Error("O caminho do backend deve ser absoluto.");
+  if (
+    !SAFE_BACKEND_PATH.test(path) ||
+    path.startsWith("//") ||
+    path.includes("..")
+  ) {
+    throw new Error("O caminho do backend não é permitido.");
   }
 
   const cookieStore = await cookies();
@@ -32,6 +38,8 @@ export async function authenticatedBackendFetch(
   }
 
   const headers = new Headers(init?.headers);
+  headers.delete("Cookie");
+  headers.delete("Host");
   headers.set("Accept", "application/json");
   headers.set("Authorization", `Bearer ${accessToken}`);
 

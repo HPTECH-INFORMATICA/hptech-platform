@@ -53,7 +53,7 @@ pnpm dev
 - `/`: redireciona para `/crm`
 - `/crm`: CRM com Kanban de leads
 
-O CRM depende do backend FastAPI e das duas variáveis de ambiente configuradas.
+O CRM depende do backend FastAPI e da sessão autenticada; o tenant é sempre derivado da identidade do usuário.
 
 ## Validações
 

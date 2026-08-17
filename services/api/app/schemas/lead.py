@@ -47,8 +47,9 @@ class LeadResponse(LeadBase):
     company_id: uuid.UUID
 
 class LeadPipelineUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
     pipeline_status: LeadPipelineStatus
-    user_id: uuid.UUID | None = None
 
 class LeadKanbanResponse(BaseModel):
     NEW: list[LeadResponse]

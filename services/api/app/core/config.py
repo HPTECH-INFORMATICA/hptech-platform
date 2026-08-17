@@ -1,12 +1,14 @@
-from typing import Literal
+from typing import Literal, Self
 
-from pydantic import Field, SecretStr, field_validator
+from urllib.parse import urlparse
+
+from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
     APP_NAME: str = "HPTECH Platform"
-    APP_ENV: str = "development"
+    APP_ENV: Literal["development", "test", "production"] = "development"
 
     DATABASE_URL: str = ""
 
@@ -38,6 +40,47 @@ class Settings(BaseSettings):
             raise ValueError("JWT_SECRET não possui diversidade suficiente.")
 
         return SecretStr(secret)
+
+    @field_validator("CORS_ORIGINS")
+    @classmethod
+    def validate_cors_origins(cls, value: str) -> str:
+        origins = [origin.strip().rstrip("/") for origin in value.split(",")]
+
+        if not origins or any(not origin for origin in origins):
+            raise ValueError("CORS_ORIGINS deve conter origens explícitas.")
+
+        for origin in origins:
+            parsed = urlparse(origin)
+            if (
+                origin == "*"
+                or parsed.scheme not in {"http", "https"}
+                or not parsed.netloc
+                or parsed.path not in {"", "/"}
+                or parsed.params
+                or parsed.query
+                or parsed.fragment
+            ):
+                raise ValueError(f"Origem CORS inválida: {origin!r}.")
+
+        return ",".join(dict.fromkeys(origins))
+
+    @model_validator(mode="after")
+    def validate_production_origins(self) -> Self:
+        if self.APP_ENV != "production":
+            return self
+
+        for origin in self.CORS_ORIGINS.split(","):
+            parsed = urlparse(origin)
+            if parsed.scheme != "https" or parsed.hostname in {
+                "localhost",
+                "127.0.0.1",
+                "::1",
+            }:
+                raise ValueError(
+                    "CORS_ORIGINS de produção deve usar origens HTTPS explícitas."
+                )
+
+        return self
 
 
 settings = Settings()

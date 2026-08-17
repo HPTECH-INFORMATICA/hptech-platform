@@ -1,4 +1,8 @@
 export function isSameOriginMutation(request: Request): boolean {
+  if (!["POST", "PUT", "PATCH", "DELETE"].includes(request.method)) {
+    return false;
+  }
+
   const expectedOrigin = new URL(request.url).origin;
   const origin = request.headers.get("origin");
   const fetchSite = request.headers.get("sec-fetch-site");
@@ -7,5 +11,9 @@ export function isSameOriginMutation(request: Request): boolean {
     return false;
   }
 
-  return !fetchSite || fetchSite === "same-origin";
+  if (fetchSite && fetchSite !== "same-origin") {
+    return false;
+  }
+
+  return Boolean(origin || fetchSite);
 }

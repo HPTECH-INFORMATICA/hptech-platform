@@ -32,7 +32,6 @@ export async function updateLeadPipeline(
       },
       body: JSON.stringify({
         pipeline_status: pipelineStatus,
-        user_id: null,
       }),
     },
   );

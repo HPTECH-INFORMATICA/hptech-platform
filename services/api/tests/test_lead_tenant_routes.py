@@ -390,11 +390,24 @@ async def test_pipeline_history_uses_authenticated_user(
 
     response = await client.patch(
         f"/api/v1/leads/{lead_id}/pipeline",
-        json={"pipeline_status": "WON", "user_id": str(uuid4())},
+        json={"pipeline_status": "WON"},
     )
 
     assert response.status_code == 200
     assert captured["user_id"] == identity.user.id
+
+
+async def test_pipeline_rejects_client_supplied_history_author(
+    client: AsyncClient,
+) -> None:
+    authenticate_as(make_identity())
+
+    response = await client.patch(
+        f"/api/v1/leads/{uuid4()}/pipeline",
+        json={"pipeline_status": "WON", "user_id": str(uuid4())},
+    )
+
+    assert response.status_code == 422
 
 
 async def test_history_requires_lead_in_authenticated_tenant(

@@ -118,6 +118,29 @@ async def test_login_uses_generic_error_for_invalid_credentials(
     assert response.json() == {"detail": "Email ou senha inválidos."}
 
 
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {},
+        {"email": "invalido", "password": "senha-segura"},
+        {"email": f"{'a' * 151}@example.com", "password": "senha-segura"},
+        {"email": "usuario@example.com", "password": "x" * 73},
+        {
+            "email": "usuario@example.com",
+            "password": "senha-segura",
+            "role": "OWNER",
+        },
+    ],
+)
+async def test_login_rejects_invalid_or_sensitive_extra_payload(
+    client: AsyncClient,
+    payload: dict[str, str],
+) -> None:
+    response = await client.post("/api/v1/auth/login", json=payload)
+
+    assert response.status_code == 422
+
+
 async def test_auth_me_returns_current_identity_without_sensitive_data(
     client: AsyncClient,
 ) -> None:

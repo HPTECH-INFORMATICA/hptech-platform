@@ -1,14 +1,16 @@
 import uuid
 from typing import Literal
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 from app.core.identity import CompanyStatus, UserRole
 
 
 class LoginRequest(BaseModel):
-    email: EmailStr
-    password: str = Field(min_length=1)
+    model_config = ConfigDict(extra="forbid")
+
+    email: EmailStr = Field(max_length=150)
+    password: str = Field(min_length=1, max_length=72)
 
 
 class TokenResponse(BaseModel):

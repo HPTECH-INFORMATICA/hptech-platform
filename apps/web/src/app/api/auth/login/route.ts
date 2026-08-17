@@ -34,38 +34,47 @@ function parseLoginPayload(value: unknown): LoginPayload | null {
 
 export async function POST(request: Request) {
   if (!isSameOriginMutation(request)) {
-    return NextResponse.json({ error: "Origem não permitida." }, { status: 403 });
+    return NextResponse.json(
+      { error: "Origem não permitida." },
+      { status: 403, headers: { "Cache-Control": "private, no-store" } },
+    );
   }
 
   const payload = parseLoginPayload(await request.json().catch(() => null));
 
   if (!payload) {
-    return NextResponse.json({ error: "Dados de acesso inválidos." }, { status: 400 });
+    return NextResponse.json(
+      { error: "Dados de acesso inválidos." },
+      { status: 400, headers: { "Cache-Control": "private, no-store" } },
+    );
   }
 
   try {
     const result = await authenticate(payload.email, payload.password);
-    const response = NextResponse.json({ ok: true });
+    const response = NextResponse.json(
+      { ok: true },
+      { headers: { "Cache-Control": "private, no-store" } },
+    );
     response.cookies.set(sessionCookie(result.accessToken, result.expiresIn));
     return response;
   } catch (error) {
     if (error instanceof AuthenticationError) {
       return NextResponse.json(
         { error: "Email ou senha inválidos." },
-        { status: 401 },
+        { status: 401, headers: { "Cache-Control": "private, no-store" } },
       );
     }
 
     if (error instanceof AuthenticationServiceError) {
       return NextResponse.json(
         { error: "Não foi possível entrar agora. Tente novamente." },
-        { status: 503 },
+        { status: 503, headers: { "Cache-Control": "private, no-store" } },
       );
     }
 
     return NextResponse.json(
       { error: "Não foi possível entrar agora. Tente novamente." },
-      { status: 500 },
+      { status: 500, headers: { "Cache-Control": "private, no-store" } },
     );
   }
 }

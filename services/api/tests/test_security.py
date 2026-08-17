@@ -127,3 +127,58 @@ def test_absent_jwt_secret_is_rejected(
 
     with pytest.raises(ValidationError, match="JWT_SECRET"):
         Settings(_env_file=None)
+
+
+@pytest.mark.parametrize(
+    "origins",
+    [
+        "*",
+        "",
+        "https://example.com/path",
+        "javascript:alert(1)",
+    ],
+)
+def test_cors_requires_explicit_http_origins(origins: str) -> None:
+    with pytest.raises(ValidationError, match="CORS_ORIGINS|Origem CORS"):
+        Settings(
+            _env_file=None,
+            JWT_SECRET="secure-test-secret-with-at-least-32-characters",
+            CORS_ORIGINS=origins,
+        )
+
+
+def test_cors_normalizes_and_deduplicates_origins() -> None:
+    configured = Settings(
+        _env_file=None,
+        JWT_SECRET="secure-test-secret-with-at-least-32-characters",
+        CORS_ORIGINS="http://localhost:3000/, https://app.example.com, http://localhost:3000",
+    )
+
+    assert configured.CORS_ORIGINS == (
+        "http://localhost:3000,https://app.example.com"
+    )
+
+
+@pytest.mark.parametrize(
+    "origin",
+    ["http://app.example.com", "http://localhost:3000"],
+)
+def test_production_cors_requires_explicit_https_origin(origin: str) -> None:
+    with pytest.raises(ValidationError, match="produção"):
+        Settings(
+            _env_file=None,
+            APP_ENV="production",
+            JWT_SECRET="secure-test-secret-with-at-least-32-characters",
+            CORS_ORIGINS=origin,
+        )
+
+
+def test_production_cors_accepts_explicit_https_origin() -> None:
+    configured = Settings(
+        _env_file=None,
+        APP_ENV="production",
+        JWT_SECRET="secure-test-secret-with-at-least-32-characters",
+        CORS_ORIGINS="https://app.example.com",
+    )
+
+    assert configured.CORS_ORIGINS == "https://app.example.com"

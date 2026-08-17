@@ -12,7 +12,10 @@ export async function GET() {
   const accessToken = cookieStore.get(SESSION_COOKIE_NAME)?.value;
 
   if (!accessToken) {
-    return NextResponse.json({ authenticated: false }, { status: 401 });
+    return NextResponse.json(
+      { authenticated: false },
+      { status: 401, headers: { "Cache-Control": "private, no-store" } },
+    );
   }
 
   try {
@@ -21,24 +24,26 @@ export async function GET() {
     if (!user) {
       const response = NextResponse.json(
         { authenticated: false },
-        { status: 401 },
+        { status: 401, headers: { "Cache-Control": "private, no-store" } },
       );
       response.cookies.set(expiredSessionCookie());
       return response;
     }
 
-    return NextResponse.json(user);
+    return NextResponse.json(user, {
+      headers: { "Cache-Control": "private, no-store" },
+    });
   } catch (error) {
     if (error instanceof AuthenticationServiceError) {
       return NextResponse.json(
         { error: "Serviço de autenticação indisponível." },
-        { status: 503 },
+        { status: 503, headers: { "Cache-Control": "private, no-store" } },
       );
     }
 
     return NextResponse.json(
       { error: "Não foi possível validar a sessão." },
-      { status: 500 },
+      { status: 500, headers: { "Cache-Control": "private, no-store" } },
     );
   }
 }
