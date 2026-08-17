@@ -17,6 +17,8 @@ from app.models.company import Company
 from app.models.user import User
 from app.repositories.user import UserRepository
 from app.core.security import create_access_token, hash_password
+from app.core.rbac import permissions_for_role
+from app.services.auth import AuthService
 
 
 pytestmark = pytest.mark.anyio
@@ -43,6 +45,7 @@ def make_identity() -> AuthenticatedIdentity:
         user=user,
         company=company,
         role=UserRole.ADMIN,
+        permissions=permissions_for_role(UserRole.ADMIN),
     )
 
 
@@ -136,9 +139,44 @@ async def test_auth_me_returns_current_identity_without_sensitive_data(
             "slug": identity.company.slug,
             "status": "ACTIVE",
         },
+        "permissions": [
+            {"module": "DASHBOARD", "actions": ["VIEW"]},
+            {
+                "module": "CRM",
+                "actions": ["CREATE", "DELETE", "UPDATE", "VIEW"],
+            },
+        ],
     }
     assert "password_hash" not in response.text
     assert "JWT_SECRET" not in response.text
+
+
+@pytest.mark.parametrize(
+    ("role", "crm_actions"),
+    [
+        (UserRole.OWNER, ["CREATE", "DELETE", "UPDATE", "VIEW"]),
+        (UserRole.MANAGER, ["CREATE", "UPDATE", "VIEW"]),
+        (UserRole.VIEWER, ["VIEW"]),
+    ],
+)
+async def test_auth_me_returns_permissions_from_current_database_role(
+    client: AsyncClient,
+    role: UserRole,
+    crm_actions: list[str],
+) -> None:
+    identity = make_identity()
+    identity.user.role = role
+    identity = AuthService.identity_from_user(identity.user)
+    app.dependency_overrides[get_current_user] = lambda: identity
+
+    response = await client.get("/api/v1/auth/me")
+
+    assert response.status_code == 200
+    assert response.json()["role"] == role
+    assert response.json()["permissions"] == [
+        {"module": "DASHBOARD", "actions": ["VIEW"]},
+        {"module": "CRM", "actions": crm_actions},
+    ]
 
 
 async def test_auth_me_rejects_missing_token(client: AsyncClient) -> None:

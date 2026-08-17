@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import type { CurrentPermission } from "@/auth/types";
+
 const dashboardItem = { label: "Dashboard", href: "/dashboard" } as const;
 
 const navigationGroups = [
@@ -42,20 +44,27 @@ const navigationGroups = [
 type NavigationProps = {
   id?: string;
   onNavigate?: () => void;
+  permissions: CurrentPermission[];
 };
 
 export default function Navigation({
   id,
   onNavigate,
+  permissions,
 }: NavigationProps) {
   const pathname = usePathname();
+  const canView = (module: "DASHBOARD" | "CRM") =>
+    permissions.some(
+      (permission) =>
+        permission.module === module && permission.actions.includes("VIEW"),
+    );
   const isDashboardActive =
     pathname === dashboardItem.href ||
     pathname.startsWith(`${dashboardItem.href}/`);
 
   return (
     <nav id={id} aria-label="Navegação principal" className="space-y-6">
-      <ul>
+      {canView("DASHBOARD") && <ul>
         <li>
           <Link
             href={dashboardItem.href}
@@ -70,7 +79,7 @@ export default function Navigation({
             {dashboardItem.label}
           </Link>
         </li>
-      </ul>
+      </ul>}
 
       {navigationGroups.map((group) => (
         <section key={group.id} aria-labelledby={`nav-${group.id}`}>
@@ -83,6 +92,9 @@ export default function Navigation({
 
           <ul className="space-y-1">
             {group.items.map((item) => {
+              if (item.href === "/crm" && !canView("CRM")) {
+                return null;
+              }
               const isActive =
                 pathname === item.href || pathname.startsWith(`${item.href}/`);
 

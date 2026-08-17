@@ -188,6 +188,45 @@ def test_get_current_user_reloads_identity_from_database(
     assert identity.role == UserRole.ADMIN
 
 
+def test_token_role_claim_cannot_override_database_role(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    user = make_user(role=UserRole.VIEWER)
+    token = create_access_token(user.id)
+    payload = jwt.decode(
+        token,
+        settings.JWT_SECRET.get_secret_value(),
+        algorithms=[settings.JWT_ALGORITHM],
+    )
+    payload["role"] = UserRole.OWNER.value
+    forged_role_token = jwt.encode(
+        payload,
+        settings.JWT_SECRET.get_secret_value(),
+        algorithm=settings.JWT_ALGORITHM,
+    )
+    monkeypatch.setattr(UserRepository, "get_by_id", lambda _db, _user_id: user)
+
+    identity = get_current_user(credentials(forged_role_token), MagicMock())
+
+    assert identity.role == UserRole.VIEWER
+
+
+def test_database_role_change_applies_on_next_request(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    user = make_user(role=UserRole.VIEWER)
+    token = create_access_token(user.id)
+    monkeypatch.setattr(UserRepository, "get_by_id", lambda _db, _user_id: user)
+
+    first_identity = get_current_user(credentials(token), MagicMock())
+    user.role = UserRole.OWNER
+    second_identity = get_current_user(credentials(token), MagicMock())
+
+    assert first_identity.role == UserRole.VIEWER
+    assert second_identity.role == UserRole.OWNER
+    assert first_identity.permissions != second_identity.permissions
+
+
 @pytest.mark.parametrize(
     "token",
     [

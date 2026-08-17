@@ -1,9 +1,14 @@
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import { fetchCurrentUser } from "./backend";
 import { SESSION_COOKIE_NAME } from "./cookie";
-import type { CurrentUser } from "./types";
+import { hasPermission } from "./types";
+import type {
+  CurrentUser,
+  PermissionAction,
+  PermissionModule,
+} from "./types";
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {
   const cookieStore = await cookies();
@@ -21,6 +26,19 @@ export async function requireCurrentUser(): Promise<CurrentUser> {
 
   if (!user) {
     redirect("/login");
+  }
+
+  return user;
+}
+
+export async function requireCurrentUserPermission(
+  module: PermissionModule,
+  action: PermissionAction,
+): Promise<CurrentUser> {
+  const user = await requireCurrentUser();
+
+  if (!hasPermission(user, module, action)) {
+    notFound();
   }
 
   return user;

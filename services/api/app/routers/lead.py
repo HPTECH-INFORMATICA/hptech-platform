@@ -4,9 +4,9 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.core.identity import AuthenticatedIdentity
+from app.core.identity import AuthenticatedIdentity, PermissionAction, PermissionModule
 from app.db.session import get_db
-from app.dependencies.auth import get_current_user
+from app.dependencies.auth import require_permission
 from app.schemas.lead import (
     LeadCreate,
     LeadKanbanResponse,
@@ -21,6 +21,11 @@ router = APIRouter(
     tags=["Leads"],
 )
 
+require_crm_view = require_permission(PermissionModule.CRM, PermissionAction.VIEW)
+require_crm_create = require_permission(PermissionModule.CRM, PermissionAction.CREATE)
+require_crm_update = require_permission(PermissionModule.CRM, PermissionAction.UPDATE)
+require_crm_delete = require_permission(PermissionModule.CRM, PermissionAction.DELETE)
+
 
 @router.post(
     "",
@@ -29,7 +34,7 @@ router = APIRouter(
 )
 def create_lead(
     data: LeadCreate,
-    identity: Annotated[AuthenticatedIdentity, Depends(get_current_user)],
+    identity: Annotated[AuthenticatedIdentity, Depends(require_crm_create)],
     db: Session = Depends(get_db),
 ) -> LeadResponse:
     lead = LeadService.create(
@@ -49,7 +54,7 @@ def create_lead(
     response_model=list[LeadResponse],
 )
 def list_leads(
-    identity: Annotated[AuthenticatedIdentity, Depends(get_current_user)],
+    identity: Annotated[AuthenticatedIdentity, Depends(require_crm_view)],
     db: Session = Depends(get_db),
 ) -> list[LeadResponse]:
     return LeadService.list(
@@ -62,7 +67,7 @@ def list_leads(
     response_model=LeadKanbanResponse,
 )
 def get_lead_kanban(
-    identity: Annotated[AuthenticatedIdentity, Depends(get_current_user)],
+    identity: Annotated[AuthenticatedIdentity, Depends(require_crm_view)],
     db: Session = Depends(get_db),
 ) -> LeadKanbanResponse:
     return LeadService.get_kanban(
@@ -76,7 +81,7 @@ def get_lead_kanban(
 )
 def get_lead(
     lead_id: uuid.UUID,
-    identity: Annotated[AuthenticatedIdentity, Depends(get_current_user)],
+    identity: Annotated[AuthenticatedIdentity, Depends(require_crm_view)],
     db: Session = Depends(get_db),
 ) -> LeadResponse:
     lead = LeadService.get_by_id(
@@ -101,7 +106,7 @@ def get_lead(
 def update_lead(
     lead_id: uuid.UUID,
     data: LeadUpdate,
-    identity: Annotated[AuthenticatedIdentity, Depends(get_current_user)],
+    identity: Annotated[AuthenticatedIdentity, Depends(require_crm_update)],
     db: Session = Depends(get_db),
 ) -> LeadResponse:
     lead = LeadService.get_by_id(
@@ -134,7 +139,7 @@ def update_lead(
 )
 def delete_lead(
     lead_id: uuid.UUID,
-    identity: Annotated[AuthenticatedIdentity, Depends(get_current_user)],
+    identity: Annotated[AuthenticatedIdentity, Depends(require_crm_delete)],
     db: Session = Depends(get_db),
 ) -> None:
     lead = LeadService.get_by_id(
@@ -163,7 +168,7 @@ def delete_lead(
 def update_lead_pipeline(
     lead_id: uuid.UUID,
     data: LeadPipelineUpdate,
-    identity: Annotated[AuthenticatedIdentity, Depends(get_current_user)],
+    identity: Annotated[AuthenticatedIdentity, Depends(require_crm_update)],
     db: Session = Depends(get_db),
 ) -> LeadResponse:
     lead = LeadService.get_by_id(

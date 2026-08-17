@@ -27,11 +27,30 @@ class UserRole(StrEnum):
     VIEWER = "VIEWER"
 
 
+class PermissionModule(StrEnum):
+    DASHBOARD = "DASHBOARD"
+    CRM = "CRM"
+
+
+class PermissionAction(StrEnum):
+    VIEW = "VIEW"
+    CREATE = "CREATE"
+    UPDATE = "UPDATE"
+    DELETE = "DELETE"
+
+
+@dataclass(frozen=True)
+class Permission:
+    module: PermissionModule
+    actions: frozenset[PermissionAction]
+
+
 @dataclass(frozen=True)
 class AuthenticatedIdentity:
     user: User
     company: Company
     role: UserRole
+    permissions: tuple[Permission, ...]
 
 
 def normalize_company_status(value: str | CompanyStatus) -> str:

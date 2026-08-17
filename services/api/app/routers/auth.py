@@ -9,6 +9,7 @@ from app.db.session import get_db
 from app.dependencies.auth import get_current_user
 from app.schemas.auth import (
     CurrentCompanyResponse,
+    CurrentPermissionResponse,
     CurrentUserResponse,
     LoginRequest,
     TokenResponse,
@@ -68,4 +69,11 @@ def get_me(
             slug=identity.company.slug,
             status=identity.company.status,
         ),
+        permissions=[
+            CurrentPermissionResponse(
+                module=permission.module,
+                actions=sorted(action.value for action in permission.actions),
+            )
+            for permission in identity.permissions
+        ],
     )

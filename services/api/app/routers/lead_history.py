@@ -4,9 +4,9 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.core.identity import AuthenticatedIdentity
+from app.core.identity import AuthenticatedIdentity, PermissionAction, PermissionModule
 from app.db.session import get_db
-from app.dependencies.auth import get_current_user
+from app.dependencies.auth import require_permission
 from app.schemas.lead_history import (
     LeadHistoryResponse,
 )
@@ -19,6 +19,8 @@ router = APIRouter(
     tags=["Lead History"],
 )
 
+require_crm_view = require_permission(PermissionModule.CRM, PermissionAction.VIEW)
+
 
 @router.get(
     "/lead/{lead_id}",
@@ -26,7 +28,7 @@ router = APIRouter(
 )
 def list_lead_history(
     lead_id: uuid.UUID,
-    identity: Annotated[AuthenticatedIdentity, Depends(get_current_user)],
+    identity: Annotated[AuthenticatedIdentity, Depends(require_crm_view)],
     db: Session = Depends(get_db),
 ) -> list[LeadHistoryResponse]:
     lead = LeadService.get_by_id(

@@ -56,7 +56,11 @@ function moveLead(
   return nextKanban;
 }
 
-export default function CRMHome() {
+type CRMHomeProps = {
+  canUpdate: boolean;
+};
+
+export default function CRMHome({ canUpdate }: CRMHomeProps) {
   const [kanban, setKanban] = useState<LeadKanban>(EMPTY_KANBAN);
   const [search, setSearch] = useState("");
   const [selectedSource, setSelectedSource] = useState("");
@@ -156,7 +160,7 @@ export default function CRMHome() {
 
   const handleMove = useCallback(
     async (lead: Lead, targetStatus: LeadStatus) => {
-      if (lead.pipeline_status === targetStatus || movingLeadId) {
+      if (!canUpdate || lead.pipeline_status === targetStatus || movingLeadId) {
         return;
       }
 
@@ -185,7 +189,7 @@ export default function CRMHome() {
         setMovingLeadId(null);
       }
     },
-    [movingLeadId],
+    [canUpdate, movingLeadId],
   );
 
   if (isLoading) {
@@ -261,6 +265,7 @@ export default function CRMHome() {
         ) : (
           <LeadTable
             kanban={filteredKanban}
+            canUpdate={canUpdate}
             movingLeadId={movingLeadId}
             onMove={handleMove}
           />

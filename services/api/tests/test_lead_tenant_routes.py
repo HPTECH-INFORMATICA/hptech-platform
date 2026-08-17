@@ -8,6 +8,7 @@ from httpx import ASGITransport, AsyncClient
 
 from app.core.identity import AuthenticatedIdentity, CompanyStatus, UserRole
 from app.core.security import create_access_token, hash_password
+from app.core.rbac import permissions_for_role
 from app.db.session import get_db
 from app.dependencies.auth import get_current_user
 from app.main import app
@@ -27,6 +28,7 @@ def make_identity(
     *,
     active: bool = True,
     company_status: CompanyStatus = CompanyStatus.ACTIVE,
+    role: UserRole = UserRole.OWNER,
 ) -> AuthenticatedIdentity:
     resolved_company_id = company_id or uuid4()
     company = Company(
@@ -42,13 +44,14 @@ def make_identity(
         name="Usuário de teste",
         email=f"{uuid4()}@example.com",
         password_hash=hash_password("senha-segura"),
-        role=UserRole.OWNER,
+        role=role,
         is_active=active,
     )
     return AuthenticatedIdentity(
         user=user,
         company=company,
-        role=UserRole.OWNER,
+        role=role,
+        permissions=permissions_for_role(role),
     )
 
 
@@ -120,6 +123,50 @@ async def test_lead_endpoint_rejects_invalid_token(client: AsyncClient) -> None:
     )
 
     assert response.status_code == 401
+
+
+@pytest.mark.parametrize(
+    ("role", "method", "path", "json"),
+    [
+        (UserRole.MANAGER, "DELETE", f"/api/v1/leads/{uuid4()}", None),
+        (UserRole.VIEWER, "POST", "/api/v1/leads", {"name": "Lead"}),
+        (
+            UserRole.VIEWER,
+            "PATCH",
+            f"/api/v1/leads/{uuid4()}",
+            {"name": "Atualizado"},
+        ),
+        (
+            UserRole.VIEWER,
+            "PATCH",
+            f"/api/v1/leads/{uuid4()}/pipeline",
+            {"pipeline_status": "WON"},
+        ),
+        (UserRole.VIEWER, "DELETE", f"/api/v1/leads/{uuid4()}", None),
+    ],
+)
+async def test_crm_mutations_require_permission(
+    client: AsyncClient,
+    role: UserRole,
+    method: str,
+    path: str,
+    json: dict[str, str] | None,
+) -> None:
+    authenticate_as(make_identity(role=role))
+
+    response = await client.request(method, path, json=json)
+
+    assert response.status_code == 403
+
+
+async def test_viewer_can_view_crm(client: AsyncClient, monkeypatch: pytest.MonkeyPatch) -> None:
+    identity = make_identity(role=UserRole.VIEWER)
+    authenticate_as(identity)
+    monkeypatch.setattr(LeadService, "list", lambda _db, _company_id: [])
+
+    response = await client.get("/api/v1/leads")
+
+    assert response.status_code == 200
 
 
 @pytest.mark.parametrize(

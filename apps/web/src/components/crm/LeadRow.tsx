@@ -6,6 +6,7 @@ import type { Lead, LeadStatus } from "@/types/lead";
 
 type LeadRowProps = {
   lead: Lead;
+  canUpdate: boolean;
   statusLabels: Record<LeadStatus, string>;
   isMoving: boolean;
   onMove: (lead: Lead, status: LeadStatus) => void;
@@ -13,6 +14,7 @@ type LeadRowProps = {
 
 export default function LeadRow({
   lead,
+  canUpdate,
   statusLabels,
   isMoving,
   onMove,
@@ -25,9 +27,13 @@ export default function LeadRow({
 
   return (
     <article
-      draggable={!isMoving}
+      draggable={canUpdate && !isMoving}
       aria-busy={isMoving}
       onDragStart={(event) => {
+        if (!canUpdate) {
+          event.preventDefault();
+          return;
+        }
         event.dataTransfer.effectAllowed = "move";
         event.dataTransfer.setData("text/plain", lead.id);
       }}
@@ -45,12 +51,14 @@ export default function LeadRow({
           )}
         </div>
 
-        <span
-          className="cursor-grab select-none text-hp-subtle"
-          aria-hidden="true"
-        >
-          ⋮⋮
-        </span>
+        {canUpdate && (
+          <span
+            className="cursor-grab select-none text-hp-subtle"
+            aria-hidden="true"
+          >
+            ⋮⋮
+          </span>
+        )}
       </div>
 
       {contact && (
@@ -66,7 +74,7 @@ export default function LeadRow({
           id={`lead-status-${lead.id}`}
           label={<span className="sr-only">Estágio de {lead.name}</span>}
           value={lead.pipeline_status}
-          disabled={isMoving}
+          disabled={!canUpdate || isMoving}
           onChange={(event) =>
             onMove(lead, event.target.value as LeadStatus)
           }

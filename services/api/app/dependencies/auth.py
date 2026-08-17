@@ -1,11 +1,17 @@
 import uuid
+from collections.abc import Callable
 from typing import Annotated
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
-from app.core.identity import AuthenticatedIdentity
+from app.core.identity import (
+    AuthenticatedIdentity,
+    PermissionAction,
+    PermissionModule,
+)
+from app.core.rbac import has_permission
 from app.core.security import TokenValidationError, decode_access_token
 from app.db.session import get_db
 from app.repositories.user import UserRepository
@@ -43,3 +49,21 @@ def get_current_user(
         return AuthService.identity_from_user(user)
     except (AuthenticationError, TokenValidationError, ValueError) as error:
         raise authentication_exception() from error
+
+
+def require_permission(
+    module: PermissionModule,
+    action: PermissionAction,
+) -> Callable[..., AuthenticatedIdentity]:
+    def permission_dependency(
+        identity: Annotated[AuthenticatedIdentity, Depends(get_current_user)],
+    ) -> AuthenticatedIdentity:
+        if not has_permission(identity.permissions, module, action):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="PermissÃ£o insuficiente para esta operaÃ§Ã£o.",
+            )
+
+        return identity
+
+    return permission_dependency

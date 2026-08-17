@@ -1,4 +1,9 @@
-import type { CurrentUser } from "./types";
+import type {
+  CurrentPermission,
+  CurrentUser,
+  PermissionAction,
+  PermissionModule,
+} from "./types";
 
 type LoginResult = {
   accessToken: string;
@@ -28,12 +33,52 @@ function isNonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;
 }
 
+const permissionModules: PermissionModule[] = ["DASHBOARD", "CRM"];
+const permissionActions: PermissionAction[] = [
+  "VIEW",
+  "CREATE",
+  "UPDATE",
+  "DELETE",
+];
+
+function parsePermissions(value: unknown): CurrentPermission[] | null {
+  if (!Array.isArray(value)) {
+    return null;
+  }
+
+  const permissions: CurrentPermission[] = [];
+
+  for (const permission of value) {
+    if (
+      !isRecord(permission) ||
+      typeof permission.module !== "string" ||
+      !permissionModules.includes(permission.module as PermissionModule) ||
+      !Array.isArray(permission.actions) ||
+      !permission.actions.every(
+        (action) =>
+          typeof action === "string" &&
+          permissionActions.includes(action as PermissionAction),
+      )
+    ) {
+      return null;
+    }
+
+    permissions.push({
+      module: permission.module as PermissionModule,
+      actions: permission.actions as PermissionAction[],
+    });
+  }
+
+  return permissions;
+}
+
 function parseCurrentUser(value: unknown): CurrentUser | null {
   if (!isRecord(value) || !isRecord(value.company)) {
     return null;
   }
 
   const { company } = value;
+  const permissions = parsePermissions(value.permissions);
 
   if (
     !isNonEmptyString(value.id) ||
@@ -44,7 +89,8 @@ function parseCurrentUser(value: unknown): CurrentUser | null {
     !isNonEmptyString(company.id) ||
     !isNonEmptyString(company.name) ||
     !isNonEmptyString(company.slug) ||
-    !isNonEmptyString(company.status)
+    !isNonEmptyString(company.status) ||
+    !permissions
   ) {
     return null;
   }
@@ -61,6 +107,7 @@ function parseCurrentUser(value: unknown): CurrentUser | null {
       slug: company.slug,
       status: company.status,
     },
+    permissions,
   };
 }
 

@@ -33,12 +33,14 @@ const STATUS_ACCENTS: Record<LeadStatus, string> = {
 
 type LeadTableProps = {
   kanban: LeadKanban;
+  canUpdate: boolean;
   movingLeadId: string | null;
   onMove: (lead: Lead, status: LeadStatus) => void;
 };
 
 export default function LeadTable({
   kanban,
+  canUpdate,
   movingLeadId,
   onMove,
 }: LeadTableProps) {
@@ -67,10 +69,16 @@ export default function LeadTable({
               key={status}
               aria-labelledby={`kanban-${status}-title`}
               onDragOver={(event) => {
+                if (!canUpdate) {
+                  return;
+                }
                 event.preventDefault();
                 event.dataTransfer.dropEffect = "move";
               }}
               onDrop={(event) => {
+                if (!canUpdate) {
+                  return;
+                }
                 event.preventDefault();
                 const lead = leadsById.get(
                   event.dataTransfer.getData("text/plain"),
@@ -99,6 +107,7 @@ export default function LeadTable({
                   <LeadRow
                     key={lead.id}
                     lead={lead}
+                    canUpdate={canUpdate}
                     statusLabels={STATUS_LABELS}
                     isMoving={movingLeadId === lead.id}
                     onMove={onMove}
@@ -107,8 +116,9 @@ export default function LeadTable({
 
                 {kanban[status].length === 0 && (
                   <div className="rounded-[var(--radius-lg)] border border-dashed border-hp-border-strong px-3 py-8 text-center text-sm text-hp-subtle">
-                    Nenhum lead neste estágio. Arraste um lead para cá ou use o
-                    seletor de estágio.
+                    {canUpdate
+                      ? "Nenhum lead neste estágio. Arraste um lead para cá ou use o seletor de estágio."
+                      : "Nenhum lead neste estágio."}
                   </div>
                 )}
               </div>

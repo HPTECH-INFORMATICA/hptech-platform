@@ -24,6 +24,11 @@ class CurrentCompanyResponse(BaseModel):
     status: CompanyStatus
 
 
+class CurrentPermissionResponse(BaseModel):
+    module: str
+    actions: list[str]
+
+
 class CurrentUserResponse(BaseModel):
     id: uuid.UUID
     name: str
@@ -31,3 +36,4 @@ class CurrentUserResponse(BaseModel):
     role: UserRole
     active: bool
     company: CurrentCompanyResponse
+    permissions: list[CurrentPermissionResponse]

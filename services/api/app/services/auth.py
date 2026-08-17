@@ -8,6 +8,7 @@ from app.core.identity import (
     UserRole,
 )
 from app.core.security import create_access_token, verify_password
+from app.core.rbac import permissions_for_role
 from app.models.user import User
 from app.repositories.user import (
     AmbiguousUserEmailError,
@@ -75,4 +76,5 @@ class AuthService:
             user=user,
             company=company,
             role=role,
+            permissions=permissions_for_role(role),
         )

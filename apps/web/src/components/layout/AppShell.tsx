@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 
 import Navigation from "./Navigation";
 import TopBar from "./TopBar";
+import type { CurrentPermission } from "@/auth/types";
 
 type AppShellProps = {
   title: string;
@@ -12,6 +13,7 @@ type AppShellProps = {
   actions?: ReactNode;
   userArea?: ReactNode;
   footer?: ReactNode;
+  permissions: CurrentPermission[];
 };
 
 export default function AppShell({
@@ -20,6 +22,7 @@ export default function AppShell({
   actions,
   userArea,
   footer,
+  permissions,
 }: AppShellProps) {
   const [navigationOpen, setNavigationOpen] = useState(false);
   const closeButtonRef = useRef<HTMLButtonElement>(null);
@@ -63,7 +66,7 @@ export default function AppShell({
 
       <aside className="sticky top-0 hidden h-dvh border-r border-hp-border bg-hp-surface p-6 lg:block">
         <div className="mb-8 text-xl font-bold text-hp-foreground">HPTECH</div>
-        <Navigation />
+        <Navigation permissions={permissions} />
       </aside>
 
       <div className="flex min-h-dvh min-w-0 w-full max-w-full flex-col overflow-x-hidden">
@@ -114,7 +117,10 @@ export default function AppShell({
               </button>
             </div>
 
-            <Navigation onNavigate={() => closeNavigation(false)} />
+            <Navigation
+              permissions={permissions}
+              onNavigate={() => closeNavigation(false)}
+            />
           </aside>
         </div>
       )}
