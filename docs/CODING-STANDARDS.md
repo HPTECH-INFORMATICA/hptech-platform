@@ -361,7 +361,7 @@ Exemplo:
 
 ```env
 DATABASE_URL=
-NEXT_PUBLIC_API_URL=
+API_URL=
 JWT_SECRET=
 ```
 

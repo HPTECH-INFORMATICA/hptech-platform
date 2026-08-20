@@ -19,9 +19,17 @@ from app.repositories.user import UserRepository
 from app.core.security import create_access_token, hash_password
 from app.core.rbac import permissions_for_role
 from app.services.auth import AuthService
+from app.services.login_rate_limit import LoginRateLimiter, LoginRateLimitExceeded
 
 
 pytestmark = pytest.mark.anyio
+
+
+@pytest.fixture(autouse=True)
+def isolate_login_rate_limit(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(LoginRateLimiter, "ensure_allowed", lambda *_args: None)
+    monkeypatch.setattr(LoginRateLimiter, "record_failure", lambda *_args: None)
+    monkeypatch.setattr(LoginRateLimiter, "clear", lambda *_args: None)
 
 
 def make_identity() -> AuthenticatedIdentity:
@@ -88,6 +96,27 @@ async def test_login_returns_bearer_token_without_sensitive_data(
     assert body["expires_in"] > 0
     assert "password" not in body
     assert "password_hash" not in body
+
+
+async def test_login_rate_limit_returns_429_and_retry_after(
+    client: AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def reject(*_args: object) -> None:
+        raise LoginRateLimitExceeded(120)
+
+    monkeypatch.setattr(LoginRateLimiter, "ensure_allowed", reject)
+
+    response = await client.post(
+        "/api/v1/auth/login",
+        json={"email": "usuario@example.com", "password": "senha-segura"},
+    )
+
+    assert response.status_code == 429
+    assert response.headers["retry-after"] == "120"
+    assert response.json() == {
+        "detail": "Muitas tentativas de acesso. Tente novamente mais tarde."
+    }
 
 
 @pytest.mark.parametrize(

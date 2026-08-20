@@ -24,7 +24,8 @@ Copy-Item apps/web/.env.example apps/web/.env.local
 
 O tenant é derivado da sessão autenticada e não deve ser configurado no frontend.
 
-Mantenha `NEXT_PUBLIC_API_URL` apontando para o backend FastAPI.
+Mantenha `API_URL` apontando para o backend FastAPI. Essa variável é privada
+do servidor Next.js e nunca deve usar o prefixo `NEXT_PUBLIC_`.
 
 Não versione `.env.local`.
 

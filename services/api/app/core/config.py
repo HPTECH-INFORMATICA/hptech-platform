@@ -18,6 +18,9 @@ class Settings(BaseSettings):
 
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
+    LOGIN_RATE_LIMIT_ATTEMPTS: int = Field(default=5, ge=1, le=100)
+    LOGIN_RATE_LIMIT_WINDOW_SECONDS: int = Field(default=900, ge=60, le=86400)
+
     CORS_ORIGINS: str = "http://localhost:3000"
 
     model_config = SettingsConfigDict(

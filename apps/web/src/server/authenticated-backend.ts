@@ -9,10 +9,10 @@ export class MissingSessionError extends Error {}
 const SAFE_BACKEND_PATH = /^\/[A-Za-z0-9_/%-]+$/;
 
 function getApiUrl(): string {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  const apiUrl = process.env.API_URL;
 
   if (!apiUrl) {
-    throw new Error("NEXT_PUBLIC_API_URL não está configurada.");
+    throw new Error("API_URL não está configurada.");
   }
 
   return apiUrl.replace(/\/$/, "");

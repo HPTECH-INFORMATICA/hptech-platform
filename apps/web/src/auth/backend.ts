@@ -14,11 +14,11 @@ export class AuthenticationError extends Error {}
 export class AuthenticationServiceError extends Error {}
 
 function getApiUrl(): string {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+  const apiUrl = process.env.API_URL;
 
   if (!apiUrl) {
     throw new AuthenticationServiceError(
-      "NEXT_PUBLIC_API_URL não está configurada.",
+      "API_URL não está configurada.",
     );
   }
 

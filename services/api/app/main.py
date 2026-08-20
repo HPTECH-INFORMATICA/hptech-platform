@@ -1,9 +1,14 @@
+import logging
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.db import base as _models
 from app.api.router import api_router
 from app.core.config import settings
+
+
+security_logger = logging.getLogger("hptech.security")
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -40,6 +45,13 @@ async def apply_security_headers(request: Request, call_next):
         ("/api/v1/auth", "/api/v1/leads", "/api/v1/lead-history")
     ):
         response.headers["Cache-Control"] = "private, no-store"
+
+    if response.status_code in {401, 403, 429}:
+        security_logger.info(
+            "security.http.denied status=%s method=%s",
+            response.status_code,
+            request.method,
+        )
 
     return response
 

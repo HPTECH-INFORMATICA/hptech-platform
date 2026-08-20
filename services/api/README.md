@@ -62,6 +62,8 @@ Configure as seguintes variáveis no arquivo `.env`:
 - `JWT_SECRET`: segredo obrigatório usado para assinar os tokens.
 - `JWT_ALGORITHM`: algoritmo fixo de assinatura dos tokens.
 - `ACCESS_TOKEN_EXPIRE_MINUTES`: duração dos tokens de acesso.
+- `LOGIN_RATE_LIMIT_ATTEMPTS`: máximo de falhas por janela e identidade de origem.
+- `LOGIN_RATE_LIMIT_WINDOW_SECONDS`: duração da janela de limitação do login.
 - `CORS_ORIGINS`: origens explícitas permitidas, separadas por vírgula; produção exige HTTPS.
 
 Não versione `.env`. Não coloque credenciais reais em `.env.example`.
@@ -92,7 +94,11 @@ Aplique as migrations pendentes:
 python -m alembic upgrade head
 ```
 
-A head atual do projeto é `3dd650dd94f9`.
+A head atual do projeto é `b4f83ac92e17`.
+
+O bootstrap administrativo do primeiro OWNER está descrito em
+`../../docs/SECURITY_DEPLOY_CHECKLIST.md`; ele exige uma empresa existente e
+solicita a senha interativamente.
 
 ## Execução
 
@@ -157,16 +163,15 @@ Os testes automatizados cobrem autenticação, RBAC, isolamento multiempresa, CO
 
 ## Limitações conhecidas
 
-- Rate limiting de login ainda não foi implementado.
 - Não existem refresh token, revogação por blacklist ou MFA.
-- CSP completa, HSTS no edge e observabilidade de segurança permanecem pendentes para o hardening de produção.
+- Audit trail administrativo completo permanece como evolução futura.
 
 ## Requisitos antes de produção
 
 Antes de qualquer exposição pública:
 
 1. Configurar segredos e origens HTTPS próprios do ambiente.
-2. Adicionar rate limiting distribuído ao login.
-3. Definir CSP completa e HSTS na camada de borda HTTPS.
-4. Adicionar observabilidade e auditoria operacional de segurança.
+2. Aplicar a migration do rate limiting persistido no PostgreSQL.
+3. Confirmar CSP e HSTS no endpoint público servido por HTTPS.
+4. Encaminhar logs de segurança agregados para a observabilidade operacional.
 5. Validar migrations em ambiente isolado.

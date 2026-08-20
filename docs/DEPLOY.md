@@ -213,14 +213,14 @@ apps/web/.env.local
 Exemplo:
 
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+API_URL=http://localhost:8000/api/v1
 NEXT_PUBLIC_APP_URL=http://localhost:3000
 ```
 
 Em produção:
 
 ```env
-NEXT_PUBLIC_API_URL=https://api.hptechinformatica.com/api/v1
+API_URL=https://api.hptechinformatica.com/api/v1
 NEXT_PUBLIC_APP_URL=https://app.hptechinformatica.com
 ```
 
@@ -272,7 +272,7 @@ Conteúdo de exemplo:
 ```env
 DATABASE_URL=
 JWT_SECRET=
-NEXT_PUBLIC_API_URL=
+API_URL=
 ```
 
 ---
