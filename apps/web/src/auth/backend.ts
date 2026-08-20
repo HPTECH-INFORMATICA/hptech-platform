@@ -33,7 +33,7 @@ function isNonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;
 }
 
-const permissionModules: PermissionModule[] = ["DASHBOARD", "CRM"];
+const permissionModules: PermissionModule[] = ["DASHBOARD", "CRM", "COMPANY"];
 const permissionActions: PermissionAction[] = [
   "VIEW",
   "CREATE",

@@ -197,6 +197,7 @@ async def test_auth_me_returns_current_identity_without_sensitive_data(
                 "module": "CRM",
                 "actions": ["CREATE", "DELETE", "UPDATE", "VIEW"],
             },
+            {"module": "COMPANY", "actions": ["VIEW"]},
         ],
     }
     assert "password_hash" not in response.text
@@ -225,10 +226,14 @@ async def test_auth_me_returns_permissions_from_current_database_role(
 
     assert response.status_code == 200
     assert response.json()["role"] == role
-    assert response.json()["permissions"] == [
+    expected_permissions = [
         {"module": "DASHBOARD", "actions": ["VIEW"]},
         {"module": "CRM", "actions": crm_actions},
     ]
+    if role is UserRole.OWNER:
+        expected_permissions.append({"module": "COMPANY", "actions": ["VIEW"]})
+
+    assert response.json()["permissions"] == expected_permissions
 
 
 async def test_auth_me_rejects_missing_token(client: AsyncClient) -> None:

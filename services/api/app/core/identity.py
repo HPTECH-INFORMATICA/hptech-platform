@@ -30,6 +30,7 @@ class UserRole(StrEnum):
 class PermissionModule(StrEnum):
     DASHBOARD = "DASHBOARD"
     CRM = "CRM"
+    COMPANY = "COMPANY"
 
 
 class PermissionAction(StrEnum):

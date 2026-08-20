@@ -1,3 +1,34 @@
-export default function ConfiguracoesPage() {
-  return <div>Configurações</div>;
+import { redirect } from "next/navigation";
+
+import { requireCurrentUserPermission } from "@/auth/session";
+import SessionUser from "@/auth/SessionUser";
+import AppShell from "@/components/layout/AppShell";
+
+import AdminPanel from "./AdminPanel";
+import { parseAdminTab } from "./tabs";
+
+type ConfiguracoesPageProps = {
+  searchParams: Promise<{ tab?: string | string[] }>;
+};
+
+export default async function ConfiguracoesPage({
+  searchParams,
+}: ConfiguracoesPageProps) {
+  const user = await requireCurrentUserPermission("COMPANY", "VIEW");
+  const requestedTab = (await searchParams).tab;
+  const activeTab = parseAdminTab(requestedTab);
+
+  if (requestedTab !== undefined && activeTab === null) {
+    redirect("/configuracoes?tab=visao-geral");
+  }
+
+  return (
+    <AppShell
+      title="Configurações"
+      permissions={user.permissions}
+      userArea={<SessionUser user={user} />}
+    >
+      <AdminPanel user={user} activeTab={activeTab ?? "visao-geral"} />
+    </AppShell>
+  );
 }

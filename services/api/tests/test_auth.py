@@ -8,9 +8,14 @@ from fastapi.security import HTTPAuthorizationCredentials
 from jose import jwt
 
 from app.core.config import settings
-from app.core.identity import CompanyStatus, UserRole
+from app.core.identity import (
+    CompanyStatus,
+    PermissionAction,
+    PermissionModule,
+    UserRole,
+)
 from app.core.security import create_access_token, hash_password
-from app.dependencies.auth import get_current_user
+from app.dependencies.auth import get_current_user, require_permission
 from app.models.company import Company
 from app.models.user import User
 from app.repositories.user import (
@@ -331,3 +336,26 @@ def test_get_current_user_rejects_identity_blocked_after_issuance(
         get_current_user(credentials(token), MagicMock())
 
     assert error.value.status_code == 401
+
+
+def test_company_view_permission_accepts_owner() -> None:
+    identity = AuthService.identity_from_user(make_user(role=UserRole.OWNER))
+    dependency = require_permission(
+        PermissionModule.COMPANY,
+        PermissionAction.VIEW,
+    )
+
+    assert dependency(identity) is identity
+
+
+def test_company_view_permission_rejects_viewer() -> None:
+    identity = AuthService.identity_from_user(make_user(role=UserRole.VIEWER))
+    dependency = require_permission(
+        PermissionModule.COMPANY,
+        PermissionAction.VIEW,
+    )
+
+    with pytest.raises(HTTPException) as error:
+        dependency(identity)
+
+    assert error.value.status_code == 403

@@ -5,7 +5,7 @@ export type CurrentCompany = {
   status: string;
 };
 
-export type PermissionModule = "DASHBOARD" | "CRM";
+export type PermissionModule = "DASHBOARD" | "CRM" | "COMPANY";
 export type PermissionAction = "VIEW" | "CREATE" | "UPDATE" | "DELETE";
 
 export type CurrentPermission = {

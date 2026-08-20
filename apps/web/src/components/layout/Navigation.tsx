@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import type { CurrentPermission } from "@/auth/types";
+import type { CurrentPermission, PermissionModule } from "@/auth/types";
 
 const dashboardItem = { label: "Dashboard", href: "/dashboard" } as const;
 
@@ -53,7 +53,7 @@ export default function Navigation({
   permissions,
 }: NavigationProps) {
   const pathname = usePathname();
-  const canView = (module: "DASHBOARD" | "CRM") =>
+  const canView = (module: PermissionModule) =>
     permissions.some(
       (permission) =>
         permission.module === module && permission.actions.includes("VIEW"),
@@ -93,6 +93,12 @@ export default function Navigation({
           <ul className="space-y-1">
             {group.items.map((item) => {
               if (item.href === "/crm" && !canView("CRM")) {
+                return null;
+              }
+              if (
+                item.href === "/configuracoes" &&
+                !canView("COMPANY")
+              ) {
                 return null;
               }
               const isActive =
