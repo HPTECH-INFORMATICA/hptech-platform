@@ -8,8 +8,38 @@ from app.core.rbac import has_permission, permissions_for_role
 def test_owner_and_admin_have_full_crm_access(role: UserRole) -> None:
     permissions = permissions_for_role(role)
 
-    for action in PermissionAction:
+    for action in (
+        PermissionAction.VIEW,
+        PermissionAction.CREATE,
+        PermissionAction.UPDATE,
+        PermissionAction.DELETE,
+    ):
         assert has_permission(permissions, PermissionModule.CRM, action)
+
+    assert not has_permission(
+        permissions, PermissionModule.CRM, PermissionAction.BLOCK
+    )
+    assert not has_permission(
+        permissions, PermissionModule.CRM, PermissionAction.MANAGE_ROLE
+    )
+
+
+@pytest.mark.parametrize("role", [UserRole.OWNER, UserRole.ADMIN])
+def test_owner_and_admin_have_user_administration_access(role: UserRole) -> None:
+    permissions = permissions_for_role(role)
+
+    for action in (
+        PermissionAction.VIEW,
+        PermissionAction.UPDATE,
+        PermissionAction.BLOCK,
+        PermissionAction.MANAGE_ROLE,
+        PermissionAction.DELETE,
+    ):
+        assert has_permission(permissions, PermissionModule.USERS, action)
+
+    assert not has_permission(
+        permissions, PermissionModule.USERS, PermissionAction.CREATE
+    )
 
 
 @pytest.mark.parametrize("role", [UserRole.OWNER, UserRole.ADMIN])

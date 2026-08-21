@@ -31,6 +31,7 @@ class PermissionModule(StrEnum):
     DASHBOARD = "DASHBOARD"
     CRM = "CRM"
     COMPANY = "COMPANY"
+    USERS = "USERS"
 
 
 class PermissionAction(StrEnum):
@@ -38,6 +39,8 @@ class PermissionAction(StrEnum):
     CREATE = "CREATE"
     UPDATE = "UPDATE"
     DELETE = "DELETE"
+    BLOCK = "BLOCK"
+    MANAGE_ROLE = "MANAGE_ROLE"
 
 
 @dataclass(frozen=True)

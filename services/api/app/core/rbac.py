@@ -16,6 +16,15 @@ CRM_WRITE = frozenset(
 )
 CRM_ALL = frozenset({*CRM_WRITE, PermissionAction.DELETE})
 COMPANY_VIEW = Permission(PermissionModule.COMPANY, VIEW)
+USERS_ADMIN = frozenset(
+    {
+        PermissionAction.VIEW,
+        PermissionAction.UPDATE,
+        PermissionAction.BLOCK,
+        PermissionAction.MANAGE_ROLE,
+        PermissionAction.DELETE,
+    }
+)
 
 
 ROLE_PERMISSIONS: dict[UserRole, tuple[Permission, ...]] = {
@@ -23,11 +32,13 @@ ROLE_PERMISSIONS: dict[UserRole, tuple[Permission, ...]] = {
         Permission(PermissionModule.DASHBOARD, VIEW),
         Permission(PermissionModule.CRM, CRM_ALL),
         COMPANY_VIEW,
+        Permission(PermissionModule.USERS, USERS_ADMIN),
     ),
     UserRole.ADMIN: (
         Permission(PermissionModule.DASHBOARD, VIEW),
         Permission(PermissionModule.CRM, CRM_ALL),
         COMPANY_VIEW,
+        Permission(PermissionModule.USERS, USERS_ADMIN),
     ),
     UserRole.MANAGER: (
         Permission(PermissionModule.DASHBOARD, VIEW),

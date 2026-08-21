@@ -33,12 +33,19 @@ function isNonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;
 }
 
-const permissionModules: PermissionModule[] = ["DASHBOARD", "CRM", "COMPANY"];
+const permissionModules: PermissionModule[] = [
+  "DASHBOARD",
+  "CRM",
+  "COMPANY",
+  "USERS",
+];
 const permissionActions: PermissionAction[] = [
   "VIEW",
   "CREATE",
   "UPDATE",
   "DELETE",
+  "BLOCK",
+  "MANAGE_ROLE",
 ];
 
 function parsePermissions(value: unknown): CurrentPermission[] | null {
