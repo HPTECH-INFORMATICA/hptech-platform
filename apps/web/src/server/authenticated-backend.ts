@@ -6,7 +6,7 @@ import { SESSION_COOKIE_NAME } from "@/auth/cookie";
 
 export class MissingSessionError extends Error {}
 
-const SAFE_BACKEND_PATH = /^\/[A-Za-z0-9_/%-]+$/;
+const SAFE_BACKEND_PATH = /^\/[A-Za-z0-9_/%?&=.+-]+$/;
 
 function getApiUrl(): string {
   const apiUrl = process.env.API_URL;

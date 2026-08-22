@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 
-import type { CurrentUser } from "@/auth/types";
+import { hasPermission, type CurrentUser } from "@/auth/types";
 import Badge from "@/components/ui/Badge";
 import Card from "@/components/ui/Card";
 import PageHeader from "@/components/ui/PageHeader";
@@ -14,6 +14,7 @@ import Tabs, {
 } from "@/components/ui/Tabs";
 
 import type { AdminTab } from "./tabs";
+import UsersPanel from "./UsersPanel";
 
 type AdminPanelProps = {
   user: CurrentUser;
@@ -45,6 +46,7 @@ export default function AdminPanel({ user, activeTab }: AdminPanelProps) {
   const router = useRouter();
   const roleLabel = roleLabels[user.role] ?? user.role;
   const companyStatus = companyStatusLabels[user.company.status] ?? user.company.status;
+  const canViewUsers = hasPermission(user, "USERS", "VIEW");
 
   function changeTab(tab: string) {
     router.push(`/configuracoes?tab=${encodeURIComponent(tab)}`);
@@ -63,6 +65,9 @@ export default function AdminPanel({ user, activeTab }: AdminPanelProps) {
           <TabsList aria-label="Seções do Painel Administrativo">
             <TabsTrigger value="visao-geral">Visão geral</TabsTrigger>
             <TabsTrigger value="empresa">Empresa</TabsTrigger>
+            {canViewUsers ? (
+              <TabsTrigger value="usuarios">Usuários</TabsTrigger>
+            ) : null}
           </TabsList>
         </div>
 
@@ -117,6 +122,12 @@ export default function AdminPanel({ user, activeTab }: AdminPanelProps) {
             </Card>
           </Section>
         </TabsContent>
+
+        {canViewUsers ? (
+          <TabsContent value="usuarios">
+            <UsersPanel currentUser={user} />
+          </TabsContent>
+        ) : null}
       </Tabs>
     </div>
   );

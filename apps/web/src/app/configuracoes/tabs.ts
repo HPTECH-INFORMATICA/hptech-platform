@@ -1,4 +1,4 @@
-export const adminTabs = ["visao-geral", "empresa"] as const;
+export const adminTabs = ["visao-geral", "empresa", "usuarios"] as const;
 
 export type AdminTab = (typeof adminTabs)[number];
 

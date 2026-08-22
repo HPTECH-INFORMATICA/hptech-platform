@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 
 import { requireCurrentUserPermission } from "@/auth/session";
+import { hasPermission } from "@/auth/types";
 import SessionUser from "@/auth/SessionUser";
 import AppShell from "@/components/layout/AppShell";
 
@@ -19,6 +20,10 @@ export default async function ConfiguracoesPage({
   const activeTab = parseAdminTab(requestedTab);
 
   if (requestedTab !== undefined && activeTab === null) {
+    redirect("/configuracoes?tab=visao-geral");
+  }
+
+  if (activeTab === "usuarios" && !hasPermission(user, "USERS", "VIEW")) {
     redirect("/configuracoes?tab=visao-geral");
   }
 
