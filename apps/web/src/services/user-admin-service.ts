@@ -28,6 +28,17 @@ export type AdminUserList = {
   page_size: number;
 };
 
+export type UserInvitation = {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  expires_at: string;
+  created_at: string;
+  delivery_status: string;
+  state: "PENDING" | "EXPIRED" | "ACCEPTED" | "REVOKED" | "DELIVERY_FAILED";
+};
+
 export class UserAdminApiError extends Error {
   constructor(public readonly status: number, message: string) {
     super(message);
@@ -83,4 +94,20 @@ export function updateAdminUserStatus(id: string, isActive: boolean) {
 
 export function deleteAdminUser(id: string) {
   return request<void>(`/${encodeURIComponent(id)}`, { method: "DELETE" });
+}
+
+export function createUserInvitation(data: { name: string; email: string; role: UserRole }) {
+  return request<UserInvitation>("/invitations", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+}
+
+export function listUserInvitations() {
+  return request<UserInvitation[]>("/invitations");
+}
+
+export function revokeUserInvitation(id: string) {
+  return request<void>(`/invitations/${encodeURIComponent(id)}`, { method: "DELETE" });
 }

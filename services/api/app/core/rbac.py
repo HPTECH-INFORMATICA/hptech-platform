@@ -19,6 +19,7 @@ COMPANY_VIEW = Permission(PermissionModule.COMPANY, VIEW)
 USERS_ADMIN = frozenset(
     {
         PermissionAction.VIEW,
+        PermissionAction.CREATE,
         PermissionAction.UPDATE,
         PermissionAction.BLOCK,
         PermissionAction.MANAGE_ROLE,

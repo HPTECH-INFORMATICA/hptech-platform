@@ -200,7 +200,7 @@ async def test_auth_me_returns_current_identity_without_sensitive_data(
             {"module": "COMPANY", "actions": ["VIEW"]},
             {
                 "module": "USERS",
-                "actions": ["BLOCK", "DELETE", "MANAGE_ROLE", "UPDATE", "VIEW"],
+                "actions": ["BLOCK", "CREATE", "DELETE", "MANAGE_ROLE", "UPDATE", "VIEW"],
             },
         ],
     }
@@ -239,7 +239,7 @@ async def test_auth_me_returns_permissions_from_current_database_role(
         expected_permissions.append(
             {
                 "module": "USERS",
-                "actions": ["BLOCK", "DELETE", "MANAGE_ROLE", "UPDATE", "VIEW"],
+                "actions": ["BLOCK", "CREATE", "DELETE", "MANAGE_ROLE", "UPDATE", "VIEW"],
             }
         )
 

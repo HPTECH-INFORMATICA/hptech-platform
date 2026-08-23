@@ -31,14 +31,18 @@ import Table, {
 } from "@/components/ui/Table";
 import useToast from "@/hooks/useToast";
 import {
+  createUserInvitation,
   deleteAdminUser,
+  listUserInvitations,
   listAdminUsers,
+  revokeUserInvitation,
   updateAdminUser,
   updateAdminUserRole,
   updateAdminUserStatus,
   UserAdminApiError,
   userRoles,
   type AdminUser,
+  type UserInvitation,
   type UserRole,
 } from "@/services/user-admin-service";
 
@@ -96,10 +100,25 @@ export default function UsersPanel({ currentUser }: { currentUser: CurrentUser }
   const [email, setEmail] = useState("");
   const [editRole, setEditRole] = useState<UserRole>("VIEWER");
   const [saving, setSaving] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteName, setInviteName] = useState("");
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteRole, setInviteRole] = useState<UserRole>("VIEWER");
+  const [invitations, setInvitations] = useState<UserInvitation[]>([]);
   const canUpdate = hasPermission(currentUser, "USERS", "UPDATE");
   const canManageRole = hasPermission(currentUser, "USERS", "MANAGE_ROLE");
   const canBlock = hasPermission(currentUser, "USERS", "BLOCK");
   const canDelete = hasPermission(currentUser, "USERS", "DELETE");
+  const canCreate = hasPermission(currentUser, "USERS", "CREATE");
+
+  useEffect(() => {
+    if (!canCreate) return;
+    let active = true;
+    void listUserInvitations()
+      .then((items) => active && setInvitations(items))
+      .catch(() => undefined);
+    return () => { active = false; };
+  }, [canCreate, reload]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -194,6 +213,40 @@ export default function UsersPanel({ currentUser }: { currentUser: CurrentUser }
     }
   }
 
+  async function inviteUser() {
+    setSaving(true);
+    try {
+      const invitation = await createUserInvitation({
+        name: inviteName.trim(), email: inviteEmail.trim(), role: inviteRole,
+      });
+      toast({
+        variant: invitation.delivery_status === "DELIVERED" ? "success" : "warning",
+        description: invitation.delivery_status === "DELIVERED"
+          ? "Convite enviado."
+          : "Convite criado, mas o email não pôde ser entregue.",
+      });
+      setInviteOpen(false);
+      setInviteName("");
+      setInviteEmail("");
+      setInviteRole("VIEWER");
+      setReload((value) => value + 1);
+    } catch (reason) {
+      toast({ variant: "danger", description: errorMessage(reason) });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function revokeInvitation(id: string) {
+    try {
+      await revokeUserInvitation(id);
+      toast({ variant: "success", description: "Convite revogado." });
+      setReload((value) => value + 1);
+    } catch (reason) {
+      toast({ variant: "danger", description: errorMessage(reason) });
+    }
+  }
+
   const actions = (user: AdminUser) => (
     <div className="flex flex-wrap gap-2">
       {(canUpdate || canManageRole) && (
@@ -213,6 +266,7 @@ export default function UsersPanel({ currentUser }: { currentUser: CurrentUser }
   return (
     <Section title="Usuários" description="Gerencie acesso, dados básicos e papéis da sua empresa.">
       <div className="space-y-5">
+        {canCreate ? <div className="flex justify-end"><Button onClick={() => setInviteOpen(true)}>Convidar usuário</Button></div> : null}
         <div className="grid gap-4 lg:grid-cols-[minmax(16rem,1fr)_14rem_14rem]">
           <SearchBox
             label="Buscar usuários"
@@ -272,6 +326,22 @@ export default function UsersPanel({ currentUser }: { currentUser: CurrentUser }
               ))}
             </div>
             <Pagination page={page} totalPages={totalPages} onPageChange={setPage} disabled={loading} />
+            {canCreate && invitations.length ? (
+              <div className="space-y-3">
+                <h3 className="text-base font-semibold">Convites</h3>
+                {invitations.map((invitation) => (
+                  <Card key={invitation.id} variant="outlined" padding="sm">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div><p className="font-medium">{invitation.name}</p><p className="text-sm text-hp-muted">{invitation.email} · {roleLabels[invitation.role]}</p></div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant={invitation.state === "PENDING" ? "info" : invitation.state === "DELIVERY_FAILED" ? "danger" : "neutral"}>{invitation.state}</Badge>
+                        {["PENDING", "DELIVERY_FAILED"].includes(invitation.state) ? <Button variant="ghost" size="sm" onClick={() => revokeInvitation(invitation.id)}>Revogar</Button> : null}
+                      </div>
+                    </div>
+                  </Card>
+                ))}
+              </div>
+            ) : null}
           </>
         ) : null}
       </div>
@@ -291,6 +361,20 @@ export default function UsersPanel({ currentUser }: { currentUser: CurrentUser }
           <DialogFooter>
             <DialogClose className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-md)] px-4 font-semibold text-hp-foreground hover:bg-hp-surface-subtle">Cancelar</DialogClose>
             <Button loading={saving} onClick={saveEditor}>Salvar alterações</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>Convidar usuário</DialogTitle><DialogDescription>O convidado receberá um link para definir a própria senha.</DialogDescription></DialogHeader>
+          <div className="space-y-4">
+            <Input label="Nome" value={inviteName} onChange={(event) => setInviteName(event.target.value)} required />
+            <Input label="Email" type="email" value={inviteEmail} onChange={(event) => setInviteEmail(event.target.value)} required />
+            <Select label="Papel" options={currentUser.role === "OWNER" ? roleOptions : roleOptions.filter((option) => option.value !== "OWNER")} value={inviteRole} onChange={(event) => setInviteRole(event.target.value as UserRole)} />
+          </div>
+          <DialogFooter>
+            <DialogClose className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-md)] px-4 font-semibold text-hp-foreground hover:bg-hp-surface-subtle">Cancelar</DialogClose>
+            <Button loading={saving} disabled={!inviteName.trim() || !inviteEmail.trim()} onClick={inviteUser}>Enviar convite</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

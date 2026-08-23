@@ -20,6 +20,13 @@ const LIST_QUERY_KEYS = new Set([
 
 function resolveBackendPath(path: string[] | undefined): string | null {
   if (!path?.length) return "/users";
+  if (path[0] === "invitations") {
+    if (path.length === 1) return "/users/invitations";
+    if (path.length === 2 && UUID_PATTERN.test(path[1])) {
+      return `/users/invitations/${encodeURIComponent(path[1])}`;
+    }
+    return null;
+  }
   if (!UUID_PATTERN.test(path[0]) || path.length > 2) return null;
   if (path.length === 2 && !["role", "status"].includes(path[1])) return null;
   return `/users/${path.map(encodeURIComponent).join("/")}`;
@@ -88,8 +95,12 @@ async function mutate(request: Request, context: RouteContext) {
     const response = await authenticatedBackendFetch(backendPath, {
       method: request.method,
       headers:
-        request.method === "PATCH" ? { "Content-Type": "application/json" } : undefined,
-      body: request.method === "PATCH" ? await request.text() : undefined,
+        ["PATCH", "POST"].includes(request.method)
+          ? { "Content-Type": "application/json" }
+          : undefined,
+      body: ["PATCH", "POST"].includes(request.method)
+        ? await request.text()
+        : undefined,
     });
     return proxyResponse(response);
   } catch (error) {
@@ -98,4 +109,5 @@ async function mutate(request: Request, context: RouteContext) {
 }
 
 export const PATCH = mutate;
+export const POST = mutate;
 export const DELETE = mutate;

@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app.core.config import settings
+from app.core.security import PasswordPolicyError
 from app.core.identity import AuthenticatedIdentity
 from app.db.session import get_db
 from app.dependencies.auth import get_current_user
@@ -16,6 +17,12 @@ from app.schemas.auth import (
     TokenResponse,
 )
 from app.services.auth import AuthenticationError, AuthService
+from app.schemas.user_invitation import AcceptInvitationRequest, AcceptInvitationResponse
+from app.services.user_invitation import (
+    InvitationConflictError,
+    InvitationInvalidError,
+    UserInvitationService,
+)
 from app.services.login_rate_limit import LoginRateLimiter, LoginRateLimitExceeded
 
 
@@ -24,6 +31,31 @@ router = APIRouter(
     tags=["Authentication"],
 )
 security_logger = logging.getLogger("hptech.security")
+
+
+@router.post("/accept-invitation", response_model=AcceptInvitationResponse)
+def accept_invitation(
+    data: AcceptInvitationRequest,
+    request: Request,
+    db: Annotated[Session, Depends(get_db)],
+) -> AcceptInvitationResponse:
+    client_host = request.client.host if request.client else "unknown"
+    try:
+        LoginRateLimiter.ensure_allowed(db, "invitation", client_host)
+        UserInvitationService.accept(db, data.token, data.password)
+    except LoginRateLimitExceeded as error:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Muitas tentativas. Tente novamente mais tarde.",
+            headers={"Retry-After": str(error.retry_after)},
+        ) from error
+    except (InvitationInvalidError, InvitationConflictError, PasswordPolicyError) as error:
+        LoginRateLimiter.record_failure(db, "invitation", client_host)
+        db.commit()
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(error)) from error
+    LoginRateLimiter.clear(db, "invitation", client_host)
+    db.commit()
+    return AcceptInvitationResponse(message="Convite aceito com sucesso.")
 
 
 @router.post(

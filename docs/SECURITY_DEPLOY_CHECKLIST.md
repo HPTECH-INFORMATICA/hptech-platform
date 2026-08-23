@@ -1,5 +1,13 @@
 # Checklist de deploy seguro
 
+## Convites e email transacional
+
+- Verificar domínio e remetente do Resend.
+- Configurar `RESEND_API_KEY` somente no backend/secret manager.
+- Revisar `EMAIL_FROM`, `FRONTEND_PUBLIC_URL` e TTL por ambiente.
+- Garantir que logs, observabilidade e analytics não capturem token de convite.
+- Concluir smoke test real de convite e aceite com endereço controlado.
+
 Este checklist é obrigatório antes da exposição pública da HPTECH Platform.
 
 ## Ambiente e segredos

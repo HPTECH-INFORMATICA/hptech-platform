@@ -19,6 +19,14 @@ from app.schemas.user_admin import (
     UserAdminStatusUpdate,
     UserAdminUpdate,
 )
+from app.schemas.user_invitation import InvitationCreate, InvitationResponse
+from app.services.invitation_notifier import ResendInvitationNotifier
+from app.services.user_invitation import (
+    InvitationConflictError,
+    InvitationForbiddenError,
+    InvitationNotFoundError,
+    UserInvitationService,
+)
 from app.services.user_admin import (
     UserAdminConflictError,
     UserAdminForbiddenError,
@@ -44,6 +52,56 @@ require_users_block = require_permission(
 require_users_delete = require_permission(
     PermissionModule.USERS, PermissionAction.DELETE
 )
+require_users_create = require_permission(
+    PermissionModule.USERS, PermissionAction.CREATE
+)
+
+
+@router.post("/invitations", response_model=InvitationResponse, status_code=status.HTTP_201_CREATED)
+def create_invitation(
+    data: InvitationCreate,
+    db: Annotated[Session, Depends(get_db)],
+    identity: Annotated[AuthenticatedIdentity, Depends(require_users_create)],
+) -> InvitationResponse:
+    try:
+        invitation = UserInvitationService.create(
+            db, identity, data, ResendInvitationNotifier()
+        )
+        return InvitationResponse.model_validate(invitation)
+    except InvitationForbiddenError as error:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN) from error
+    except InvitationConflictError as error:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(error)) from error
+
+
+@router.get("/invitations", response_model=list[InvitationResponse])
+def list_invitations(
+    db: Annotated[Session, Depends(get_db)],
+    identity: Annotated[AuthenticatedIdentity, Depends(require_users_view)],
+) -> list[InvitationResponse]:
+    return [
+        InvitationResponse.model_validate(item)
+        for item in UserInvitationService.list(db, identity)
+    ]
+
+
+@router.delete("/invitations/{invitation_id}", status_code=status.HTTP_204_NO_CONTENT)
+def revoke_invitation(
+    invitation_id: uuid.UUID,
+    db: Annotated[Session, Depends(get_db)],
+    identity: Annotated[AuthenticatedIdentity, Depends(require_users_create)],
+) -> Response:
+    try:
+        UserInvitationService.revoke(db, identity, invitation_id)
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+    except InvitationNotFoundError as error:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND) from error
+    except InvitationConflictError as error:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(error)) from error
 
 
 def _raise_domain_error(db: Session, error: RuntimeError) -> NoReturn:
