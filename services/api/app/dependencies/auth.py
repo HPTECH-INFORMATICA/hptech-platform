@@ -46,6 +46,12 @@ def get_current_user(
         if user is None:
             raise AuthenticationError
 
+        persisted_auth_version = (
+            1 if user.auth_version is None else user.auth_version
+        )
+        if claims.auth_version != persisted_auth_version:
+            raise AuthenticationError
+
         return AuthService.identity_from_user(user)
     except (AuthenticationError, TokenValidationError, ValueError) as error:
         raise authentication_exception() from error

@@ -16,7 +16,8 @@ from app.main import app
 from app.models.company import Company
 from app.models.user import User
 from app.repositories.user import UserRepository
-from app.core.security import create_access_token, hash_password
+from app.core.security import create_access_token, decode_access_token, hash_password, verify_password
+from app.repositories.audit_log import AuditLogRepository
 from app.core.rbac import permissions_for_role
 from app.services.auth import AuthService
 from app.services.login_rate_limit import LoginRateLimiter, LoginRateLimitExceeded
@@ -96,6 +97,81 @@ async def test_login_returns_bearer_token_without_sensitive_data(
     assert body["expires_in"] > 0
     assert "password" not in body
     assert "password_hash" not in body
+
+
+async def test_change_password_invalidates_old_session_and_allows_new_login(
+    client: AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    identity = make_identity()
+    identity.user.auth_version = 1
+    old_hash = identity.user.password_hash
+    db = MagicMock()
+    app.dependency_overrides[get_db] = lambda: db
+    monkeypatch.setattr(
+        UserRepository,
+        "get_unique_by_email",
+        lambda _db, _email: identity.user,
+    )
+    monkeypatch.setattr(
+        UserRepository,
+        "get_by_company_and_id",
+        lambda *_args, **_kwargs: identity.user,
+    )
+    monkeypatch.setattr(
+        UserRepository,
+        "get_by_id",
+        lambda _db, _user_id: identity.user,
+    )
+    monkeypatch.setattr(AuditLogRepository, "add", lambda *_args, **_kwargs: None)
+
+    first_login = await client.post(
+        "/api/v1/auth/login",
+        json={"email": identity.user.email, "password": "senha-segura"},
+    )
+    assert first_login.status_code == 200
+    old_token = first_login.json()["access_token"]
+
+    app.dependency_overrides[get_current_user] = lambda: identity
+    change = await client.post(
+        "/api/v1/auth/change-password",
+        headers={"Authorization": f"Bearer {old_token}"},
+        json={"current_password": "senha-segura", "new_password": "senha-nova"},
+    )
+    assert change.status_code == 200
+    app.dependency_overrides.pop(get_current_user)
+
+    assert identity.user.auth_version == 2
+    assert identity.user.password_hash != old_hash
+    assert verify_password("senha-nova", identity.user.password_hash)
+    assert not verify_password("senha-segura", identity.user.password_hash)
+
+    old_me = await client.get(
+        "/api/v1/auth/me",
+        headers={"Authorization": f"Bearer {old_token}"},
+    )
+    assert old_me.status_code == 401
+
+    old_password_login = await client.post(
+        "/api/v1/auth/login",
+        json={"email": identity.user.email, "password": "senha-segura"},
+    )
+    assert old_password_login.status_code == 401
+
+    new_login = await client.post(
+        "/api/v1/auth/login",
+        json={"email": identity.user.email, "password": "senha-nova"},
+    )
+    assert new_login.status_code == 200
+    new_token = new_login.json()["access_token"]
+    assert decode_access_token(new_token).auth_version == 2
+
+    new_me = await client.get(
+        "/api/v1/auth/me",
+        headers={"Authorization": f"Bearer {new_token}"},
+    )
+    assert new_me.status_code == 200
+    assert "password_hash" not in new_me.text
 
 
 async def test_login_rate_limit_returns_429_and_retry_after(

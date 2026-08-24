@@ -18,6 +18,19 @@ from app.schemas.auth import (
 )
 from app.services.auth import AuthenticationError, AuthService
 from app.schemas.user_invitation import AcceptInvitationRequest, AcceptInvitationResponse
+from app.schemas.password import (
+    ChangePasswordRequest,
+    ForgotPasswordRequest,
+    PasswordOperationResponse,
+    ResetPasswordRequest,
+)
+from app.services.invitation_notifier import ResendPasswordResetNotifier
+from app.services.password import (
+    CurrentPasswordInvalidError,
+    PasswordResetInvalidError,
+    PasswordService,
+    SamePasswordError,
+)
 from app.services.user_invitation import (
     InvitationConflictError,
     InvitationInvalidError,
@@ -31,6 +44,79 @@ router = APIRouter(
     tags=["Authentication"],
 )
 security_logger = logging.getLogger("hptech.security")
+
+
+@router.post("/forgot-password", response_model=PasswordOperationResponse)
+def forgot_password(
+    data: ForgotPasswordRequest,
+    request: Request,
+    db: Annotated[Session, Depends(get_db)],
+) -> PasswordOperationResponse:
+    client_host = request.client.host if request.client else "unknown"
+    try:
+        LoginRateLimiter.ensure_allowed(db, str(data.email), client_host)
+    except LoginRateLimitExceeded as error:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Muitas solicitações. Tente novamente mais tarde.",
+            headers={"Retry-After": str(error.retry_after)},
+        ) from error
+    try:
+        PasswordService.request_reset(
+            db, str(data.email), ResendPasswordResetNotifier()
+        )
+    finally:
+        LoginRateLimiter.record_failure(db, str(data.email), client_host)
+        db.commit()
+    return PasswordOperationResponse(message=PasswordService.GENERIC_MESSAGE)
+
+
+@router.post("/reset-password", response_model=PasswordOperationResponse)
+def reset_password(
+    data: ResetPasswordRequest,
+    request: Request,
+    db: Annotated[Session, Depends(get_db)],
+) -> PasswordOperationResponse:
+    client_host = request.client.host if request.client else "unknown"
+    try:
+        LoginRateLimiter.ensure_allowed(db, "password-reset", client_host)
+        PasswordService.reset_password(db, data.token, data.password)
+    except LoginRateLimitExceeded as error:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Muitas tentativas. Tente novamente mais tarde.",
+            headers={"Retry-After": str(error.retry_after)},
+        ) from error
+    except (PasswordResetInvalidError, PasswordPolicyError) as error:
+        db.rollback()
+        LoginRateLimiter.record_failure(db, "password-reset", client_host)
+        db.commit()
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(error)) from error
+    LoginRateLimiter.clear(db, "password-reset", client_host)
+    db.commit()
+    return PasswordOperationResponse(message="Senha redefinida com sucesso.")
+
+
+@router.post("/change-password", response_model=PasswordOperationResponse)
+def change_password(
+    data: ChangePasswordRequest,
+    request: Request,
+    identity: Annotated[AuthenticatedIdentity, Depends(get_current_user)],
+    db: Annotated[Session, Depends(get_db)],
+) -> PasswordOperationResponse:
+    client_host = request.client.host if request.client else "unknown"
+    try:
+        LoginRateLimiter.clear(db, identity.user.email, client_host)
+        PasswordService.change_password(
+            db, identity, data.current_password, data.new_password
+        )
+    except (CurrentPasswordInvalidError, SamePasswordError, PasswordPolicyError) as error:
+        db.rollback()
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(error)) from error
+    except Exception:
+        db.rollback()
+        raise
+    return PasswordOperationResponse(message="Senha alterada com sucesso.")
 
 
 @router.post("/accept-invitation", response_model=AcceptInvitationResponse)

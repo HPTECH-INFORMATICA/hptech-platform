@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import {
   authenticate,
   AuthenticationError,
+  AuthenticationRateLimitError,
   AuthenticationServiceError,
 } from "@/auth/backend";
 import { sessionCookie } from "@/auth/cookie";
@@ -62,6 +63,19 @@ export async function POST(request: Request) {
       return NextResponse.json(
         { error: "Email ou senha inválidos." },
         { status: 401, headers: { "Cache-Control": "private, no-store" } },
+      );
+    }
+
+    if (error instanceof AuthenticationRateLimitError) {
+      const headers: Record<string, string> = {
+        "Cache-Control": "private, no-store",
+      };
+      if (error.retryAfter) {
+        headers["Retry-After"] = error.retryAfter;
+      }
+      return NextResponse.json(
+        { error: "Muitas tentativas. Tente novamente mais tarde." },
+        { status: 429, headers },
       );
     }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { type FormEvent, useState } from "react";
 
 import Alert from "@/components/ui/Alert";
@@ -59,6 +60,9 @@ export default function LoginForm() {
       <Button className="w-full" type="submit" loading={submitting}>
         Entrar
       </Button>
+      <Link className="block text-center text-sm text-hp-primary" href="/esqueci-minha-senha">
+        Esqueci minha senha
+      </Link>
     </form>
   );
 }

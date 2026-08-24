@@ -46,7 +46,13 @@ class AuthService:
             raise AuthenticationError
 
         identity = AuthService.identity_from_user(user)
-        access_token = create_access_token(identity.user.id)
+        auth_version = (
+            1 if identity.user.auth_version is None else identity.user.auth_version
+        )
+        access_token = create_access_token(
+            identity.user.id,
+            auth_version=auth_version,
+        )
 
         return AuthenticationResult(
             access_token=access_token,

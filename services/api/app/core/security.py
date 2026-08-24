@@ -26,6 +26,7 @@ class AccessTokenClaims:
     issued_at: datetime
     expires_at: datetime
     jti: str
+    auth_version: int
     token_type: Literal["access"] = "access"
 
 
@@ -66,6 +67,7 @@ def verify_password(plain_password: str, password_hash: str) -> bool:
 def create_access_token(
     subject: str | UUID,
     *,
+    auth_version: int = 1,
     expires_delta: timedelta | None = None,
 ) -> str:
     try:
@@ -86,6 +88,7 @@ def create_access_token(
         "exp": expires_at,
         "jti": str(uuid4()),
         "type": "access",
+        "auth_version": auth_version,
     }
 
     return jwt.encode(
@@ -120,6 +123,7 @@ def decode_access_token(token: str) -> AccessTokenClaims:
     expires_at = payload.get("exp")
     token_id = payload.get("jti")
     token_type = payload.get("type")
+    auth_version = payload.get("auth_version")
 
     if not isinstance(subject, str) or not subject.strip():
         raise TokenValidationError("Token de acesso sem subject válido.")
@@ -146,9 +150,13 @@ def decode_access_token(token: str) -> AccessTokenClaims:
     if token_type != "access":
         raise TokenValidationError("Tipo de token inválido.")
 
+    if not isinstance(auth_version, int) or auth_version < 1:
+        raise TokenValidationError("Versão de autenticação inválida.")
+
     return AccessTokenClaims(
         subject=subject,
         issued_at=datetime.fromtimestamp(issued_at, tz=timezone.utc),
         expires_at=datetime.fromtimestamp(expires_at, tz=timezone.utc),
         jti=token_id,
+        auth_version=auth_version,
     )

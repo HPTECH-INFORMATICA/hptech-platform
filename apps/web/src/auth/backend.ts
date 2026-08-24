@@ -12,6 +12,11 @@ type LoginResult = {
 
 export class AuthenticationError extends Error {}
 export class AuthenticationServiceError extends Error {}
+export class AuthenticationRateLimitError extends Error {
+  constructor(public readonly retryAfter: string | null) {
+    super("Limite temporário de tentativas de login excedido.");
+  }
+}
 
 function getApiUrl(): string {
   const apiUrl = process.env.API_URL;
@@ -140,6 +145,10 @@ export async function authenticate(
 
   if (response.status === 401) {
     throw new AuthenticationError("Credenciais inválidas.");
+  }
+
+  if (response.status === 429) {
+    throw new AuthenticationRateLimitError(response.headers.get("retry-after"));
   }
 
   if (!response.ok) {

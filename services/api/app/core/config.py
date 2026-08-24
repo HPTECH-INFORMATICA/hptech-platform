@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     EMAIL_FROM: str = ""
     FRONTEND_PUBLIC_URL: str = "http://localhost:3000"
     USER_INVITATION_TTL_HOURS: int = Field(default=24, ge=1, le=168)
+    PASSWORD_RESET_TTL_MINUTES: int = Field(default=60, ge=10, le=1440)
 
     CORS_ORIGINS: str = "http://localhost:3000"
 

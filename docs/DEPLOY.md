@@ -36,7 +36,7 @@ Sentry — monitoramento de erros
 Resend — envio de e-mails
 ```
 
-## Email transacional e convites
+## Email transacional, convites e recuperação de senha
 
 O provider oficial de email transacional é o Resend. A integração é executada
 exclusivamente pelo backend e exige:
@@ -46,6 +46,7 @@ RESEND_API_KEY=
 EMAIL_FROM=HPTECH Platform <no-reply@dominio-verificado.example>
 FRONTEND_PUBLIC_URL=https://app.example.com
 USER_INVITATION_TTL_HOURS=24
+PASSWORD_RESET_TTL_MINUTES=60
 ```
 
 - verifique o domínio e o remetente no Resend;
@@ -54,8 +55,13 @@ USER_INVITATION_TTL_HOURS=24
 - confirme que `FRONTEND_PUBLIC_URL` aponta para a aplicação oficial;
 - faça um smoke test controlado: crie o convite, receba o email, abra o link,
   defina a senha e autentique-se;
+- faça um smoke test de recuperação: solicite a redefinição, receba o email,
+  redefina a senha e confirme que tokens de acesso anteriores retornam 401;
+- confirme a troca autenticada em `/minha-conta`, o logout da sessão atual e a
+  necessidade de novo login;
 - o token usa fragmento de URL e não é enviado em requisições de navegação;
-- não registre URLs de convite, tokens ou senhas em logs.
+- os tokens de convite e redefinição são persistidos somente como hash SHA-256;
+- não registre URLs de convite/redefinição, tokens ou senhas em logs.
 
 ---
 

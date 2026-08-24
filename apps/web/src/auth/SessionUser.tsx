@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useState } from "react";
 
 import Button from "@/components/ui/Button";
@@ -45,6 +46,12 @@ export default function SessionUser({ user }: SessionUserProps) {
           {user.company.name}
         </p>
       </div>
+      <Link
+        href="/minha-conta"
+        className="inline-flex min-h-11 items-center rounded-[var(--radius-md)] px-3 text-sm font-semibold text-hp-foreground hover:bg-hp-surface-subtle"
+      >
+        Minha conta
+      </Link>
       <Button
         variant="ghost"
         size="sm"

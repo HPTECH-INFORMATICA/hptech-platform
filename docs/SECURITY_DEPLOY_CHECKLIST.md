@@ -1,12 +1,20 @@
 # Checklist de deploy seguro
 
-## Convites e email transacional
+## Convites, recuperação de senha e email transacional
 
 - Verificar domínio e remetente do Resend.
 - Configurar `RESEND_API_KEY` somente no backend/secret manager.
-- Revisar `EMAIL_FROM`, `FRONTEND_PUBLIC_URL` e TTL por ambiente.
-- Garantir que logs, observabilidade e analytics não capturem token de convite.
+- Revisar `EMAIL_FROM`, `FRONTEND_PUBLIC_URL`, `USER_INVITATION_TTL_HOURS` e
+  `PASSWORD_RESET_TTL_MINUTES` por ambiente.
+- Garantir que logs, observabilidade e analytics não capturem tokens de convite
+  ou redefinição de senha.
 - Concluir smoke test real de convite e aceite com endereço controlado.
+- Confirmar resposta indistinguível para email existente e inexistente em
+  `forgot-password`, incluindo rate limit e `Retry-After`.
+- Confirmar uso único e expiração do reset, revogação dos resets anteriores e
+  invalidação dos access tokens antigos por `auth_version`.
+- Confirmar troca de senha em `/minha-conta`, encerramento da sessão atual e
+  autenticação posterior apenas com a senha nova.
 
 Este checklist é obrigatório antes da exposição pública da HPTECH Platform.
 
@@ -77,4 +85,6 @@ git diff --check
 Validar manualmente: login e logout de OWNER; Dashboard; CRM; movimentação e
 persistência de Lead; login de VIEWER; CRM visível e read-only. Confirmar 429 e
 `Retry-After` após o limite, sem diferença entre email desconhecido e senha
-incorreta.
+incorreta. Validar ainda os fluxos `forgot-password`, `reset-password` e
+`change-password`, inclusive rejeição de replay e 401 para JWT emitido antes da
+alteração de senha.

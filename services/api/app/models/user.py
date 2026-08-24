@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Boolean, ForeignKey, String
+from sqlalchemy import Boolean, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
@@ -42,6 +42,10 @@ class User(
     password_hash: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
+    )
+
+    auth_version: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=1, server_default="1"
     )
 
     role: Mapped[str] = mapped_column(

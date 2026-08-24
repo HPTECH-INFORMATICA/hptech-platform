@@ -12,3 +12,4 @@ from app.models.lead_history import LeadHistory  # noqa: E402, F401
 from app.models.login_rate_limit import LoginRateLimit  # noqa: E402, F401
 from app.models.audit_log import AuditLog  # noqa: E402, F401
 from app.models.user_invitation import UserInvitation  # noqa: E402, F401
+from app.models.password_reset_token import PasswordResetToken  # noqa: E402, F401
