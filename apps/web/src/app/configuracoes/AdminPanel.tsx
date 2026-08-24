@@ -15,6 +15,7 @@ import Tabs, {
 
 import type { AdminTab } from "./tabs";
 import UsersPanel from "./UsersPanel";
+import AccessControlPanel from "./AccessControlPanel";
 
 type AdminPanelProps = {
   user: CurrentUser;
@@ -47,6 +48,7 @@ export default function AdminPanel({ user, activeTab }: AdminPanelProps) {
   const roleLabel = roleLabels[user.role] ?? user.role;
   const companyStatus = companyStatusLabels[user.company.status] ?? user.company.status;
   const canViewUsers = hasPermission(user, "USERS", "VIEW");
+  const canViewAccessControl = hasPermission(user, "ACCESS_CONTROL", "VIEW");
 
   function changeTab(tab: string) {
     router.push(`/configuracoes?tab=${encodeURIComponent(tab)}`);
@@ -67,6 +69,9 @@ export default function AdminPanel({ user, activeTab }: AdminPanelProps) {
             <TabsTrigger value="empresa">Empresa</TabsTrigger>
             {canViewUsers ? (
               <TabsTrigger value="usuarios">Usuários</TabsTrigger>
+            ) : null}
+            {canViewAccessControl ? (
+              <TabsTrigger value="acessos">Acessos e permissões</TabsTrigger>
             ) : null}
           </TabsList>
         </div>
@@ -126,6 +131,15 @@ export default function AdminPanel({ user, activeTab }: AdminPanelProps) {
         {canViewUsers ? (
           <TabsContent value="usuarios">
             <UsersPanel currentUser={user} />
+          </TabsContent>
+        ) : null}
+
+        {canViewAccessControl ? (
+          <TabsContent value="acessos">
+            <AccessControlPanel
+              canManageUsers={canViewUsers}
+              onManageUsers={() => changeTab("usuarios")}
+            />
           </TabsContent>
         ) : null}
       </Tabs>

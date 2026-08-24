@@ -4,6 +4,7 @@ import type {
   PermissionAction,
   PermissionModule,
 } from "./types";
+import { isPermissionAction, isPermissionModule } from "./types";
 
 type LoginResult = {
   accessToken: string;
@@ -38,21 +39,6 @@ function isNonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;
 }
 
-const permissionModules: PermissionModule[] = [
-  "DASHBOARD",
-  "CRM",
-  "COMPANY",
-  "USERS",
-];
-const permissionActions: PermissionAction[] = [
-  "VIEW",
-  "CREATE",
-  "UPDATE",
-  "DELETE",
-  "BLOCK",
-  "MANAGE_ROLE",
-];
-
 function parsePermissions(value: unknown): CurrentPermission[] | null {
   if (!Array.isArray(value)) {
     return null;
@@ -63,13 +49,11 @@ function parsePermissions(value: unknown): CurrentPermission[] | null {
   for (const permission of value) {
     if (
       !isRecord(permission) ||
-      typeof permission.module !== "string" ||
-      !permissionModules.includes(permission.module as PermissionModule) ||
+      !isPermissionModule(permission.module) ||
       !Array.isArray(permission.actions) ||
       !permission.actions.every(
         (action) =>
-          typeof action === "string" &&
-          permissionActions.includes(action as PermissionAction),
+          isPermissionAction(action),
       )
     ) {
       return null;

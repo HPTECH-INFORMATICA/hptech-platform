@@ -5,7 +5,22 @@ export type CurrentCompany = {
   status: string;
 };
 
-export type PermissionModule = "DASHBOARD" | "CRM" | "COMPANY" | "USERS";
+export const permissionModules = [
+  "DASHBOARD",
+  "CRM",
+  "COMPANY",
+  "USERS",
+  "ACCESS_CONTROL",
+] as const;
+export type PermissionModule = (typeof permissionModules)[number];
+export const permissionActions = [
+  "VIEW",
+  "CREATE",
+  "UPDATE",
+  "DELETE",
+  "BLOCK",
+  "MANAGE_ROLE",
+] as const;
 export type PermissionAction =
   | "VIEW"
   | "CREATE"
@@ -13,6 +28,14 @@ export type PermissionAction =
   | "DELETE"
   | "BLOCK"
   | "MANAGE_ROLE";
+
+export function isPermissionModule(value: unknown): value is PermissionModule {
+  return typeof value === "string" && permissionModules.includes(value as PermissionModule);
+}
+
+export function isPermissionAction(value: unknown): value is PermissionAction {
+  return typeof value === "string" && permissionActions.includes(value as PermissionAction);
+}
 
 export type CurrentPermission = {
   module: PermissionModule;

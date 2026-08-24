@@ -32,6 +32,7 @@ class PermissionModule(StrEnum):
     CRM = "CRM"
     COMPANY = "COMPANY"
     USERS = "USERS"
+    ACCESS_CONTROL = "ACCESS_CONTROL"
 
 
 class PermissionAction(StrEnum):
