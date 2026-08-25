@@ -9,6 +9,7 @@ from app.core.identity import (
 )
 from app.core.security import create_access_token, verify_password
 from app.core.rbac import permissions_for_role
+from app.services.permissions import effective_permissions
 from app.models.user import User
 from app.repositories.user import (
     AmbiguousUserEmailError,
@@ -45,7 +46,7 @@ class AuthService:
         if user is None or not verify_password(password, user.password_hash):
             raise AuthenticationError
 
-        identity = AuthService.identity_from_user(user)
+        identity = AuthService.identity_from_user(user, db)
         auth_version = (
             1 if identity.user.auth_version is None else identity.user.auth_version
         )
@@ -60,7 +61,9 @@ class AuthService:
         )
 
     @staticmethod
-    def identity_from_user(user: User) -> AuthenticatedIdentity:
+    def identity_from_user(
+        user: User, db: Session | None = None
+    ) -> AuthenticatedIdentity:
         if user.deleted_at is not None or not user.is_active:
             raise AuthenticationError
 
@@ -82,5 +85,9 @@ class AuthService:
             user=user,
             company=company,
             role=role,
-            permissions=permissions_for_role(role),
+            permissions=(
+                effective_permissions(db, company.id, role)
+                if db is not None
+                else permissions_for_role(role)
+            ),
         )

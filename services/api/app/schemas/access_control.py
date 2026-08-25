@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from app.core.identity import PermissionAction, PermissionModule, UserRole
 
@@ -8,9 +8,19 @@ class AccessControlPermissionResponse(BaseModel):
     actions: list[PermissionAction]
 
 
+class AccessControlOverrideResponse(BaseModel):
+    module: PermissionModule
+    action: PermissionAction
+    allowed: bool
+
+
 class AccessControlRoleResponse(BaseModel):
     role: UserRole
-    permissions: list[AccessControlPermissionResponse]
+    base_permissions: list[AccessControlPermissionResponse]
+    effective_permissions: list[AccessControlPermissionResponse]
+    overrides: list[AccessControlOverrideResponse]
+    editable: bool
+    customized: bool
 
 
 class AccessControlModuleResponse(BaseModel):
@@ -21,3 +31,17 @@ class AccessControlModuleResponse(BaseModel):
 class AccessControlCatalogResponse(BaseModel):
     roles: list[AccessControlRoleResponse]
     modules: list[AccessControlModuleResponse]
+    can_manage: bool
+
+
+class AccessControlPermissionInput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    module: PermissionModule
+    action: PermissionAction
+
+
+class AccessControlRoleUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    permissions: list[AccessControlPermissionInput]

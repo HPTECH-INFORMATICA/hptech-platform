@@ -55,6 +55,19 @@ def test_owner_and_admin_can_view_access_control(role: UserRole) -> None:
     )
 
 
+def test_only_owner_can_manage_access_control() -> None:
+    assert has_permission(
+        permissions_for_role(UserRole.OWNER),
+        PermissionModule.ACCESS_CONTROL,
+        PermissionAction.MANAGE,
+    )
+    assert not has_permission(
+        permissions_for_role(UserRole.ADMIN),
+        PermissionModule.ACCESS_CONTROL,
+        PermissionAction.MANAGE,
+    )
+
+
 @pytest.mark.parametrize(
     "role",
     [role for role in UserRole if role not in {UserRole.OWNER, UserRole.ADMIN}],

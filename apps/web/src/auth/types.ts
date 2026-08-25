@@ -20,6 +20,7 @@ export const permissionActions = [
   "DELETE",
   "BLOCK",
   "MANAGE_ROLE",
+  "MANAGE",
 ] as const;
 export type PermissionAction =
   | "VIEW"
@@ -27,7 +28,8 @@ export type PermissionAction =
   | "UPDATE"
   | "DELETE"
   | "BLOCK"
-  | "MANAGE_ROLE";
+  | "MANAGE_ROLE"
+  | "MANAGE";
 
 export function isPermissionModule(value: unknown): value is PermissionModule {
   return typeof value === "string" && permissionModules.includes(value as PermissionModule);

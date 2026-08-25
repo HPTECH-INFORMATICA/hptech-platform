@@ -1,5 +1,6 @@
 "use client";
 
+import { useCallback, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { hasPermission, type CurrentUser } from "@/auth/types";
@@ -49,8 +50,14 @@ export default function AdminPanel({ user, activeTab }: AdminPanelProps) {
   const companyStatus = companyStatusLabels[user.company.status] ?? user.company.status;
   const canViewUsers = hasPermission(user, "USERS", "VIEW");
   const canViewAccessControl = hasPermission(user, "ACCESS_CONTROL", "VIEW");
+  const [accessControlDirty, setAccessControlDirty] = useState(false);
+  const handleAccessControlDirty = useCallback(
+    (dirty: boolean) => setAccessControlDirty(dirty),
+    [],
+  );
 
   function changeTab(tab: string) {
+    if (accessControlDirty && tab !== "acessos") return;
     router.push(`/configuracoes?tab=${encodeURIComponent(tab)}`);
   }
 
@@ -65,10 +72,10 @@ export default function AdminPanel({ user, activeTab }: AdminPanelProps) {
       <Tabs value={activeTab} onValueChange={changeTab}>
         <div className="max-w-full overflow-x-auto pb-1">
           <TabsList aria-label="Seções do Painel Administrativo">
-            <TabsTrigger value="visao-geral">Visão geral</TabsTrigger>
-            <TabsTrigger value="empresa">Empresa</TabsTrigger>
+            <TabsTrigger value="visao-geral" disabled={accessControlDirty}>Visão geral</TabsTrigger>
+            <TabsTrigger value="empresa" disabled={accessControlDirty}>Empresa</TabsTrigger>
             {canViewUsers ? (
-              <TabsTrigger value="usuarios">Usuários</TabsTrigger>
+              <TabsTrigger value="usuarios" disabled={accessControlDirty}>Usuários</TabsTrigger>
             ) : null}
             {canViewAccessControl ? (
               <TabsTrigger value="acessos">Acessos e permissões</TabsTrigger>
@@ -139,6 +146,7 @@ export default function AdminPanel({ user, activeTab }: AdminPanelProps) {
             <AccessControlPanel
               canManageUsers={canViewUsers}
               onManageUsers={() => changeTab("usuarios")}
+              onDirtyChange={handleAccessControlDirty}
             />
           </TabsContent>
         ) : null}

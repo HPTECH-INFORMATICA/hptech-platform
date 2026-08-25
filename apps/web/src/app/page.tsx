@@ -1,5 +1,9 @@
 import { redirect } from "next/navigation";
 
-export default function Home() {
-  redirect("/crm");
+import { getCurrentUser } from "@/auth/session";
+
+export default async function Home() {
+  const user = await getCurrentUser();
+
+  redirect(user ? "/inicio" : "/login");
 }

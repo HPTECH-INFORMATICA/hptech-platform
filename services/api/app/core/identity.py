@@ -42,6 +42,7 @@ class PermissionAction(StrEnum):
     DELETE = "DELETE"
     BLOCK = "BLOCK"
     MANAGE_ROLE = "MANAGE_ROLE"
+    MANAGE = "MANAGE"
 
 
 @dataclass(frozen=True)

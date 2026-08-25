@@ -49,6 +49,9 @@ Este checklist é obrigatório antes da exposição pública da HPTECH Platform.
   `Referrer-Policy`, proteção de frames, `Permissions-Policy` e HSTS.
 - Confirmar que HSTS existe somente no ambiente de produção HTTPS.
 - Preservar o BFF same-origin: o browser não recebe URL privada nem JWT.
+- Permissões efetivas devem ser calculadas no backend por request a partir da
+  policy base e dos overrides tenant-scoped. Somente OWNER possui
+  `ACCESS_CONTROL/MANAGE`; a policy do próprio OWNER é imutável.
 - Configurar o proxy reverso e o servidor ASGI para que `request.client` seja o
   IP real confiável. Não aceitar cabeçalhos encaminhados de clientes diretos;
   limitar proxies confiáveis na infraestrutura.

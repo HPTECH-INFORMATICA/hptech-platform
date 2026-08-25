@@ -1,8 +1,17 @@
+import { redirect } from "next/navigation";
+
+import { getCurrentUser } from "@/auth/session";
 import Card from "@/components/ui/Card";
 
 import LoginForm from "./LoginForm";
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const user = await getCurrentUser();
+
+  if (user) {
+    redirect("/inicio");
+  }
+
   return (
     <main className="flex min-h-dvh w-full items-center justify-center bg-hp-background px-4 py-8 text-hp-foreground">
       <div className="w-full max-w-md">

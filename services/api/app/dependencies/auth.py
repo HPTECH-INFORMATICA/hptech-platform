@@ -52,7 +52,7 @@ def get_current_user(
         if claims.auth_version != persisted_auth_version:
             raise AuthenticationError
 
-        return AuthService.identity_from_user(user)
+        return AuthService.identity_from_user(user, db)
     except (AuthenticationError, TokenValidationError, ValueError) as error:
         raise authentication_exception() from error
 

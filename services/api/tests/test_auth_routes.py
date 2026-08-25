@@ -320,7 +320,7 @@ async def test_auth_me_returns_permissions_from_current_database_role(
             }
         )
         expected_permissions.append(
-            {"module": "ACCESS_CONTROL", "actions": ["VIEW"]}
+            {"module": "ACCESS_CONTROL", "actions": ["MANAGE", "VIEW"]}
         )
 
     assert response.json()["permissions"] == expected_permissions

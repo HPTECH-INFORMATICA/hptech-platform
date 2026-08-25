@@ -44,7 +44,7 @@ export default function LoginForm() {
         return;
       }
 
-      router.replace("/dashboard");
+      router.replace("/inicio");
       router.refresh();
     } catch {
       setError("Não foi possível entrar agora. Tente novamente.");
