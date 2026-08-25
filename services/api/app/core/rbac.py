@@ -21,6 +21,7 @@ ACCESS_CONTROL_OWNER = Permission(
     PermissionModule.ACCESS_CONTROL,
     frozenset({PermissionAction.VIEW, PermissionAction.MANAGE}),
 )
+AUDIT_VIEW = Permission(PermissionModule.AUDIT, VIEW)
 USERS_ADMIN = frozenset(
     {
         PermissionAction.VIEW,
@@ -40,6 +41,7 @@ ROLE_PERMISSIONS: dict[UserRole, tuple[Permission, ...]] = {
         COMPANY_VIEW,
         Permission(PermissionModule.USERS, USERS_ADMIN),
         ACCESS_CONTROL_OWNER,
+        AUDIT_VIEW,
     ),
     UserRole.ADMIN: (
         Permission(PermissionModule.DASHBOARD, VIEW),
@@ -47,6 +49,7 @@ ROLE_PERMISSIONS: dict[UserRole, tuple[Permission, ...]] = {
         COMPANY_VIEW,
         Permission(PermissionModule.USERS, USERS_ADMIN),
         ACCESS_CONTROL_VIEW,
+        AUDIT_VIEW,
     ),
     UserRole.MANAGER: (
         Permission(PermissionModule.DASHBOARD, VIEW),

@@ -31,6 +31,10 @@ export default async function ConfiguracoesPage({
     redirect("/configuracoes?tab=visao-geral");
   }
 
+  if (activeTab === "auditoria" && !hasPermission(user, "AUDIT", "VIEW")) {
+    redirect("/configuracoes?tab=visao-geral");
+  }
+
   return (
     <AppShell
       title="Configurações"

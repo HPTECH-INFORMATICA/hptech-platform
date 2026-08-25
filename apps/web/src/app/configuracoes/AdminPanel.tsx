@@ -17,6 +17,7 @@ import Tabs, {
 import type { AdminTab } from "./tabs";
 import UsersPanel from "./UsersPanel";
 import AccessControlPanel from "./AccessControlPanel";
+import AuditPanel from "./AuditPanel";
 
 type AdminPanelProps = {
   user: CurrentUser;
@@ -50,6 +51,7 @@ export default function AdminPanel({ user, activeTab }: AdminPanelProps) {
   const companyStatus = companyStatusLabels[user.company.status] ?? user.company.status;
   const canViewUsers = hasPermission(user, "USERS", "VIEW");
   const canViewAccessControl = hasPermission(user, "ACCESS_CONTROL", "VIEW");
+  const canViewAudit = hasPermission(user, "AUDIT", "VIEW");
   const [accessControlDirty, setAccessControlDirty] = useState(false);
   const handleAccessControlDirty = useCallback(
     (dirty: boolean) => setAccessControlDirty(dirty),
@@ -79,6 +81,11 @@ export default function AdminPanel({ user, activeTab }: AdminPanelProps) {
             ) : null}
             {canViewAccessControl ? (
               <TabsTrigger value="acessos">Acessos e permissões</TabsTrigger>
+            ) : null}
+            {canViewAudit ? (
+              <TabsTrigger value="auditoria" disabled={accessControlDirty}>
+                Auditoria
+              </TabsTrigger>
             ) : null}
           </TabsList>
         </div>
@@ -148,6 +155,12 @@ export default function AdminPanel({ user, activeTab }: AdminPanelProps) {
               onManageUsers={() => changeTab("usuarios")}
               onDirtyChange={handleAccessControlDirty}
             />
+          </TabsContent>
+        ) : null}
+
+        {canViewAudit ? (
+          <TabsContent value="auditoria">
+            <AuditPanel />
           </TabsContent>
         ) : null}
       </Tabs>

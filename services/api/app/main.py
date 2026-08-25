@@ -42,7 +42,12 @@ async def apply_security_headers(request: Request, call_next):
     )
 
     if request.url.path.startswith(
-        ("/api/v1/auth", "/api/v1/leads", "/api/v1/lead-history")
+        (
+            "/api/v1/auth",
+            "/api/v1/leads",
+            "/api/v1/lead-history",
+            "/api/v1/audit-logs",
+        )
     ):
         response.headers["Cache-Control"] = "private, no-store"
 

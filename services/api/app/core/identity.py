@@ -33,6 +33,7 @@ class PermissionModule(StrEnum):
     COMPANY = "COMPANY"
     USERS = "USERS"
     ACCESS_CONTROL = "ACCESS_CONTROL"
+    AUDIT = "AUDIT"
 
 
 class PermissionAction(StrEnum):

@@ -279,6 +279,7 @@ async def test_auth_me_returns_current_identity_without_sensitive_data(
                 "actions": ["BLOCK", "CREATE", "DELETE", "MANAGE_ROLE", "UPDATE", "VIEW"],
             },
             {"module": "ACCESS_CONTROL", "actions": ["VIEW"]},
+            {"module": "AUDIT", "actions": ["VIEW"]},
         ],
     }
     assert "password_hash" not in response.text
@@ -322,6 +323,7 @@ async def test_auth_me_returns_permissions_from_current_database_role(
         expected_permissions.append(
             {"module": "ACCESS_CONTROL", "actions": ["MANAGE", "VIEW"]}
         )
+        expected_permissions.append({"module": "AUDIT", "actions": ["VIEW"]})
 
     assert response.json()["permissions"] == expected_permissions
 

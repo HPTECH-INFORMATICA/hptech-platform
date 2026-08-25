@@ -58,8 +58,10 @@ Este checklist é obrigatório antes da exposição pública da HPTECH Platform.
 - Encaminhar eventos agregados de login e respostas 401, 403 e 429 para a
   observabilidade. Nunca registrar senha, JWT, cookie, `Authorization`,
   `JWT_SECRET` ou `DATABASE_URL`.
-- Audit trail administrativo completo (alteração de permissões e ações
-  críticas) permanece uma evolução futura separada de `LeadHistory`.
+- A auditoria administrativa é read-only, tenant-scoped e protegida por
+  `AUDIT/VIEW`. O endpoint `/api/v1/audit-logs` expõe apenas metadados
+  sanitizados; não oferece criação, alteração ou exclusão.
+- Preservar a separação entre `AuditLog`, logs operacionais e `LeadHistory`.
 
 ## Rotação de JWT_SECRET
 
