@@ -28,6 +28,7 @@ SAFE_METADATA_KEYS: dict[str, frozenset[str]] = {
     "PASSWORD_RESET_COMPLETED": frozenset(),
     "ROLE_PERMISSIONS_CHANGED": frozenset({"role", "enabled", "revoked"}),
     "ROLE_PERMISSIONS_RESET": frozenset({"role"}),
+    "COMPANY_UPDATED": frozenset({"fields"}),
 }
 
 

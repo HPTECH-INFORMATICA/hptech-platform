@@ -18,6 +18,7 @@ import type { AdminTab } from "./tabs";
 import UsersPanel from "./UsersPanel";
 import AccessControlPanel from "./AccessControlPanel";
 import AuditPanel from "./AuditPanel";
+import CompanyPanel from "./CompanyPanel";
 
 type AdminPanelProps = {
   user: CurrentUser;
@@ -52,14 +53,22 @@ export default function AdminPanel({ user, activeTab }: AdminPanelProps) {
   const canViewUsers = hasPermission(user, "USERS", "VIEW");
   const canViewAccessControl = hasPermission(user, "ACCESS_CONTROL", "VIEW");
   const canViewAudit = hasPermission(user, "AUDIT", "VIEW");
+  const canUpdateCompany = hasPermission(user, "COMPANY", "UPDATE");
   const [accessControlDirty, setAccessControlDirty] = useState(false);
+  const [companyDirty, setCompanyDirty] = useState(false);
   const handleAccessControlDirty = useCallback(
     (dirty: boolean) => setAccessControlDirty(dirty),
     [],
   );
+  const handleCompanyDirty = useCallback(
+    (dirty: boolean) => setCompanyDirty(dirty),
+    [],
+  );
+  const hasPendingChanges = accessControlDirty || companyDirty;
 
   function changeTab(tab: string) {
     if (accessControlDirty && tab !== "acessos") return;
+    if (companyDirty && tab !== "empresa") return;
     router.push(`/configuracoes?tab=${encodeURIComponent(tab)}`);
   }
 
@@ -74,16 +83,16 @@ export default function AdminPanel({ user, activeTab }: AdminPanelProps) {
       <Tabs value={activeTab} onValueChange={changeTab}>
         <div className="max-w-full overflow-x-auto pb-1">
           <TabsList aria-label="Seções do Painel Administrativo">
-            <TabsTrigger value="visao-geral" disabled={accessControlDirty}>Visão geral</TabsTrigger>
+            <TabsTrigger value="visao-geral" disabled={hasPendingChanges}>Visão geral</TabsTrigger>
             <TabsTrigger value="empresa" disabled={accessControlDirty}>Empresa</TabsTrigger>
             {canViewUsers ? (
-              <TabsTrigger value="usuarios" disabled={accessControlDirty}>Usuários</TabsTrigger>
+              <TabsTrigger value="usuarios" disabled={hasPendingChanges}>Usuários</TabsTrigger>
             ) : null}
             {canViewAccessControl ? (
-              <TabsTrigger value="acessos">Acessos e permissões</TabsTrigger>
+              <TabsTrigger value="acessos" disabled={companyDirty}>Acessos e permissões</TabsTrigger>
             ) : null}
             {canViewAudit ? (
-              <TabsTrigger value="auditoria" disabled={accessControlDirty}>
+              <TabsTrigger value="auditoria" disabled={hasPendingChanges}>
                 Auditoria
               </TabsTrigger>
             ) : null}
@@ -127,19 +136,11 @@ export default function AdminPanel({ user, activeTab }: AdminPanelProps) {
         </TabsContent>
 
         <TabsContent value="empresa">
-          <Section
-            title="Empresa"
-            description="Dados de identificação disponíveis na sessão atual. Edição será tratada em lote futuro."
-          >
-            <Card variant="outlined">
-              <dl className="grid min-w-0 gap-5 sm:grid-cols-2">
-                <DefinitionItem label="Nome" value={user.company.name} />
-                <DefinitionItem label="Status" value={companyStatus} />
-                <DefinitionItem label="Slug" value={user.company.slug} />
-                <DefinitionItem label="Tenant ID" value={user.company.id} />
-              </dl>
-            </Card>
-          </Section>
+          <CompanyPanel
+            canUpdate={canUpdateCompany}
+            onDirtyChange={handleCompanyDirty}
+            onSaved={() => router.refresh()}
+          />
         </TabsContent>
 
         {canViewUsers ? (

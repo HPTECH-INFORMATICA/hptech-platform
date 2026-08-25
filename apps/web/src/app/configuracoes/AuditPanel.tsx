@@ -36,6 +36,7 @@ const actionLabels: Record<string, string> = {
   PASSWORD_RESET_COMPLETED: "Senha redefinida",
   ROLE_PERMISSIONS_CHANGED: "Permissões do papel alteradas",
   ROLE_PERMISSIONS_RESET: "Permissões do papel restauradas",
+  COMPANY_UPDATED: "Empresa atualizada",
 };
 const actionOptions = [
   { value: "", label: "Todas as ações" },
@@ -72,6 +73,14 @@ function metadataText(item: AuditLogItem): string {
   }
   if (item.action === "ROLE_PERMISSIONS_RESET" && typeof metadata.role === "string") {
     return `Permissões padrão restauradas para o papel ${metadata.role}.`;
+  }
+  if (item.action === "COMPANY_UPDATED" && Array.isArray(metadata.fields)) {
+    const fields = metadata.fields.filter(
+      (field): field is string => typeof field === "string",
+    );
+    return fields.length
+      ? `Campos alterados: ${fields.join(", ")}.`
+      : "Dados cadastrais da empresa atualizados.";
   }
   if (item.action === "USER_SOFT_DELETED") return "Usuário removido logicamente.";
   return "Evento administrativo registrado.";

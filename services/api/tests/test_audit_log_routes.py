@@ -121,6 +121,7 @@ def test_all_supported_event_metadata_excludes_forbidden_keys() -> None:
             "revoked": ["DASHBOARD/VIEW"],
         },
         "ROLE_PERMISSIONS_RESET": {"role": "VIEWER"},
+        "COMPANY_UPDATED": {"fields": ["phone"]},
     }
     for action, sample in safe_samples.items():
         metadata = sanitize_audit_metadata(action, {**sample, **unsafe})
@@ -142,6 +143,17 @@ def test_permission_event_metadata_keeps_only_safe_delta() -> None:
         "enabled": ["CRM/VIEW"],
         "revoked": ["DASHBOARD/VIEW"],
     }
+
+
+def test_company_event_metadata_keeps_only_field_names() -> None:
+    assert sanitize_audit_metadata(
+        "COMPANY_UPDATED",
+        {
+            "fields": ["email", "phone"],
+            "document": "sensitive",
+            "email": "sensitive@example.com",
+        },
+    ) == {"fields": ["email", "phone"]}
 
 
 def test_audit_routes_are_append_only() -> None:

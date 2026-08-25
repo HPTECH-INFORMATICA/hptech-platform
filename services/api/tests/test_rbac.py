@@ -39,11 +39,9 @@ def test_owner_and_admin_have_user_administration_access(role: UserRole) -> None
 
 @pytest.mark.parametrize("role", [UserRole.OWNER, UserRole.ADMIN])
 def test_owner_and_admin_can_view_company_administration(role: UserRole) -> None:
-    assert has_permission(
-        permissions_for_role(role),
-        PermissionModule.COMPANY,
-        PermissionAction.VIEW,
-    )
+    permissions = permissions_for_role(role)
+    assert has_permission(permissions, PermissionModule.COMPANY, PermissionAction.VIEW)
+    assert has_permission(permissions, PermissionModule.COMPANY, PermissionAction.UPDATE)
 
 
 @pytest.mark.parametrize("role", [UserRole.OWNER, UserRole.ADMIN])

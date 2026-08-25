@@ -273,7 +273,7 @@ async def test_auth_me_returns_current_identity_without_sensitive_data(
                 "module": "CRM",
                 "actions": ["CREATE", "DELETE", "UPDATE", "VIEW"],
             },
-            {"module": "COMPANY", "actions": ["VIEW"]},
+            {"module": "COMPANY", "actions": ["UPDATE", "VIEW"]},
             {
                 "module": "USERS",
                 "actions": ["BLOCK", "CREATE", "DELETE", "MANAGE_ROLE", "UPDATE", "VIEW"],
@@ -313,7 +313,9 @@ async def test_auth_me_returns_permissions_from_current_database_role(
         {"module": "CRM", "actions": crm_actions},
     ]
     if role is UserRole.OWNER:
-        expected_permissions.append({"module": "COMPANY", "actions": ["VIEW"]})
+        expected_permissions.append(
+            {"module": "COMPANY", "actions": ["UPDATE", "VIEW"]}
+        )
         expected_permissions.append(
             {
                 "module": "USERS",
