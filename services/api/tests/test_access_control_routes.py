@@ -140,6 +140,23 @@ def test_effective_policy_supports_allow_deny_and_multiple_overrides(monkeypatch
     assert has_permission(permissions, PermissionModule.COMPANY, PermissionAction.VIEW)
 
 
+def test_services_overrides_extend_and_revoke_base_policy(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        RolePermissionOverrideRepository,
+        "list_for_role",
+        lambda *_args: [
+            override(PermissionModule.SERVICES, PermissionAction.VIEW, True),
+            override(PermissionModule.SERVICES, PermissionAction.UPDATE, False),
+        ],
+    )
+    viewer = effective_permissions(MagicMock(), uuid4(), UserRole.VIEWER)
+    manager = effective_permissions(MagicMock(), uuid4(), UserRole.MANAGER)
+    assert has_permission(viewer, PermissionModule.SERVICES, PermissionAction.VIEW)
+    assert not has_permission(manager, PermissionModule.SERVICES, PermissionAction.UPDATE)
+
+
 def test_overrides_are_tenant_scoped(monkeypatch: pytest.MonkeyPatch) -> None:
     tenant_a, tenant_b = uuid4(), uuid4()
     monkeypatch.setattr(

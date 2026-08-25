@@ -37,6 +37,10 @@ const actionLabels: Record<string, string> = {
   ROLE_PERMISSIONS_CHANGED: "Permissões do papel alteradas",
   ROLE_PERMISSIONS_RESET: "Permissões do papel restauradas",
   COMPANY_UPDATED: "Empresa atualizada",
+  SERVICE_CREATED: "Serviço criado",
+  SERVICE_UPDATED: "Serviço atualizado",
+  SERVICE_STATUS_CHANGED: "Status do serviço alterado",
+  SERVICE_SOFT_DELETED: "Serviço removido",
 };
 const actionOptions = [
   { value: "", label: "Todas as ações" },
@@ -82,6 +86,19 @@ function metadataText(item: AuditLogItem): string {
       ? `Campos alterados: ${fields.join(", ")}.`
       : "Dados cadastrais da empresa atualizados.";
   }
+  if (item.action === "SERVICE_UPDATED" && Array.isArray(metadata.fields)) {
+    const fields = metadata.fields.filter(
+      (field): field is string => typeof field === "string",
+    );
+    return fields.length
+      ? `Campos alterados: ${fields.join(", ")}.`
+      : "Serviço atualizado.";
+  }
+  if (item.action === "SERVICE_STATUS_CHANGED") {
+    return `Status alterado de ${String(metadata.from ?? "-")} para ${String(metadata.to ?? "-")}.`;
+  }
+  if (item.action === "SERVICE_CREATED") return "Serviço criado e ativo.";
+  if (item.action === "SERVICE_SOFT_DELETED") return "Serviço removido logicamente.";
   if (item.action === "USER_SOFT_DELETED") return "Usuário removido logicamente.";
   return "Evento administrativo registrado.";
 }

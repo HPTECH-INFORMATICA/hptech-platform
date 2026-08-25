@@ -149,3 +149,52 @@ def test_read_only_roles_only_view_crm(role: UserRole) -> None:
     assert not has_permission(permissions, PermissionModule.CRM, PermissionAction.CREATE)
     assert not has_permission(permissions, PermissionModule.CRM, PermissionAction.UPDATE)
     assert not has_permission(permissions, PermissionModule.CRM, PermissionAction.DELETE)
+
+
+@pytest.mark.parametrize(
+    ("role", "actions"),
+    [
+        (
+            UserRole.OWNER,
+            {
+                PermissionAction.VIEW,
+                PermissionAction.CREATE,
+                PermissionAction.UPDATE,
+                PermissionAction.DELETE,
+            },
+        ),
+        (
+            UserRole.ADMIN,
+            {
+                PermissionAction.VIEW,
+                PermissionAction.CREATE,
+                PermissionAction.UPDATE,
+                PermissionAction.DELETE,
+            },
+        ),
+        (
+            UserRole.MANAGER,
+            {
+                PermissionAction.VIEW,
+                PermissionAction.CREATE,
+                PermissionAction.UPDATE,
+            },
+        ),
+        (UserRole.RECEPTIONIST, {PermissionAction.VIEW}),
+        (UserRole.PROFESSIONAL, {PermissionAction.VIEW}),
+        (UserRole.SALES, set()),
+        (UserRole.FINANCIAL, set()),
+        (UserRole.VIEWER, set()),
+    ],
+)
+def test_services_base_policy(
+    role: UserRole,
+    actions: set[PermissionAction],
+) -> None:
+    permissions = permissions_for_role(role)
+    for action in PermissionAction:
+        assert has_permission(
+            permissions,
+            PermissionModule.SERVICES,
+            action,
+        ) is (action in actions)

@@ -25,6 +25,28 @@ ACCESS_CONTROL_OWNER = Permission(
     frozenset({PermissionAction.VIEW, PermissionAction.MANAGE}),
 )
 AUDIT_VIEW = Permission(PermissionModule.AUDIT, VIEW)
+SERVICES_ALL = Permission(
+    PermissionModule.SERVICES,
+    frozenset(
+        {
+            PermissionAction.VIEW,
+            PermissionAction.CREATE,
+            PermissionAction.UPDATE,
+            PermissionAction.DELETE,
+        }
+    ),
+)
+SERVICES_WRITE = Permission(
+    PermissionModule.SERVICES,
+    frozenset(
+        {
+            PermissionAction.VIEW,
+            PermissionAction.CREATE,
+            PermissionAction.UPDATE,
+        }
+    ),
+)
+SERVICES_VIEW = Permission(PermissionModule.SERVICES, VIEW)
 USERS_ADMIN = frozenset(
     {
         PermissionAction.VIEW,
@@ -45,6 +67,7 @@ ROLE_PERMISSIONS: dict[UserRole, tuple[Permission, ...]] = {
         Permission(PermissionModule.USERS, USERS_ADMIN),
         ACCESS_CONTROL_OWNER,
         AUDIT_VIEW,
+        SERVICES_ALL,
     ),
     UserRole.ADMIN: (
         Permission(PermissionModule.DASHBOARD, VIEW),
@@ -53,10 +76,12 @@ ROLE_PERMISSIONS: dict[UserRole, tuple[Permission, ...]] = {
         Permission(PermissionModule.USERS, USERS_ADMIN),
         ACCESS_CONTROL_VIEW,
         AUDIT_VIEW,
+        SERVICES_ALL,
     ),
     UserRole.MANAGER: (
         Permission(PermissionModule.DASHBOARD, VIEW),
         Permission(PermissionModule.CRM, CRM_WRITE),
+        SERVICES_WRITE,
     ),
     UserRole.SALES: (
         Permission(PermissionModule.DASHBOARD, VIEW),
@@ -65,10 +90,12 @@ ROLE_PERMISSIONS: dict[UserRole, tuple[Permission, ...]] = {
     UserRole.RECEPTIONIST: (
         Permission(PermissionModule.DASHBOARD, VIEW),
         Permission(PermissionModule.CRM, CRM_WRITE),
+        SERVICES_VIEW,
     ),
     UserRole.PROFESSIONAL: (
         Permission(PermissionModule.DASHBOARD, VIEW),
         Permission(PermissionModule.CRM, VIEW),
+        SERVICES_VIEW,
     ),
     UserRole.FINANCIAL: (
         Permission(PermissionModule.DASHBOARD, VIEW),

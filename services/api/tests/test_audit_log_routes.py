@@ -122,6 +122,10 @@ def test_all_supported_event_metadata_excludes_forbidden_keys() -> None:
         },
         "ROLE_PERMISSIONS_RESET": {"role": "VIEWER"},
         "COMPANY_UPDATED": {"fields": ["phone"]},
+        "SERVICE_CREATED": {"state": "ACTIVE"},
+        "SERVICE_UPDATED": {"fields": ["duration_minutes"]},
+        "SERVICE_STATUS_CHANGED": {"from": "ACTIVE", "to": "INACTIVE"},
+        "SERVICE_SOFT_DELETED": {"state": "DELETED"},
     }
     for action, sample in safe_samples.items():
         metadata = sanitize_audit_metadata(action, {**sample, **unsafe})
@@ -154,6 +158,18 @@ def test_company_event_metadata_keeps_only_field_names() -> None:
             "email": "sensitive@example.com",
         },
     ) == {"fields": ["email", "phone"]}
+
+
+def test_service_event_metadata_keeps_only_safe_state() -> None:
+    assert sanitize_audit_metadata(
+        "SERVICE_STATUS_CHANGED",
+        {
+            "from": "ACTIVE",
+            "to": "INACTIVE",
+            "price": "100.00",
+            "description": "sensitive",
+        },
+    ) == {"from": "ACTIVE", "to": "INACTIVE"}
 
 
 def test_audit_routes_are_append_only() -> None:

@@ -2,7 +2,7 @@
 
 Backend da HPTECH Platform, desenvolvido com FastAPI, SQLAlchemy, PostgreSQL, Alembic e Pydantic.
 
-A API oferece atualmente health check, operações de leads, Kanban do CRM, atualização do pipeline, exclusão de leads e consulta do histórico.
+A API oferece health check, autenticação e administração tenant-aware, CRM e o domínio de serviços agendáveis.
 
 ## Estado atual
 
@@ -94,7 +94,7 @@ Aplique as migrations pendentes:
 python -m alembic upgrade head
 ```
 
-A head atual do projeto é `b4f83ac92e17`.
+A head atual do projeto é `e7b94c1d2a63`.
 
 O bootstrap administrativo do primeiro OWNER está descrito em
 `../../docs/SECURITY_DEPLOY_CHECKLIST.md`; ele exige uma empresa existente e
@@ -141,9 +141,28 @@ PATCH  /api/v1/leads/{lead_id}
 DELETE /api/v1/leads/{lead_id}
 PATCH  /api/v1/leads/{lead_id}/pipeline
 GET    /api/v1/lead-history/lead/{lead_id}
+GET    /api/v1/services
+POST   /api/v1/services
+GET    /api/v1/services/{service_id}
+PATCH  /api/v1/services/{service_id}
+PATCH  /api/v1/services/{service_id}/status
+DELETE /api/v1/services/{service_id}
 ```
 
 A movimentação pelo endpoint de pipeline cria o histórico internamente. Não existe endpoint público para criação manual de histórico.
+
+### Serviços
+
+O módulo `SERVICES` usa as ações RBAC `VIEW`, `CREATE`, `UPDATE` e `DELETE`.
+As permissões efetivas continuam sendo calculadas pela política-base combinada
+com os overrides tenant-aware. Todos os endpoints derivam `company_id` da
+identidade autenticada e respondem `404` para registros de outro tenant.
+
+Serviços removidos usam soft delete: `deleted_at` é preenchido e `is_active`
+passa a `false`. A desativação pelo endpoint de status não remove o registro.
+Criação, atualização, mudança de status e remoção geram eventos no AuditLog na
+mesma transação da mutação. Agenda, Appointment e Patient não fazem parte deste
+lote.
 
 ## Validações técnicas
 
