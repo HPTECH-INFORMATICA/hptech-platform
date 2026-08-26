@@ -22,6 +22,7 @@ import Pagination from "@/components/ui/Pagination";
 import SearchBox from "@/components/ui/SearchBox";
 import Select from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
+import Tabs, { TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import Table, {
   TableBody,
   TableCell,
@@ -31,6 +32,7 @@ import Table, {
 } from "@/components/ui/Table";
 import Textarea from "@/components/ui/Textarea";
 import useToast from "@/hooks/useToast";
+import { listServiceCategories, type ServiceCategoryData } from "@/services/service-category-service";
 import {
   createService,
   deleteService,
@@ -41,6 +43,8 @@ import {
   type ServiceCreateInput,
   type ServiceData,
 } from "@/services/service-service";
+
+import CategoriesPanel from "./CategoriesPanel";
 
 const PAGE_SIZE = 10;
 const statusOptions = [
@@ -71,7 +75,7 @@ function draftFromService(service: ServiceData): FormDraft {
     description: service.description ?? "",
     duration: String(service.duration_minutes),
     price: service.price,
-    category: service.category ?? "",
+    category: service.category?.id ?? "",
   };
 }
 
@@ -81,7 +85,7 @@ function payloadFromDraft(draft: FormDraft): ServiceCreateInput {
     description: draft.description.trim() || null,
     duration_minutes: Number(draft.duration),
     price: draft.price.trim().replace(",", "."),
-    category: draft.category.trim() || null,
+    category_id: draft.category || null,
   };
 }
 
@@ -95,6 +99,7 @@ function validateDraft(draft: FormDraft): string | null {
   if (!/^\d+(?:[.,]\d{1,2})?$/.test(draft.price.trim())) {
     return "Informe um preço válido com até duas casas decimais.";
   }
+  if (!draft.category) return "Selecione uma categoria.";
   return null;
 }
 
@@ -119,7 +124,7 @@ function StatusBadge({ active }: { active: boolean }) {
   return <Badge variant={active ? "success" : "neutral"}>{active ? "Ativo" : "Inativo"}</Badge>;
 }
 
-export default function ServicesPage({ currentUser }: { currentUser: CurrentUser }) {
+function ServicesCatalog({ currentUser }: { currentUser: CurrentUser }) {
   const { toast } = useToast();
   const [items, setItems] = useState<ServiceData[]>([]);
   const [total, setTotal] = useState(0);
@@ -127,7 +132,7 @@ export default function ServicesPage({ currentUser }: { currentUser: CurrentUser
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [category, setCategory] = useState("");
-  const [debouncedCategory, setDebouncedCategory] = useState("");
+  const [categories, setCategories] = useState<ServiceCategoryData[]>([]);
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -144,21 +149,29 @@ export default function ServicesPage({ currentUser }: { currentUser: CurrentUser
   const canUpdate = hasPermission(currentUser, "SERVICES", "UPDATE");
   const canDelete = hasPermission(currentUser, "SERVICES", "DELETE");
   const hasActions = canUpdate || canDelete;
+  const canCreateCategory = hasPermission(currentUser, "SERVICE_CATEGORIES", "CREATE");
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setDebouncedSearch(search.trim());
-      setDebouncedCategory(category.trim());
       setPage(1);
     }, 300);
     return () => window.clearTimeout(timer);
-  }, [category, search]);
+  }, [search]);
+
+  useEffect(() => {
+    let active = true;
+    void listServiceCategories(new URLSearchParams({ page: "1", page_size: "100", is_active: "true" }))
+      .then((result) => { if (active) setCategories(result.items); })
+      .catch(() => { if (active) setCategories([]); });
+    return () => { active = false; };
+  }, [reload]);
 
   useEffect(() => {
     let active = true;
     const params = new URLSearchParams({ page: String(page), page_size: String(PAGE_SIZE) });
     if (debouncedSearch) params.set("search", debouncedSearch);
-    if (debouncedCategory) params.set("category", debouncedCategory);
+    if (category) params.set("category_id", category);
     if (status) params.set("is_active", status);
     const loadServices = async () => {
       setLoading(true);
@@ -176,7 +189,7 @@ export default function ServicesPage({ currentUser }: { currentUser: CurrentUser
     };
     void loadServices();
     return () => { active = false; };
-  }, [debouncedCategory, debouncedSearch, page, reload, status]);
+  }, [category, debouncedSearch, page, reload, status]);
 
   const initialPayload = useMemo(
     () => (editing ? payloadFromDraft(draftFromService(editing)) : null),
@@ -267,15 +280,12 @@ export default function ServicesPage({ currentUser }: { currentUser: CurrentUser
 
   return (
     <div className="space-y-8">
-      <PageHeader
-        title="Serviços"
-        description="Cadastro dos serviços oferecidos pela empresa."
-        actions={canCreate ? <Button onClick={openCreate}>Novo serviço</Button> : undefined}
-      />
+      <div className="flex justify-end">{canCreate ? <Button disabled={categories.length === 0} onClick={openCreate}>Novo serviço</Button> : null}</div>
+      {categories.length === 0 ? <Alert variant="info" title="Nenhuma categoria ativa disponível" description={canCreateCategory ? "Cadastre ou reative uma categoria antes de criar um serviço." : "Solicite a um usuário autorizado o cadastro ou a reativação de uma categoria."} /> : null}
 
       <section aria-label="Filtros de serviços" className="grid gap-4 lg:grid-cols-[minmax(16rem,1fr)_minmax(12rem,18rem)_12rem]">
         <SearchBox label="Buscar serviços" value={search} onChange={(event) => setSearch(event.target.value)} onClear={() => setSearch("")} clearLabel="Limpar busca" placeholder="Nome ou categoria" loading={loading} />
-        <Input label="Categoria" value={category} onChange={(event) => setCategory(event.target.value)} placeholder="Filtrar por categoria" />
+        <Select label="Categoria" options={[{ value: "", label: "Todas" }, ...categories.map((item) => ({ value: item.id, label: item.name }))]} value={category} onChange={(event) => { setCategory(event.target.value); setPage(1); }} />
         <Select label="Status" options={statusOptions} value={status} onChange={(event) => { setStatus(event.target.value); setPage(1); }} />
       </section>
 
@@ -291,10 +301,10 @@ export default function ServicesPage({ currentUser }: { currentUser: CurrentUser
           <div className="hidden md:block">
             <Table>
               <TableHeader><TableRow><TableHead>Nome</TableHead><TableHead>Categoria</TableHead><TableHead>Duração</TableHead><TableHead>Preço</TableHead><TableHead>Status</TableHead>{hasActions ? <TableHead>Ações</TableHead> : null}</TableRow></TableHeader>
-              <TableBody>{items.map((service) => <TableRow key={service.id}><TableCell><span className="font-semibold">{service.name}</span>{service.description ? <span className="mt-1 block text-sm text-hp-muted">{service.description}</span> : null}</TableCell><TableCell>{service.category ?? "Sem categoria"}</TableCell><TableCell>{service.duration_minutes} min</TableCell><TableCell>{formatPrice(service.price)}</TableCell><TableCell><StatusBadge active={service.is_active} /></TableCell>{hasActions ? <TableCell>{actions(service)}</TableCell> : null}</TableRow>)}</TableBody>
+              <TableBody>{items.map((service) => <TableRow key={service.id}><TableCell><span className="font-semibold">{service.name}</span>{service.description ? <span className="mt-1 block text-sm text-hp-muted">{service.description}</span> : null}</TableCell><TableCell>{service.category?.name ?? "Sem categoria"}</TableCell><TableCell>{service.duration_minutes} min</TableCell><TableCell>{formatPrice(service.price)}</TableCell><TableCell><StatusBadge active={service.is_active} /></TableCell>{hasActions ? <TableCell>{actions(service)}</TableCell> : null}</TableRow>)}</TableBody>
             </Table>
           </div>
-          <div className="grid gap-4 md:hidden">{items.map((service) => <Card key={service.id} variant="outlined" padding="sm"><div className="space-y-3"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><h2 className="break-words font-semibold text-hp-foreground">{service.name}</h2>{service.description ? <p className="mt-1 break-words text-sm text-hp-muted">{service.description}</p> : null}</div><StatusBadge active={service.is_active} /></div><dl className="grid grid-cols-2 gap-3 text-sm"><div><dt className="text-hp-muted">Categoria</dt><dd>{service.category ?? "Sem categoria"}</dd></div><div><dt className="text-hp-muted">Duração</dt><dd>{service.duration_minutes} min</dd></div><div><dt className="text-hp-muted">Preço</dt><dd>{formatPrice(service.price)}</dd></div></dl>{actions(service)}</div></Card>)}</div>
+          <div className="grid gap-4 md:hidden">{items.map((service) => <Card key={service.id} variant="outlined" padding="sm"><div className="space-y-3"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><h2 className="break-words font-semibold text-hp-foreground">{service.name}</h2>{service.description ? <p className="mt-1 break-words text-sm text-hp-muted">{service.description}</p> : null}</div><StatusBadge active={service.is_active} /></div><dl className="grid grid-cols-2 gap-3 text-sm"><div><dt className="text-hp-muted">Categoria</dt><dd>{service.category?.name ?? "Sem categoria"}</dd></div><div><dt className="text-hp-muted">Duração</dt><dd>{service.duration_minutes} min</dd></div><div><dt className="text-hp-muted">Preço</dt><dd>{formatPrice(service.price)}</dd></div></dl>{actions(service)}</div></Card>)}</div>
           {totalPages > 1 ? <Pagination page={page} totalPages={totalPages} onPageChange={setPage} /> : null}
         </>
       ) : null}
@@ -306,7 +316,13 @@ export default function ServicesPage({ currentUser }: { currentUser: CurrentUser
             <Input label="Nome" required value={draft.name} onChange={(event) => updateDraft("name", event.target.value)} />
             <Textarea label="Descrição" value={draft.description} onChange={(event) => updateDraft("description", event.target.value)} />
             <div className="grid gap-4 sm:grid-cols-2"><Input label="Duração em minutos" required inputMode="numeric" value={draft.duration} onChange={(event) => updateDraft("duration", event.target.value)} /><Input label="Preço" required inputMode="decimal" value={draft.price} onChange={(event) => updateDraft("price", event.target.value)} description="Use vírgula ou ponto e até duas casas decimais." /></div>
-            <Input label="Categoria" value={draft.category} onChange={(event) => updateDraft("category", event.target.value)} />
+            <Select label="Categoria" required value={draft.category} onChange={(event) => updateDraft("category", event.target.value)} options={[
+              { value: "", label: "Selecione uma categoria" },
+              ...categories.map((item) => ({ value: item.id, label: item.name })),
+              ...(editing?.category && !editing.category.is_active && !categories.some((item) => item.id === editing.category?.id)
+                ? [{ value: editing.category.id, label: `${editing.category.name} (inativa)` }]
+                : []),
+            ]} />
             {formError ? <Alert variant="danger" description={formError} /> : null}
           </div>
           <DialogFooter><DialogClose className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-md)] px-4 font-semibold text-hp-foreground hover:bg-hp-surface-subtle">Cancelar</DialogClose><Button loading={saving} disabled={!dirty} onClick={() => void save()}>Salvar</Button></DialogFooter>
@@ -322,4 +338,17 @@ export default function ServicesPage({ currentUser }: { currentUser: CurrentUser
       </Dialog>
     </div>
   );
+}
+
+export default function ServicesPage({ currentUser }: { currentUser: CurrentUser }) {
+  const canViewCategories = hasPermission(currentUser, "SERVICE_CATEGORIES", "VIEW");
+
+  return <div className="space-y-8">
+    <PageHeader title="Serviços" description="Cadastro dos serviços oferecidos pela empresa." />
+    {canViewCategories ? <Tabs defaultValue="services">
+      <TabsList><TabsTrigger value="services">Serviços</TabsTrigger><TabsTrigger value="categories">Categorias</TabsTrigger></TabsList>
+      <TabsContent value="services"><ServicesCatalog currentUser={currentUser} /></TabsContent>
+      <TabsContent value="categories"><CategoriesPanel currentUser={currentUser} /></TabsContent>
+    </Tabs> : <ServicesCatalog currentUser={currentUser} />}
+  </div>;
 }

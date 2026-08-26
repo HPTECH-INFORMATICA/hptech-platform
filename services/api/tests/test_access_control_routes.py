@@ -157,6 +157,23 @@ def test_services_overrides_extend_and_revoke_base_policy(
     assert not has_permission(manager, PermissionModule.SERVICES, PermissionAction.UPDATE)
 
 
+def test_service_category_overrides_use_effective_permissions(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        RolePermissionOverrideRepository,
+        "list_for_role",
+        lambda *_args: [
+            override(PermissionModule.SERVICE_CATEGORIES, PermissionAction.VIEW, True),
+            override(PermissionModule.SERVICE_CATEGORIES, PermissionAction.UPDATE, False),
+        ],
+    )
+    viewer = effective_permissions(MagicMock(), uuid4(), UserRole.VIEWER)
+    manager = effective_permissions(MagicMock(), uuid4(), UserRole.MANAGER)
+    assert has_permission(viewer, PermissionModule.SERVICE_CATEGORIES, PermissionAction.VIEW)
+    assert not has_permission(manager, PermissionModule.SERVICE_CATEGORIES, PermissionAction.UPDATE)
+
+
 def test_overrides_are_tenant_scoped(monkeypatch: pytest.MonkeyPatch) -> None:
     tenant_a, tenant_b = uuid4(), uuid4()
     monkeypatch.setattr(

@@ -1,9 +1,10 @@
 import uuid
 
 from sqlalchemy import func, or_, select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 
 from app.models.service import Service
+from app.models.service_category import ServiceCategory
 from app.schemas.service import ServiceCreate
 
 
@@ -31,7 +32,7 @@ class ServiceRepository:
         *,
         for_update: bool = False,
     ) -> Service | None:
-        statement = select(Service).where(
+        statement = select(Service).options(joinedload(Service.category)).where(
             Service.company_id == company_id,
             Service.id == service_id,
             Service.deleted_at.is_(None),
@@ -49,7 +50,7 @@ class ServiceRepository:
         page_size: int,
         search: str | None,
         is_active: bool | None,
-        category: str | None,
+        category_id: uuid.UUID | None,
     ) -> tuple[list[Service], int]:
         filters = [
             Service.company_id == company_id,
@@ -61,19 +62,21 @@ class ServiceRepository:
                 filters.append(
                     or_(
                         Service.name.icontains(term, autoescape=True),
-                        Service.category.icontains(term, autoescape=True),
+                        Service.category.has(
+                            ServiceCategory.name.icontains(term, autoescape=True)
+                        ),
                     )
                 )
         if is_active is not None:
             filters.append(Service.is_active.is_(is_active))
-        if category:
-            filters.append(Service.category == category.strip())
+        if category_id:
+            filters.append(Service.category_id == category_id)
 
         total = db.scalar(
             select(func.count()).select_from(Service).where(*filters)
         ) or 0
         statement = (
-            select(Service)
+            select(Service).options(joinedload(Service.category))
             .where(*filters)
             .order_by(Service.name.asc(), Service.id.asc())
             .offset((page - 1) * page_size)

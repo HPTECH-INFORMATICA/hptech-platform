@@ -14,7 +14,7 @@ const LIST_QUERY_KEYS = new Set([
   "page",
   "page_size",
   "search",
-  "category",
+  "category_id",
   "is_active",
 ]);
 

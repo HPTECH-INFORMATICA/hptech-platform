@@ -126,6 +126,10 @@ def test_all_supported_event_metadata_excludes_forbidden_keys() -> None:
         "SERVICE_UPDATED": {"fields": ["duration_minutes"]},
         "SERVICE_STATUS_CHANGED": {"from": "ACTIVE", "to": "INACTIVE"},
         "SERVICE_SOFT_DELETED": {"state": "DELETED"},
+        "SERVICE_CATEGORY_CREATED": {"state": "ACTIVE"},
+        "SERVICE_CATEGORY_UPDATED": {"fields": ["name"]},
+        "SERVICE_CATEGORY_STATUS_CHANGED": {"from": "ACTIVE", "to": "INACTIVE"},
+        "SERVICE_CATEGORY_SOFT_DELETED": {"state": "DELETED"},
     }
     for action, sample in safe_samples.items():
         metadata = sanitize_audit_metadata(action, {**sample, **unsafe})
@@ -170,6 +174,11 @@ def test_service_event_metadata_keeps_only_safe_state() -> None:
             "description": "sensitive",
         },
     ) == {"from": "ACTIVE", "to": "INACTIVE"}
+
+    assert sanitize_audit_metadata(
+        "SERVICE_CATEGORY_UPDATED",
+        {"fields": ["name"], "description": "sensitive"},
+    ) == {"fields": ["name"]}
 
 
 def test_audit_routes_are_append_only() -> None:

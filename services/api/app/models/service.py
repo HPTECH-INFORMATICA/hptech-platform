@@ -57,8 +57,9 @@ class Service(
         default=0,
     )
 
-    category: Mapped[str | None] = mapped_column(
-        String(80),
+    category_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("service_categories.id", ondelete="RESTRICT"),
         nullable=True,
         index=True,
     )
@@ -78,4 +79,9 @@ class Service(
     appointments = relationship(
         "Appointment",
         back_populates="service",
+    )
+
+    category = relationship(
+        "ServiceCategory",
+        back_populates="services",
     )

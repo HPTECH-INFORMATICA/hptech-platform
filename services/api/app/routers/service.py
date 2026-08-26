@@ -20,6 +20,7 @@ from app.schemas.service import (
 )
 from app.services.service import (
     ServiceDomain,
+    ServiceCategoryUnavailableError,
     ServiceNotFoundError,
     ServicePersistenceError,
 )
@@ -55,6 +56,11 @@ def translate_service_error(error: Exception) -> None:
             status_code=status.HTTP_409_CONFLICT,
             detail="Não foi possível persistir o serviço.",
         ) from error
+    if isinstance(error, ServiceCategoryUnavailableError):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Categoria ativa não encontrada.",
+        ) from error
     raise error
 
 
@@ -66,7 +72,7 @@ def list_services(
     page_size: Annotated[int, Query(ge=1, le=100)] = 20,
     search: Annotated[str | None, Query(max_length=150)] = None,
     is_active: bool | None = None,
-    category: Annotated[str | None, Query(max_length=80)] = None,
+    category_id: uuid.UUID | None = None,
 ) -> ServiceListResponse:
     return ServiceDomain.list(
         db,
@@ -75,7 +81,7 @@ def list_services(
         page_size=page_size,
         search=search,
         is_active=is_active,
-        category=category,
+        category_id=category_id,
     )
 
 
@@ -102,7 +108,7 @@ def create_service(
 ) -> ServiceResponse:
     try:
         return ServiceResponse.model_validate(ServiceDomain.create(db, identity, data))
-    except ServicePersistenceError as error:
+    except (ServicePersistenceError, ServiceCategoryUnavailableError) as error:
         translate_service_error(error)
         raise AssertionError("unreachable")
 
@@ -118,7 +124,7 @@ def update_service(
         return ServiceResponse.model_validate(
             ServiceDomain.update(db, identity, service_id, data)
         )
-    except (ServiceNotFoundError, ServicePersistenceError) as error:
+    except (ServiceNotFoundError, ServicePersistenceError, ServiceCategoryUnavailableError) as error:
         translate_service_error(error)
         raise AssertionError("unreachable")
 

@@ -8,6 +8,7 @@ from app.routers.auth import router as auth_router
 from app.routers.lead import router as lead_router
 from app.routers.lead_history import router as lead_history_router
 from app.routers.service import router as service_router
+from app.routers.service_category import router as service_category_router
 from app.routers.user_admin import router as user_admin_router
 
 api_router = APIRouter(prefix="/api/v1")
@@ -20,4 +21,5 @@ api_router.include_router(auth_router)
 api_router.include_router(lead_router)
 api_router.include_router(lead_history_router)
 api_router.include_router(service_router)
+api_router.include_router(service_category_router)
 api_router.include_router(user_admin_router)

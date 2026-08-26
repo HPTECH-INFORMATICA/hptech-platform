@@ -8,6 +8,7 @@ from app.core.identity import AuthenticatedIdentity
 from app.models.service import Service
 from app.repositories.audit_log import AuditLogRepository
 from app.repositories.service import ServiceRepository
+from app.repositories.service_category import ServiceCategoryRepository
 from app.schemas.service import (
     ServiceCreate,
     ServiceListResponse,
@@ -22,6 +23,10 @@ class ServiceNotFoundError(RuntimeError):
 
 
 class ServicePersistenceError(RuntimeError):
+    pass
+
+
+class ServiceCategoryUnavailableError(RuntimeError):
     pass
 
 
@@ -45,7 +50,7 @@ class ServiceDomain:
         page_size: int,
         search: str | None,
         is_active: bool | None,
-        category: str | None,
+        category_id: uuid.UUID | None,
     ) -> ServiceListResponse:
         items, total = ServiceRepository.list_by_company(
             db,
@@ -54,7 +59,7 @@ class ServiceDomain:
             page_size=page_size,
             search=search,
             is_active=is_active,
-            category=category,
+            category_id=category_id,
         )
         return ServiceListResponse(
             items=[ServiceResponse.model_validate(item) for item in items],
@@ -85,6 +90,10 @@ class ServiceDomain:
         identity: AuthenticatedIdentity,
         data: ServiceCreate,
     ) -> Service:
+        if data.category_id is not None and ServiceCategoryRepository.get_by_id(
+            db, identity.company.id, data.category_id, active_only=True
+        ) is None:
+            raise ServiceCategoryUnavailableError
         try:
             service = ServiceRepository.create(db, identity.company.id, data)
             AuditLogRepository.add(
@@ -117,6 +126,12 @@ class ServiceDomain:
         )
         if service is None:
             raise ServiceNotFoundError
+
+        if "category_id" in data.model_fields_set and data.category_id is not None:
+            if ServiceCategoryRepository.get_by_id(
+                db, identity.company.id, data.category_id, active_only=True
+            ) is None:
+                raise ServiceCategoryUnavailableError
 
         changed: list[str] = []
         for field, value in data.model_dump(exclude_unset=True).items():

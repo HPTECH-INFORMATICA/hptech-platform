@@ -18,6 +18,7 @@ from app.models.service import Service
 from app.models.user import User
 from app.repositories.audit_log import AuditLogRepository
 from app.repositories.service import ServiceRepository
+from app.repositories.service_category import ServiceCategoryRepository
 from app.schemas.service import (
     SERVICE_MAX_DURATION_MINUTES,
     ServiceCreate,
@@ -27,6 +28,7 @@ from app.schemas.service import (
 )
 from app.services.service import (
     ServiceDomain,
+    ServiceCategoryUnavailableError,
     ServiceNotFoundError,
     ServicePersistenceError,
 )
@@ -78,7 +80,7 @@ def make_service(identity: AuthenticatedIdentity, **values) -> Service:
         "description": None,
         "duration_minutes": 60,
         "price": Decimal("100.00"),
-        "category": "Consulta",
+        "category_id": None,
         "is_active": True,
         "created_at": now,
         "updated_at": now,
@@ -123,7 +125,7 @@ async def test_receptionist_can_list_services(
 
     monkeypatch.setattr(ServiceDomain, "list", list_services)
     response = await client.get(
-        "/api/v1/services?page=2&page_size=10&search=consulta&is_active=true&category=Consulta"
+        "/api/v1/services?page=2&page_size=10&search=consulta&is_active=true"
     )
     assert response.status_code == 200
     assert response.json() == {"items": [], "total": 0, "page": 2, "page_size": 10}
@@ -133,7 +135,7 @@ async def test_receptionist_can_list_services(
             "page_size": 10,
             "search": "consulta",
             "is_active": True,
-            "category": "Consulta",
+            "category_id": None,
         }
     ]
 
@@ -163,6 +165,7 @@ async def test_list_rejects_invalid_pagination(
         "tenant",
         "auth_version",
         "is_active",
+        "category",
     ],
 )
 async def test_create_rejects_mass_assignment(
@@ -204,11 +207,11 @@ def test_create_schema_normalizes_text_and_decimal() -> None:
         description="   ",
         duration_minutes=60,
         price=Decimal("100.50"),
-        category="  Consulta  ",
+        category_id=None,
     )
     assert data.name == "Consulta inicial"
     assert data.description is None
-    assert data.category == "Consulta"
+    assert data.category_id is None
     assert data.price == Decimal("100.50")
 
 
@@ -234,6 +237,30 @@ def test_create_is_tenant_scoped_and_audited(
     assert audit.call_args.kwargs["company_id"] == identity.company.id
     assert audit.call_args.kwargs["action"] == "SERVICE_CREATED"
     db.commit.assert_called_once()
+
+
+def test_create_rejects_inactive_or_cross_tenant_category(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    identity = make_identity()
+    category_id = uuid4()
+    monkeypatch.setattr(
+        ServiceCategoryRepository,
+        "get_by_id",
+        lambda *_args, **_kwargs: None,
+    )
+
+    with pytest.raises(ServiceCategoryUnavailableError):
+        ServiceDomain.create(
+            MagicMock(),
+            identity,
+            ServiceCreate(
+                name="Consulta",
+                duration_minutes=60,
+                price=Decimal("100.00"),
+                category_id=category_id,
+            ),
+        )
 
 
 def test_cross_tenant_detail_update_and_delete_are_not_found(
@@ -385,7 +412,7 @@ def test_repository_contract_excludes_deleted_services() -> None:
         page_size=20,
         search="consulta",
         is_active=True,
-        category="Consulta",
+        category_id=None,
     )
     statements = [str(call.args[0]) for call in [db.scalar.call_args, db.execute.call_args]]
     assert all("services.deleted_at IS NULL" in statement for statement in statements)

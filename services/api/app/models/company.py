@@ -113,3 +113,10 @@ class Company(
         cascade="all, delete-orphan",
         passive_deletes=True,
     )
+
+    service_categories = relationship(
+        "ServiceCategory",
+        back_populates="company",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )

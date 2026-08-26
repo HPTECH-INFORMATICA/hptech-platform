@@ -47,6 +47,28 @@ SERVICES_WRITE = Permission(
     ),
 )
 SERVICES_VIEW = Permission(PermissionModule.SERVICES, VIEW)
+SERVICE_CATEGORIES_ALL = Permission(
+    PermissionModule.SERVICE_CATEGORIES,
+    frozenset(
+        {
+            PermissionAction.VIEW,
+            PermissionAction.CREATE,
+            PermissionAction.UPDATE,
+            PermissionAction.DELETE,
+        }
+    ),
+)
+SERVICE_CATEGORIES_WRITE = Permission(
+    PermissionModule.SERVICE_CATEGORIES,
+    frozenset(
+        {
+            PermissionAction.VIEW,
+            PermissionAction.CREATE,
+            PermissionAction.UPDATE,
+        }
+    ),
+)
+SERVICE_CATEGORIES_VIEW = Permission(PermissionModule.SERVICE_CATEGORIES, VIEW)
 USERS_ADMIN = frozenset(
     {
         PermissionAction.VIEW,
@@ -68,6 +90,7 @@ ROLE_PERMISSIONS: dict[UserRole, tuple[Permission, ...]] = {
         ACCESS_CONTROL_OWNER,
         AUDIT_VIEW,
         SERVICES_ALL,
+        SERVICE_CATEGORIES_ALL,
     ),
     UserRole.ADMIN: (
         Permission(PermissionModule.DASHBOARD, VIEW),
@@ -77,11 +100,13 @@ ROLE_PERMISSIONS: dict[UserRole, tuple[Permission, ...]] = {
         ACCESS_CONTROL_VIEW,
         AUDIT_VIEW,
         SERVICES_ALL,
+        SERVICE_CATEGORIES_ALL,
     ),
     UserRole.MANAGER: (
         Permission(PermissionModule.DASHBOARD, VIEW),
         Permission(PermissionModule.CRM, CRM_WRITE),
         SERVICES_WRITE,
+        SERVICE_CATEGORIES_WRITE,
     ),
     UserRole.SALES: (
         Permission(PermissionModule.DASHBOARD, VIEW),
@@ -91,11 +116,13 @@ ROLE_PERMISSIONS: dict[UserRole, tuple[Permission, ...]] = {
         Permission(PermissionModule.DASHBOARD, VIEW),
         Permission(PermissionModule.CRM, CRM_WRITE),
         SERVICES_VIEW,
+        SERVICE_CATEGORIES_VIEW,
     ),
     UserRole.PROFESSIONAL: (
         Permission(PermissionModule.DASHBOARD, VIEW),
         Permission(PermissionModule.CRM, VIEW),
         SERVICES_VIEW,
+        SERVICE_CATEGORIES_VIEW,
     ),
     UserRole.FINANCIAL: (
         Permission(PermissionModule.DASHBOARD, VIEW),

@@ -35,6 +35,7 @@ class PermissionModule(StrEnum):
     ACCESS_CONTROL = "ACCESS_CONTROL"
     AUDIT = "AUDIT"
     SERVICES = "SERVICES"
+    SERVICE_CATEGORIES = "SERVICE_CATEGORIES"
 
 
 class PermissionAction(StrEnum):

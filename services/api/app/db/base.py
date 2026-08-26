@@ -6,6 +6,7 @@ from app.models.lead import Lead  # noqa: E402, F401
 from app.models.appointment import Appointment  # noqa: E402, F401
 from app.models.transaction import Transaction  # noqa: E402, F401
 from app.models.service import Service  # noqa: E402, F401
+from app.models.service_category import ServiceCategory  # noqa: E402, F401
 from app.models.tag import Tag  # noqa: E402, F401
 from app.models.lead_tag import LeadTag  # noqa: E402, F401
 from app.models.lead_history import LeadHistory  # noqa: E402, F401

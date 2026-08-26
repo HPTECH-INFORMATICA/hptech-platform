@@ -5,6 +5,8 @@ from typing import Self
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from app.schemas.service_category import ServiceCategoryReference
+
 
 SERVICE_MAX_DURATION_MINUTES = 1440
 
@@ -17,7 +19,7 @@ class ServiceResponse(BaseModel):
     description: str | None
     duration_minutes: int
     price: Decimal
-    category: str | None
+    category: ServiceCategoryReference | None
     is_active: bool
     created_at: datetime
     updated_at: datetime
@@ -44,7 +46,7 @@ class ServiceCreate(BaseModel):
         max_digits=12,
         decimal_places=2,
     )
-    category: str | None = Field(default=None, max_length=80)
+    category_id: uuid.UUID | None = None
 
     @field_validator("name", mode="before")
     @classmethod
@@ -56,7 +58,7 @@ class ServiceCreate(BaseModel):
             return normalized
         return value
 
-    @field_validator("description", "category", mode="before")
+    @field_validator("description", mode="before")
     @classmethod
     def normalize_optional_text(cls, value: object) -> object:
         if isinstance(value, str):
@@ -80,7 +82,7 @@ class ServiceUpdate(BaseModel):
         max_digits=12,
         decimal_places=2,
     )
-    category: str | None = Field(default=None, max_length=80)
+    category_id: uuid.UUID | None = None
 
     @field_validator("name", mode="before")
     @classmethod
@@ -92,7 +94,7 @@ class ServiceUpdate(BaseModel):
             return normalized
         return value
 
-    @field_validator("description", "category", mode="before")
+    @field_validator("description", mode="before")
     @classmethod
     def normalize_optional_text(cls, value: object) -> object:
         if isinstance(value, str):

@@ -4,7 +4,7 @@ export type ServiceData = {
   description: string | null;
   duration_minutes: number;
   price: string;
-  category: string | null;
+  category: { id: string; name: string; is_active: boolean } | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -22,7 +22,7 @@ export type ServiceCreateInput = {
   description: string | null;
   duration_minutes: number;
   price: string;
-  category: string | null;
+  category_id: string | null;
 };
 
 export type ServiceUpdateInput = ServiceCreateInput;
