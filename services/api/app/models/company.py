@@ -120,3 +120,10 @@ class Company(
         cascade="all, delete-orphan",
         passive_deletes=True,
     )
+
+    patients = relationship(
+        "Patient",
+        back_populates="company",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )

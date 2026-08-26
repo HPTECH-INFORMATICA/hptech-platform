@@ -69,6 +69,36 @@ SERVICE_CATEGORIES_WRITE = Permission(
     ),
 )
 SERVICE_CATEGORIES_VIEW = Permission(PermissionModule.SERVICE_CATEGORIES, VIEW)
+PATIENTS_ALL = Permission(
+    PermissionModule.PATIENTS,
+    frozenset(
+        {
+            PermissionAction.VIEW,
+            PermissionAction.CREATE,
+            PermissionAction.UPDATE,
+            PermissionAction.DELETE,
+        }
+    ),
+)
+PATIENTS_WRITE = Permission(
+    PermissionModule.PATIENTS,
+    frozenset(
+        {
+            PermissionAction.VIEW,
+            PermissionAction.CREATE,
+            PermissionAction.UPDATE,
+        }
+    ),
+)
+PATIENTS_VIEW_UPDATE = Permission(
+    PermissionModule.PATIENTS,
+    frozenset({PermissionAction.VIEW, PermissionAction.UPDATE}),
+)
+PATIENTS_VIEW_CREATE = Permission(
+    PermissionModule.PATIENTS,
+    frozenset({PermissionAction.VIEW, PermissionAction.CREATE}),
+)
+PATIENTS_VIEW = Permission(PermissionModule.PATIENTS, VIEW)
 USERS_ADMIN = frozenset(
     {
         PermissionAction.VIEW,
@@ -91,6 +121,7 @@ ROLE_PERMISSIONS: dict[UserRole, tuple[Permission, ...]] = {
         AUDIT_VIEW,
         SERVICES_ALL,
         SERVICE_CATEGORIES_ALL,
+        PATIENTS_ALL,
     ),
     UserRole.ADMIN: (
         Permission(PermissionModule.DASHBOARD, VIEW),
@@ -101,36 +132,43 @@ ROLE_PERMISSIONS: dict[UserRole, tuple[Permission, ...]] = {
         AUDIT_VIEW,
         SERVICES_ALL,
         SERVICE_CATEGORIES_ALL,
+        PATIENTS_ALL,
     ),
     UserRole.MANAGER: (
         Permission(PermissionModule.DASHBOARD, VIEW),
         Permission(PermissionModule.CRM, CRM_WRITE),
         SERVICES_WRITE,
         SERVICE_CATEGORIES_WRITE,
+        PATIENTS_WRITE,
     ),
     UserRole.SALES: (
         Permission(PermissionModule.DASHBOARD, VIEW),
         Permission(PermissionModule.CRM, CRM_WRITE),
+        PATIENTS_VIEW_CREATE,
     ),
     UserRole.RECEPTIONIST: (
         Permission(PermissionModule.DASHBOARD, VIEW),
         Permission(PermissionModule.CRM, CRM_WRITE),
         SERVICES_VIEW,
         SERVICE_CATEGORIES_VIEW,
+        PATIENTS_WRITE,
     ),
     UserRole.PROFESSIONAL: (
         Permission(PermissionModule.DASHBOARD, VIEW),
         Permission(PermissionModule.CRM, VIEW),
         SERVICES_VIEW,
         SERVICE_CATEGORIES_VIEW,
+        PATIENTS_VIEW_UPDATE,
     ),
     UserRole.FINANCIAL: (
         Permission(PermissionModule.DASHBOARD, VIEW),
         Permission(PermissionModule.CRM, VIEW),
+        PATIENTS_VIEW,
     ),
     UserRole.VIEWER: (
         Permission(PermissionModule.DASHBOARD, VIEW),
         Permission(PermissionModule.CRM, VIEW),
+        PATIENTS_VIEW,
     ),
 }
 

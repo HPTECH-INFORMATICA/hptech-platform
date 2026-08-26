@@ -36,6 +36,7 @@ class PermissionModule(StrEnum):
     AUDIT = "AUDIT"
     SERVICES = "SERVICES"
     SERVICE_CATEGORIES = "SERVICE_CATEGORIES"
+    PATIENTS = "PATIENTS"
 
 
 class PermissionAction(StrEnum):

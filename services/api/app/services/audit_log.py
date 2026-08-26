@@ -37,6 +37,10 @@ SAFE_METADATA_KEYS: dict[str, frozenset[str]] = {
     "SERVICE_CATEGORY_UPDATED": frozenset({"fields"}),
     "SERVICE_CATEGORY_STATUS_CHANGED": frozenset({"from", "to"}),
     "SERVICE_CATEGORY_SOFT_DELETED": frozenset({"state"}),
+    "PATIENT_CREATED": frozenset({"state"}),
+    "PATIENT_UPDATED": frozenset({"fields"}),
+    "PATIENT_STATUS_CHANGED": frozenset({"from", "to"}),
+    "PATIENT_SOFT_DELETED": frozenset({"state"}),
 }
 
 

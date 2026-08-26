@@ -280,14 +280,18 @@ async def test_auth_me_returns_current_identity_without_sensitive_data(
             },
             {"module": "ACCESS_CONTROL", "actions": ["VIEW"]},
             {"module": "AUDIT", "actions": ["VIEW"]},
-                {
-                    "module": "SERVICES",
-                    "actions": ["CREATE", "DELETE", "UPDATE", "VIEW"],
-                },
-                {
-                    "module": "SERVICE_CATEGORIES",
-                    "actions": ["CREATE", "DELETE", "UPDATE", "VIEW"],
-                },
+            {
+                "module": "SERVICES",
+                "actions": ["CREATE", "DELETE", "UPDATE", "VIEW"],
+            },
+            {
+                "module": "SERVICE_CATEGORIES",
+                "actions": ["CREATE", "DELETE", "UPDATE", "VIEW"],
+            },
+            {
+                "module": "PATIENTS",
+                "actions": ["CREATE", "DELETE", "UPDATE", "VIEW"],
+            },
         ],
     }
     assert "password_hash" not in response.text
@@ -353,6 +357,15 @@ async def test_auth_me_returns_permissions_from_current_database_role(
         expected_permissions.append(
             {"module": "SERVICE_CATEGORIES", "actions": ["CREATE", "UPDATE", "VIEW"]}
         )
+
+    patient_actions = {
+        UserRole.OWNER: ["CREATE", "DELETE", "UPDATE", "VIEW"],
+        UserRole.MANAGER: ["CREATE", "UPDATE", "VIEW"],
+        UserRole.VIEWER: ["VIEW"],
+    }
+    expected_permissions.append(
+        {"module": "PATIENTS", "actions": patient_actions[role]}
+    )
 
     assert response.json()["permissions"] == expected_permissions
 
