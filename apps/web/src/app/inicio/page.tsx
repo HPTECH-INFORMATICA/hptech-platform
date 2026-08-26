@@ -16,6 +16,9 @@ export default async function StartPage() {
     hasPermission(user, "CRM", "VIEW")
       ? { label: "CRM", href: "/crm" }
       : null,
+    hasPermission(user, "SERVICES", "VIEW")
+      ? { label: "Serviços", href: "/servicos" }
+      : null,
     hasPermission(user, "COMPANY", "VIEW")
       ? { label: "Configurações", href: "/configuracoes" }
       : null,
