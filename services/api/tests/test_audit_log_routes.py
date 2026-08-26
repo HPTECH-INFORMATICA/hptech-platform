@@ -130,6 +130,11 @@ def test_all_supported_event_metadata_excludes_forbidden_keys() -> None:
         "SERVICE_CATEGORY_UPDATED": {"fields": ["name"]},
         "SERVICE_CATEGORY_STATUS_CHANGED": {"from": "ACTIVE", "to": "INACTIVE"},
         "SERVICE_CATEGORY_SOFT_DELETED": {"state": "DELETED"},
+        "LEAD_SOFT_DELETED": {"state": "DELETED"},
+        "PATIENT_CREATED": {"state": "ACTIVE"},
+        "PATIENT_UPDATED": {"fields": ["email"]},
+        "PATIENT_STATUS_CHANGED": {"from": "ACTIVE", "to": "INACTIVE"},
+        "PATIENT_SOFT_DELETED": {"state": "DELETED"},
     }
     for action, sample in safe_samples.items():
         metadata = sanitize_audit_metadata(action, {**sample, **unsafe})

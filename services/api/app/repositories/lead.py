@@ -1,13 +1,24 @@
 import uuid
+from datetime import datetime, timezone
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+from sqlalchemy.sql.elements import ColumnElement
 
 from app.models.lead import Lead
 from app.schemas.lead import LeadCreate, LeadUpdate
 
 
 class LeadRepository:
+    @staticmethod
+    def _operational_filters(
+        company_id: uuid.UUID,
+    ) -> tuple[ColumnElement[bool], ColumnElement[bool]]:
+        return (
+            Lead.company_id == company_id,
+            Lead.deleted_at.is_(None),
+        )
+
     @staticmethod
     def create(
         db: Session,
@@ -34,7 +45,7 @@ class LeadRepository:
         statement = (
             select(Lead)
             .where(
-                Lead.company_id == company_id,
+                *LeadRepository._operational_filters(company_id),
                 Lead.id == lead_id,
             )
         )
@@ -51,7 +62,7 @@ class LeadRepository:
         statement = (
             select(Lead)
             .where(
-                Lead.company_id == company_id,
+                *LeadRepository._operational_filters(company_id),
             )
             .order_by(Lead.created_at.desc())
         )
@@ -77,9 +88,10 @@ class LeadRepository:
         return lead
 
     @staticmethod
-    def delete(
+    def soft_delete(
         db: Session,
         lead: Lead,
     ) -> None:
-        db.delete(lead)
+        lead.deleted_at = datetime.now(timezone.utc)
         db.flush()
+        db.refresh(lead)

@@ -1,4 +1,5 @@
 from collections.abc import AsyncIterator
+from datetime import datetime, timezone
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 from uuid import UUID, uuid4
@@ -13,11 +14,15 @@ from app.db.session import get_db
 from app.dependencies.auth import get_current_user
 from app.main import app
 from app.models.company import Company
+from app.models.lead import Lead
 from app.models.user import User
+from app.repositories.audit_log import AuditLogRepository
+from app.repositories.lead import LeadRepository
 from app.repositories.lead_history import LeadHistoryRepository
 from app.repositories.user import UserRepository
 from app.services.lead import LeadService
 from app.services.lead_history import LeadHistoryService
+from app.services.audit_log import sanitize_audit_metadata
 
 
 pytestmark = pytest.mark.anyio
@@ -254,6 +259,24 @@ async def test_create_rejects_company_id_as_unknown_input(client: AsyncClient) -
     assert response.status_code == 422
 
 
+@pytest.mark.parametrize(
+    "field",
+    ["id", "company_id", "created_at", "updated_at", "deleted_at"],
+)
+async def test_create_rejects_protected_lead_fields(
+    client: AsyncClient,
+    field: str,
+) -> None:
+    authenticate_as(make_identity())
+
+    response = await client.post(
+        "/api/v1/leads",
+        json={"name": "Lead", field: str(uuid4())},
+    )
+
+    assert response.status_code == 422
+
+
 def test_openapi_has_no_company_id_input_contract() -> None:
     schema = app.openapi()
     protected_operations = [
@@ -469,3 +492,100 @@ def test_service_pipeline_writes_authenticated_user_to_history(
     assert getattr(history, "company_id") == company_id
     assert getattr(history, "user_id") == authenticated_user_id
     assert getattr(history, "lead_id") == lead.id
+
+
+def make_lead(company_id: UUID) -> Lead:
+    now = datetime.now(timezone.utc)
+    return Lead(
+        id=uuid4(),
+        company_id=company_id,
+        name="Lead Exemplo",
+        pipeline_status="NEW",
+        created_at=now,
+        updated_at=now,
+        deleted_at=None,
+    )
+
+
+def test_repository_operational_queries_exclude_soft_deleted_leads() -> None:
+    db = MagicMock()
+    db.execute.return_value.scalar_one_or_none.return_value = None
+    db.execute.return_value.scalars.return_value.all.return_value = []
+    company_id = uuid4()
+
+    LeadRepository.get_by_id(db, company_id, uuid4())
+    detail_statement = str(db.execute.call_args.args[0])
+    LeadRepository.list(db, company_id)
+    list_statement = str(db.execute.call_args.args[0])
+
+    for statement in (detail_statement, list_statement):
+        assert "leads.company_id" in statement
+        assert "leads.deleted_at IS NULL" in statement
+
+
+def test_soft_delete_preserves_lead_and_historical_relationships(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    company_id = uuid4()
+    user_id = uuid4()
+    lead = make_lead(company_id)
+    appointment = SimpleNamespace(lead_id=lead.id)
+    history_rows = [SimpleNamespace(lead_id=lead.id)]
+    tag_rows = [SimpleNamespace(lead_id=lead.id)]
+    db = MagicMock()
+    history_create = MagicMock()
+    audit_add = MagicMock()
+    monkeypatch.setattr(LeadHistoryRepository, "create", history_create)
+    monkeypatch.setattr(AuditLogRepository, "add", audit_add)
+
+    LeadService.delete(db, lead, user_id)
+
+    assert lead.deleted_at is not None
+    assert appointment.lead_id == lead.id
+    assert history_rows[0].lead_id == lead.id
+    assert tag_rows[0].lead_id == lead.id
+    db.delete.assert_not_called()
+    history = history_create.call_args.args[4]
+    assert history.action == "LEAD_SOFT_DELETED"
+    assert history.previous_value is None
+    assert history.new_value is None
+    assert audit_add.call_args.kwargs["details"] == {"state": "DELETED"}
+
+
+async def test_delete_uses_authenticated_actor_and_repeated_delete_is_not_found(
+    client: AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    identity = make_identity()
+    lead = make_lead(identity.company.id)
+    authenticate_as(identity)
+    delete_service = MagicMock()
+    calls = 0
+
+    def get_operational(*_args):
+        nonlocal calls
+        calls += 1
+        return lead if calls == 1 else None
+
+    monkeypatch.setattr(LeadService, "get_by_id", get_operational)
+    monkeypatch.setattr(LeadService, "delete", delete_service)
+
+    first = await client.delete(f"/api/v1/leads/{lead.id}")
+    second = await client.delete(f"/api/v1/leads/{lead.id}")
+
+    assert first.status_code == 204
+    assert second.status_code == 404
+    assert delete_service.call_args.args[2] == identity.user.id
+
+
+def test_lead_soft_delete_audit_metadata_is_sanitized() -> None:
+    assert sanitize_audit_metadata(
+        "LEAD_SOFT_DELETED",
+        {
+            "state": "DELETED",
+            "name": "private",
+            "email": "private@example.com",
+            "phone": "private",
+            "notes": "private",
+        },
+    ) == {"state": "DELETED"}

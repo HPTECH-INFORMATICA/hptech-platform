@@ -157,6 +157,7 @@ def delete_lead(
     LeadService.delete(
         db,
         lead,
+        identity.user.id,
     )
 
     db.commit()

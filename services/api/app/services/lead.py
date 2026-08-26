@@ -4,6 +4,7 @@ import uuid
 from sqlalchemy.orm import Session
 
 from app.models.lead import Lead
+from app.repositories.audit_log import AuditLogRepository
 from app.repositories.lead import LeadRepository
 from app.repositories.lead_history import LeadHistoryRepository
 from app.schemas.lead import (
@@ -120,8 +121,31 @@ class LeadService:
     def delete(
         db: Session,
         lead: Lead,
+        user_id: uuid.UUID,
     ) -> None:
-        LeadRepository.delete(
+        LeadRepository.soft_delete(
             db,
             lead,
+        )
+        LeadHistoryRepository.create(
+            db,
+            lead.company_id,
+            lead.id,
+            user_id,
+            LeadHistoryCreate(
+                company_id=lead.company_id,
+                lead_id=lead.id,
+                user_id=user_id,
+                action="LEAD_SOFT_DELETED",
+                description="Lead removido da operação",
+            ),
+        )
+        AuditLogRepository.add(
+            db,
+            company_id=lead.company_id,
+            actor_user_id=user_id,
+            target_type="LEAD",
+            target_id=lead.id,
+            action="LEAD_SOFT_DELETED",
+            details={"state": "DELETED"},
         )
