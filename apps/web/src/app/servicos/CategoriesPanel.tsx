@@ -127,7 +127,7 @@ export default function CategoriesPanel({ currentUser }: { currentUser: CurrentU
     finally { setSaving(false); }
   }
 
-  const actions = (item: ServiceCategoryData) => hasActions ? <div className="flex flex-wrap gap-2">{canUpdate ? <Button size="sm" variant="ghost" onClick={() => openEdit(item)}>Editar</Button> : null}{canUpdate ? <Button size="sm" variant="outline" onClick={() => setStatusTarget(item)}>{item.is_active ? "Desativar" : "Reativar"}</Button> : null}{canDelete ? <Button size="sm" variant="danger" onClick={() => setDeleteTarget(item)}>Remover</Button> : null}</div> : null;
+  const actions = (item: ServiceCategoryData) => hasActions ? <div className="flex flex-wrap items-center gap-2">{canUpdate ? <Button size="sm" variant="ghost" onClick={() => openEdit(item)}>Editar</Button> : null}{canUpdate ? <Button size="sm" variant="outline" onClick={() => setStatusTarget(item)}>{item.is_active ? "Desativar" : "Reativar"}</Button> : null}{canDelete ? <div className="space-y-1"><Button size="sm" variant="danger" disabled={item.has_services} aria-describedby={item.has_services ? `category-${item.id}-remove-help` : undefined} onClick={() => { if (!item.has_services) setDeleteTarget(item); }}>Remover</Button>{item.has_services ? <p id={`category-${item.id}-remove-help`} className="max-w-52 text-xs text-hp-muted">Esta categoria possui serviços vinculados e não pode ser removida.</p> : null}</div> : null}</div> : null;
 
   return <div className="space-y-6">
     <div className="flex justify-end">{canCreate ? <Button onClick={openCreate}>Nova categoria</Button> : null}</div>

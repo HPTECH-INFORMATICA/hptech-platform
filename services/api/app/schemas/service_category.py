@@ -27,6 +27,7 @@ class ServiceCategoryResponse(BaseModel):
     name: str
     description: str | None
     is_active: bool
+    has_services: bool
     created_at: datetime
     updated_at: datetime
 

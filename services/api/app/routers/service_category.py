@@ -17,6 +17,7 @@ from app.schemas.service_category import (
 from app.services.service_category import (
     ServiceCategoryConflictError,
     ServiceCategoryDomain,
+    ServiceCategoryInUseError,
     ServiceCategoryNotFoundError,
     ServiceCategoryPersistenceError,
 )
@@ -34,6 +35,11 @@ def translate(error: Exception) -> None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Categoria não encontrada.") from error
     if isinstance(error, ServiceCategoryConflictError):
         raise HTTPException(status.HTTP_409_CONFLICT, "Já existe uma categoria com esse nome.") from error
+    if isinstance(error, ServiceCategoryInUseError):
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            "A categoria possui serviços vinculados e não pode ser removida.",
+        ) from error
     if isinstance(error, ServiceCategoryPersistenceError):
         raise HTTPException(status.HTTP_409_CONFLICT, "Não foi possível persistir a categoria.") from error
     raise error
@@ -91,5 +97,5 @@ def change_category_status(category_id: uuid.UUID, data: ServiceCategoryStatusUp
 def delete_category(category_id: uuid.UUID, identity: Annotated[AuthenticatedIdentity, Depends(require_delete)], db: Annotated[Session, Depends(get_db)]) -> None:
     try:
         ServiceCategoryDomain.soft_delete(db, identity, category_id)
-    except (ServiceCategoryNotFoundError, ServiceCategoryPersistenceError) as error:
+    except (ServiceCategoryNotFoundError, ServiceCategoryInUseError, ServiceCategoryPersistenceError) as error:
         translate(error)

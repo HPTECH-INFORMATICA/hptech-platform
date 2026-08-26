@@ -1,13 +1,23 @@
 import uuid
 
-from sqlalchemy import func, select
-from sqlalchemy.orm import Session
+from sqlalchemy import exists, func, select
+from sqlalchemy.orm import Session, with_expression
 
+from app.models.service import Service
 from app.models.service_category import ServiceCategory
 from app.schemas.service_category import ServiceCategoryCreate
 
 
 class ServiceCategoryRepository:
+    @staticmethod
+    def _has_services_expression(company_id: uuid.UUID):
+        return exists(
+            select(Service.id).where(
+                Service.company_id == company_id,
+                Service.category_id == ServiceCategory.id,
+            )
+        )
+
     @staticmethod
     def create(db: Session, company_id: uuid.UUID, data: ServiceCategoryCreate) -> ServiceCategory:
         category = ServiceCategory(company_id=company_id, is_active=True, **data.model_dump())
@@ -24,7 +34,12 @@ class ServiceCategoryRepository:
         for_update: bool = False,
         active_only: bool = False,
     ) -> ServiceCategory | None:
-        statement = select(ServiceCategory).where(
+        statement = select(ServiceCategory).options(
+            with_expression(
+                ServiceCategory.has_services,
+                ServiceCategoryRepository._has_services_expression(company_id),
+            )
+        ).where(
             ServiceCategory.company_id == company_id,
             ServiceCategory.id == category_id,
             ServiceCategory.deleted_at.is_(None),
@@ -34,6 +49,20 @@ class ServiceCategoryRepository:
         if for_update:
             statement = statement.with_for_update()
         return db.execute(statement).scalar_one_or_none()
+
+    @staticmethod
+    def has_linked_services(
+        db: Session,
+        company_id: uuid.UUID,
+        category_id: uuid.UUID,
+    ) -> bool:
+        statement = select(
+            exists().where(
+                Service.company_id == company_id,
+                Service.category_id == category_id,
+            )
+        )
+        return bool(db.scalar(statement))
 
     @staticmethod
     def list_by_company(
@@ -56,6 +85,12 @@ class ServiceCategoryRepository:
         total = db.scalar(select(func.count()).select_from(ServiceCategory).where(*filters)) or 0
         statement = (
             select(ServiceCategory)
+            .options(
+                with_expression(
+                    ServiceCategory.has_services,
+                    ServiceCategoryRepository._has_services_expression(company_id),
+                )
+            )
             .where(*filters)
             .order_by(ServiceCategory.name.asc(), ServiceCategory.id.asc())
             .offset((page - 1) * page_size)

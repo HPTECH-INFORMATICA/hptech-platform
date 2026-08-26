@@ -91,7 +91,11 @@ class ServiceDomain:
         data: ServiceCreate,
     ) -> Service:
         if data.category_id is not None and ServiceCategoryRepository.get_by_id(
-            db, identity.company.id, data.category_id, active_only=True
+            db,
+            identity.company.id,
+            data.category_id,
+            for_update=True,
+            active_only=True,
         ) is None:
             raise ServiceCategoryUnavailableError
         try:
@@ -129,7 +133,11 @@ class ServiceDomain:
 
         if "category_id" in data.model_fields_set and data.category_id is not None:
             if ServiceCategoryRepository.get_by_id(
-                db, identity.company.id, data.category_id, active_only=True
+                db,
+                identity.company.id,
+                data.category_id,
+                for_update=True,
+                active_only=True,
             ) is None:
                 raise ServiceCategoryUnavailableError
 

@@ -25,6 +25,10 @@ class ServiceCategoryConflictError(RuntimeError):
     pass
 
 
+class ServiceCategoryInUseError(RuntimeError):
+    pass
+
+
 class ServiceCategoryPersistenceError(RuntimeError):
     pass
 
@@ -120,6 +124,11 @@ class ServiceCategoryDomain:
         category = ServiceCategoryRepository.get_by_id(db, identity.company.id, category_id, for_update=True)
         if category is None:
             raise ServiceCategoryNotFoundError
+        if ServiceCategoryRepository.has_linked_services(
+            db, identity.company.id, category.id
+        ):
+            db.rollback()
+            raise ServiceCategoryInUseError
         category.is_active = False
         category.deleted_at = datetime.now(timezone.utc)
         AuditLogRepository.add(

@@ -3,6 +3,7 @@ export type ServiceCategoryData = {
   name: string;
   description: string | null;
   is_active: boolean;
+  has_services: boolean;
   created_at: string;
   updated_at: string;
 };

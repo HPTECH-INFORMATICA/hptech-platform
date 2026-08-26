@@ -1,5 +1,6 @@
 from collections.abc import AsyncIterator
 from datetime import datetime, timezone
+from decimal import Decimal
 from unittest.mock import MagicMock
 from uuid import uuid4
 
@@ -13,11 +14,16 @@ from app.dependencies.auth import get_current_user
 from app.main import app
 from app.models.company import Company
 from app.models.service_category import ServiceCategory
+from app.models.service import Service
 from app.models.user import User
 from app.repositories.audit_log import AuditLogRepository
 from app.repositories.service_category import ServiceCategoryRepository
 from app.schemas.service_category import ServiceCategoryCreate, ServiceCategoryStatusUpdate, ServiceCategoryUpdate
-from app.services.service_category import ServiceCategoryDomain, ServiceCategoryNotFoundError
+from app.services.service_category import (
+    ServiceCategoryDomain,
+    ServiceCategoryInUseError,
+    ServiceCategoryNotFoundError,
+)
 
 
 pytestmark = pytest.mark.anyio
@@ -110,6 +116,7 @@ def test_status_and_soft_delete_preserve_category(monkeypatch: pytest.MonkeyPatc
     db = MagicMock()
     audit = MagicMock()
     monkeypatch.setattr(ServiceCategoryRepository, "get_by_id", lambda *_args, **_kwargs: category)
+    monkeypatch.setattr(ServiceCategoryRepository, "has_linked_services", lambda *_args, **_kwargs: False)
     monkeypatch.setattr(AuditLogRepository, "add", audit)
     ServiceCategoryDomain.change_status(db, identity, category.id, ServiceCategoryStatusUpdate(is_active=False))
     assert category.is_active is False
@@ -118,6 +125,121 @@ def test_status_and_soft_delete_preserve_category(monkeypatch: pytest.MonkeyPatc
     assert category.deleted_at is not None
     assert category.is_active is False
     db.delete.assert_not_called()
+
+
+def test_repeated_status_cycles_preserve_linked_service_and_audit_once_per_change(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    identity = make_identity()
+    category = make_category(identity)
+    service = Service(
+        id=uuid4(),
+        company_id=identity.company.id,
+        name="Avaliação Capilar",
+        description=None,
+        duration_minutes=60,
+        price=Decimal("100.00"),
+        category_id=category.id,
+        is_active=False,
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
+        deleted_at=datetime.now(timezone.utc),
+    )
+    service_snapshot = (service.category_id, service.is_active, service.deleted_at)
+    db = MagicMock()
+    audit = MagicMock()
+    monkeypatch.setattr(ServiceCategoryRepository, "get_by_id", lambda *_args, **_kwargs: category)
+    monkeypatch.setattr(AuditLogRepository, "add", audit)
+
+    for desired_status in [False, True] * 5:
+        result = ServiceCategoryDomain.change_status(
+            db,
+            identity,
+            category.id,
+            ServiceCategoryStatusUpdate(is_active=desired_status),
+        )
+        assert result.is_active is desired_status
+
+    assert (service.category_id, service.is_active, service.deleted_at) == service_snapshot
+    assert audit.call_count == 10
+    assert db.commit.call_count == 10
+
+    ServiceCategoryDomain.change_status(
+        db,
+        identity,
+        category.id,
+        ServiceCategoryStatusUpdate(is_active=True),
+    )
+    assert audit.call_count == 10
+    assert db.commit.call_count == 10
+
+
+@pytest.mark.parametrize(
+    ("service_state", "category_active"),
+    [
+        ("active", True),
+        ("inactive", True),
+        ("soft-deleted", True),
+        ("active", False),
+    ],
+)
+def test_soft_delete_is_blocked_for_every_linked_service_state(
+    monkeypatch: pytest.MonkeyPatch,
+    service_state: str,
+    category_active: bool,
+) -> None:
+    identity = make_identity()
+    category = make_category(identity, is_active=category_active)
+    db = MagicMock()
+    audit = MagicMock()
+    monkeypatch.setattr(ServiceCategoryRepository, "get_by_id", lambda *_args, **_kwargs: category)
+    linked = MagicMock(return_value=True)
+    monkeypatch.setattr(ServiceCategoryRepository, "has_linked_services", linked)
+    monkeypatch.setattr(AuditLogRepository, "add", audit)
+
+    with pytest.raises(ServiceCategoryInUseError):
+        ServiceCategoryDomain.soft_delete(db, identity, category.id)
+
+    assert service_state in {"active", "inactive", "soft-deleted"}
+    linked.assert_called_once_with(db, identity.company.id, category.id)
+    assert category.deleted_at is None
+    assert category.is_active is category_active
+    audit.assert_not_called()
+    db.commit.assert_not_called()
+    db.rollback.assert_called_once()
+
+
+def test_has_linked_services_is_tenant_scoped_and_includes_deleted() -> None:
+    db = MagicMock()
+    db.scalar.return_value = True
+    company_id = uuid4()
+    category_id = uuid4()
+
+    assert ServiceCategoryRepository.has_linked_services(db, company_id, category_id) is True
+
+    statement = str(db.scalar.call_args.args[0])
+    assert "services.company_id" in statement
+    assert "services.category_id" in statement
+    assert "services.deleted_at" not in statement
+
+
+async def test_delete_linked_category_returns_sanitized_conflict(
+    client: AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    app.dependency_overrides[get_current_user] = lambda: make_identity()
+    monkeypatch.setattr(
+        ServiceCategoryDomain,
+        "soft_delete",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(ServiceCategoryInUseError()),
+    )
+
+    response = await client.delete(f"/api/v1/service-categories/{uuid4()}")
+
+    assert response.status_code == 409
+    assert response.json() == {
+        "detail": "A categoria possui serviços vinculados e não pode ser removida."
+    }
 
 
 def test_repository_contract_is_tenant_scoped_and_excludes_deleted() -> None:
