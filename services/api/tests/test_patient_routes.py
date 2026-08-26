@@ -29,6 +29,7 @@ from app.services.audit_log import sanitize_audit_metadata
 from app.services.permissions import effective_permissions
 from app.services.patient import (
     PatientDomain,
+    PatientLinkedLeadConflictError,
     PatientNotFoundError,
     PatientPersistenceError,
 )
@@ -184,6 +185,21 @@ async def test_viewer_can_list_but_cannot_create(
     ).status_code == 403
 
 
+async def test_delete_linked_patient_returns_conflict(
+    client: AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    app.dependency_overrides[get_current_user] = lambda: make_identity()
+
+    def conflict(*_args):
+        raise PatientLinkedLeadConflictError
+
+    monkeypatch.setattr(PatientDomain, "soft_delete", conflict)
+    response = await client.delete(f"/api/v1/patients/{uuid4()}")
+    assert response.status_code == 409
+    assert "vinculado" in response.json()["detail"]
+
+
 @pytest.mark.parametrize(
     "extra",
     [
@@ -337,6 +353,7 @@ def test_status_change_and_soft_delete_are_audited(
     db = MagicMock()
     audit = MagicMock()
     monkeypatch.setattr(PatientRepository, "get_by_id", lambda *_args, **_kwargs: patient)
+    monkeypatch.setattr(PatientRepository, "has_linked_leads", lambda *_args: False)
     monkeypatch.setattr(AuditLogRepository, "add", audit)
 
     PatientDomain.change_status(
@@ -364,6 +381,47 @@ def test_transaction_rolls_back_on_commit_failure(
     with pytest.raises(PatientPersistenceError):
         PatientDomain.create(db, identity, PatientCreate(name="Pessoa Exemplo"))
     db.rollback.assert_called_once()
+
+
+@pytest.mark.parametrize(
+    "patient_values",
+    [
+        {},
+        {"is_active": False},
+    ],
+)
+def test_patient_linked_to_active_or_soft_deleted_lead_cannot_be_deleted(
+    monkeypatch: pytest.MonkeyPatch,
+    patient_values: dict,
+) -> None:
+    identity = make_identity()
+    patient = make_patient(identity, **patient_values)
+    db = MagicMock()
+    audit = MagicMock()
+    monkeypatch.setattr(PatientRepository, "get_by_id", lambda *_args, **_kwargs: patient)
+    monkeypatch.setattr(PatientRepository, "has_linked_leads", lambda *_args: True)
+    monkeypatch.setattr(AuditLogRepository, "add", audit)
+
+    with pytest.raises(PatientLinkedLeadConflictError):
+        PatientDomain.soft_delete(db, identity, patient.id)
+    assert patient.deleted_at is None
+    audit.assert_not_called()
+    db.commit.assert_not_called()
+
+
+def test_patient_without_link_can_still_be_soft_deleted(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    identity = make_identity()
+    patient = make_patient(identity)
+    db = MagicMock()
+    monkeypatch.setattr(PatientRepository, "get_by_id", lambda *_args, **_kwargs: patient)
+    monkeypatch.setattr(PatientRepository, "has_linked_leads", lambda *_args: False)
+    monkeypatch.setattr(AuditLogRepository, "add", lambda *_args, **_kwargs: None)
+
+    PatientDomain.soft_delete(db, identity, patient.id)
+    assert patient.deleted_at is not None
+    db.commit.assert_called_once()
 
 
 def test_repository_queries_are_tenant_scoped_and_exclude_deleted() -> None:

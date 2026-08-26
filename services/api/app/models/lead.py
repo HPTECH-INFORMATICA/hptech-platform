@@ -1,7 +1,7 @@
 import uuid
 from datetime import date
 
-from sqlalchemy import Date, ForeignKey, String, Text
+from sqlalchemy import Date, ForeignKey, ForeignKeyConstraint, String, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -20,11 +20,25 @@ class Lead(
     Base,
 ):
     __tablename__ = "leads"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["company_id", "patient_id"],
+            ["patients.company_id", "patients.id"],
+            ondelete="RESTRICT",
+            name="fk_leads_company_patient",
+        ),
+    )
 
     company_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("companies.id", ondelete="CASCADE"),
         nullable=False,
+        index=True,
+    )
+
+    patient_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        nullable=True,
         index=True,
     )
 
@@ -80,6 +94,12 @@ class Lead(
     company = relationship(
         "Company",
         back_populates="leads",
+    )
+
+    patient = relationship(
+        "Patient",
+        back_populates="leads",
+        foreign_keys=[patient_id],
     )
 
     appointments = relationship(

@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 from sqlalchemy.sql.elements import ColumnElement
 
@@ -41,6 +41,8 @@ class LeadRepository:
         db: Session,
         company_id: uuid.UUID,
         lead_id: uuid.UUID,
+        *,
+        for_update: bool = False,
     ) -> Lead | None:
         statement = (
             select(Lead)
@@ -49,10 +51,30 @@ class LeadRepository:
                 Lead.id == lead_id,
             )
         )
+        if for_update:
+            statement = statement.with_for_update()
 
         result = db.execute(statement)
 
         return result.scalar_one_or_none()
+
+    @staticmethod
+    def has_appointments(
+        db: Session,
+        company_id: uuid.UUID,
+        lead_id: uuid.UUID,
+    ) -> bool:
+        from app.models.appointment import Appointment
+
+        count = db.scalar(
+            select(func.count())
+            .select_from(Appointment)
+            .where(
+                Appointment.company_id == company_id,
+                Appointment.lead_id == lead_id,
+            )
+        )
+        return bool(count)
 
     @staticmethod
     def list(

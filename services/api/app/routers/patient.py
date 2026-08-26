@@ -16,6 +16,7 @@ from app.schemas.patient import (
 )
 from app.services.patient import (
     PatientDomain,
+    PatientLinkedLeadConflictError,
     PatientNotFoundError,
     PatientPersistenceError,
 )
@@ -38,6 +39,11 @@ def translate_patient_error(error: Exception) -> None:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail="Não foi possível persistir o paciente.",
+        ) from error
+    if isinstance(error, PatientLinkedLeadConflictError):
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Paciente vinculado a Lead não pode ser removido.",
         ) from error
     raise error
 
@@ -129,5 +135,9 @@ def delete_patient(
 ) -> None:
     try:
         PatientDomain.soft_delete(db, identity, patient_id)
-    except (PatientNotFoundError, PatientPersistenceError) as error:
+    except (
+        PatientNotFoundError,
+        PatientLinkedLeadConflictError,
+        PatientPersistenceError,
+    ) as error:
         translate_patient_error(error)

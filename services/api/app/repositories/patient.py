@@ -70,3 +70,21 @@ class PatientRepository:
             .limit(page_size)
         )
         return list(db.execute(statement).scalars().all()), total
+
+    @staticmethod
+    def has_linked_leads(
+        db: Session,
+        company_id: uuid.UUID,
+        patient_id: uuid.UUID,
+    ) -> bool:
+        from app.models.lead import Lead
+
+        count = db.scalar(
+            select(func.count())
+            .select_from(Lead)
+            .where(
+                Lead.company_id == company_id,
+                Lead.patient_id == patient_id,
+            )
+        )
+        return bool(count)

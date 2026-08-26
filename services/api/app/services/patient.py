@@ -25,6 +25,10 @@ class PatientPersistenceError(RuntimeError):
     pass
 
 
+class PatientLinkedLeadConflictError(RuntimeError):
+    pass
+
+
 class PatientDomain:
     @staticmethod
     def _commit(db: Session, patient: Patient) -> Patient:
@@ -170,6 +174,14 @@ class PatientDomain:
         )
         if patient is None:
             raise PatientNotFoundError
+
+        if PatientRepository.has_linked_leads(
+            db,
+            identity.company.id,
+            patient.id,
+        ):
+            db.rollback()
+            raise PatientLinkedLeadConflictError
 
         patient.is_active = False
         patient.deleted_at = datetime.now(timezone.utc)

@@ -558,6 +558,8 @@ async def test_delete_uses_authenticated_actor_and_repeated_delete_is_not_found(
 ) -> None:
     identity = make_identity()
     lead = make_lead(identity.company.id)
+    db = MagicMock()
+    app.dependency_overrides[get_db] = lambda: db
     authenticate_as(identity)
     delete_service = MagicMock()
     calls = 0
@@ -576,6 +578,7 @@ async def test_delete_uses_authenticated_actor_and_repeated_delete_is_not_found(
     assert first.status_code == 204
     assert second.status_code == 404
     assert delete_service.call_args.args[2] == identity.user.id
+    db.commit.assert_called_once()
 
 
 def test_lead_soft_delete_audit_metadata_is_sanitized() -> None:

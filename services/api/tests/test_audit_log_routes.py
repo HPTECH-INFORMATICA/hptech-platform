@@ -135,6 +135,12 @@ def test_all_supported_event_metadata_excludes_forbidden_keys() -> None:
         "PATIENT_UPDATED": {"fields": ["email"]},
         "PATIENT_STATUS_CHANGED": {"from": "ACTIVE", "to": "INACTIVE"},
         "PATIENT_SOFT_DELETED": {"state": "DELETED"},
+        "PATIENT_CREATED_FROM_LEAD": {
+            "lead_id": str(uuid4()),
+            "state": "ACTIVE",
+        },
+        "LEAD_LINKED_TO_PATIENT": {"patient_id": str(uuid4())},
+        "LEAD_UNLINKED_FROM_PATIENT": {"patient_id": str(uuid4())},
     }
     for action, sample in safe_samples.items():
         metadata = sanitize_audit_metadata(action, {**sample, **unsafe})
