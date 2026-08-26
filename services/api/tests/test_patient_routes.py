@@ -272,7 +272,55 @@ def test_create_is_tenant_scoped_and_audited(
     assert repository.call_args.args[1] == identity.company.id
     assert audit.call_args.kwargs["action"] == "PATIENT_CREATED"
     assert audit.call_args.kwargs["details"] == {"state": "ACTIVE"}
+    assert patient.has_leads is False
     db.commit.assert_called_once()
+
+
+def test_list_exposes_tenant_scoped_link_state_in_one_batch(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    identity = make_identity()
+    linked = make_patient(identity)
+    unlinked = make_patient(identity)
+    db = MagicMock()
+    monkeypatch.setattr(
+        PatientRepository,
+        "list_by_company",
+        lambda *_args, **_kwargs: ([linked, unlinked], 2),
+    )
+    linked_ids = MagicMock(return_value={linked.id})
+    monkeypatch.setattr(PatientRepository, "linked_patient_ids", linked_ids)
+
+    result = PatientDomain.list(
+        db,
+        identity,
+        page=1,
+        page_size=20,
+        search=None,
+        is_active=None,
+    )
+
+    assert linked.has_leads is True
+    assert unlinked.has_leads is False
+    assert result.total == 2
+    assert linked_ids.call_args.args[1] == identity.company.id
+    assert linked_ids.call_args.args[2] == [linked.id, unlinked.id]
+
+
+def test_detail_exposes_link_state(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    identity = make_identity()
+    patient = make_patient(identity)
+    monkeypatch.setattr(
+        PatientRepository, "get_by_id", lambda *_args, **_kwargs: patient
+    )
+    monkeypatch.setattr(
+        PatientRepository, "has_linked_leads", lambda *_args: True
+    )
+
+    assert PatientDomain.detail(MagicMock(), identity, patient.id) is patient
+    assert patient.has_leads is True
 
 
 def test_cross_tenant_operations_return_not_found(

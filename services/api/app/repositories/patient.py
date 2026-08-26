@@ -88,3 +88,25 @@ class PatientRepository:
             )
         )
         return bool(count)
+
+    @staticmethod
+    def linked_patient_ids(
+        db: Session,
+        company_id: uuid.UUID,
+        patient_ids: list[uuid.UUID],
+    ) -> set[uuid.UUID]:
+        if not patient_ids:
+            return set()
+
+        from app.models.lead import Lead
+
+        return set(
+            db.execute(
+                select(Lead.patient_id)
+                .where(
+                    Lead.company_id == company_id,
+                    Lead.patient_id.in_(patient_ids),
+                )
+                .distinct()
+            ).scalars()
+        )

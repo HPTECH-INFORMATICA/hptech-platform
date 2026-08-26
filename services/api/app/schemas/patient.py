@@ -20,6 +20,7 @@ class PatientResponse(BaseModel):
     document: str | None
     birth_date: date | None
     is_active: bool
+    has_leads: bool = False
     created_at: datetime
     updated_at: datetime
 

@@ -31,6 +31,19 @@ class PatientLinkedLeadConflictError(RuntimeError):
 
 class PatientDomain:
     @staticmethod
+    def _set_link_state(
+        db: Session,
+        identity: AuthenticatedIdentity,
+        patient: Patient,
+    ) -> Patient:
+        patient.has_leads = PatientRepository.has_linked_leads(
+            db,
+            identity.company.id,
+            patient.id,
+        )
+        return patient
+
+    @staticmethod
     def _commit(db: Session, patient: Patient) -> Patient:
         try:
             db.commit()
@@ -58,6 +71,13 @@ class PatientDomain:
             search=search,
             is_active=is_active,
         )
+        linked_ids = PatientRepository.linked_patient_ids(
+            db,
+            identity.company.id,
+            [item.id for item in items],
+        )
+        for item in items:
+            item.has_leads = item.id in linked_ids
         return PatientListResponse(
             items=[PatientResponse.model_validate(item) for item in items],
             total=total,
@@ -74,7 +94,7 @@ class PatientDomain:
         patient = PatientRepository.get_by_id(db, identity.company.id, patient_id)
         if patient is None:
             raise PatientNotFoundError
-        return patient
+        return PatientDomain._set_link_state(db, identity, patient)
 
     @classmethod
     def create(
@@ -97,7 +117,9 @@ class PatientDomain:
         except SQLAlchemyError as error:
             db.rollback()
             raise PatientPersistenceError from error
-        return cls._commit(db, patient)
+        patient = cls._commit(db, patient)
+        patient.has_leads = False
+        return patient
 
     @classmethod
     def update(
@@ -119,7 +141,7 @@ class PatientDomain:
                 setattr(patient, field, value)
                 changed.append(field)
         if not changed:
-            return patient
+            return cls._set_link_state(db, identity, patient)
 
         AuditLogRepository.add(
             db,
@@ -130,7 +152,7 @@ class PatientDomain:
             action="PATIENT_UPDATED",
             details={"fields": changed},
         )
-        return cls._commit(db, patient)
+        return cls._set_link_state(db, identity, cls._commit(db, patient))
 
     @classmethod
     def change_status(
@@ -146,7 +168,7 @@ class PatientDomain:
         if patient is None:
             raise PatientNotFoundError
         if patient.is_active is data.is_active:
-            return patient
+            return cls._set_link_state(db, identity, patient)
 
         previous = "ACTIVE" if patient.is_active else "INACTIVE"
         current = "ACTIVE" if data.is_active else "INACTIVE"
@@ -160,7 +182,7 @@ class PatientDomain:
             action="PATIENT_STATUS_CHANGED",
             details={"from": previous, "to": current},
         )
-        return cls._commit(db, patient)
+        return cls._set_link_state(db, identity, cls._commit(db, patient))
 
     @classmethod
     def soft_delete(

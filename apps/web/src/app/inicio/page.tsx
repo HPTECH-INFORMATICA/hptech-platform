@@ -19,6 +19,9 @@ export default async function StartPage() {
     hasPermission(user, "SERVICES", "VIEW")
       ? { label: "Serviços", href: "/servicos" }
       : null,
+    hasPermission(user, "PATIENTS", "VIEW")
+      ? { label: "Pacientes", href: "/pacientes" }
+      : null,
     hasPermission(user, "COMPANY", "VIEW")
       ? { label: "Configurações", href: "/configuracoes" }
       : null,
