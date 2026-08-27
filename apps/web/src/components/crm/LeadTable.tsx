@@ -34,6 +34,10 @@ const STATUS_ACCENTS: Record<LeadStatus, string> = {
 type LeadTableProps = {
   kanban: LeadKanban;
   canUpdate: boolean;
+  canViewPatients: boolean;
+  canCreatePatient: boolean;
+  canLinkPatient: boolean;
+  canUnlinkPatient: boolean;
   movingLeadId: string | null;
   onMove: (lead: Lead, status: LeadStatus) => void;
 };
@@ -41,6 +45,10 @@ type LeadTableProps = {
 export default function LeadTable({
   kanban,
   canUpdate,
+  canViewPatients,
+  canCreatePatient,
+  canLinkPatient,
+  canUnlinkPatient,
   movingLeadId,
   onMove,
 }: LeadTableProps) {
@@ -108,6 +116,10 @@ export default function LeadTable({
                     key={lead.id}
                     lead={lead}
                     canUpdate={canUpdate}
+                    canViewPatients={canViewPatients}
+                    canCreatePatient={canCreatePatient}
+                    canLinkPatient={canLinkPatient}
+                    canUnlinkPatient={canUnlinkPatient}
                     statusLabels={STATUS_LABELS}
                     isMoving={movingLeadId === lead.id}
                     onMove={onMove}

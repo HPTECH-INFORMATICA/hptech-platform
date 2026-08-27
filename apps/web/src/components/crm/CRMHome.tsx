@@ -58,9 +58,19 @@ function moveLead(
 
 type CRMHomeProps = {
   canUpdate: boolean;
+  canViewPatients: boolean;
+  canCreatePatient: boolean;
+  canLinkPatient: boolean;
+  canUnlinkPatient: boolean;
 };
 
-export default function CRMHome({ canUpdate }: CRMHomeProps) {
+export default function CRMHome({
+  canUpdate,
+  canViewPatients,
+  canCreatePatient,
+  canLinkPatient,
+  canUnlinkPatient,
+}: CRMHomeProps) {
   const [kanban, setKanban] = useState<LeadKanban>(EMPTY_KANBAN);
   const [search, setSearch] = useState("");
   const [selectedSource, setSelectedSource] = useState("");
@@ -266,6 +276,10 @@ export default function CRMHome({ canUpdate }: CRMHomeProps) {
           <LeadTable
             kanban={filteredKanban}
             canUpdate={canUpdate}
+            canViewPatients={canViewPatients}
+            canCreatePatient={canCreatePatient}
+            canLinkPatient={canLinkPatient}
+            canUnlinkPatient={canUnlinkPatient}
             movingLeadId={movingLeadId}
             onMove={handleMove}
           />

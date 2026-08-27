@@ -2,11 +2,16 @@
 
 import Badge from "@/components/ui/Badge";
 import Select from "@/components/ui/Select";
+import LeadPatientDialog from "./LeadPatientDialog";
 import type { Lead, LeadStatus } from "@/types/lead";
 
 type LeadRowProps = {
   lead: Lead;
   canUpdate: boolean;
+  canViewPatients: boolean;
+  canCreatePatient: boolean;
+  canLinkPatient: boolean;
+  canUnlinkPatient: boolean;
   statusLabels: Record<LeadStatus, string>;
   isMoving: boolean;
   onMove: (lead: Lead, status: LeadStatus) => void;
@@ -15,6 +20,10 @@ type LeadRowProps = {
 export default function LeadRow({
   lead,
   canUpdate,
+  canViewPatients,
+  canCreatePatient,
+  canLinkPatient,
+  canUnlinkPatient,
   statusLabels,
   isMoving,
   onMove,
@@ -83,6 +92,17 @@ export default function LeadRow({
           selectClassName="text-xs"
         />
       </div>
+
+      {canViewPatients ? (
+        <div className="mt-3 flex justify-end border-t border-hp-border pt-3">
+          <LeadPatientDialog
+            lead={lead}
+            canCreate={canCreatePatient}
+            canLink={canLinkPatient}
+            canUnlink={canUnlinkPatient}
+          />
+        </div>
+      ) : null}
     </article>
   );
 }
