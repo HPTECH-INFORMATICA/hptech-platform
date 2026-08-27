@@ -6,7 +6,9 @@ import AppShell from "@/components/layout/AppShell";
 
 export default async function CRMPage() {
   const user = await requireCurrentUserPermission("CRM", "VIEW");
+  const canCreate = hasPermission(user, "CRM", "CREATE");
   const canUpdate = hasPermission(user, "CRM", "UPDATE");
+  const canDelete = hasPermission(user, "CRM", "DELETE");
   const canViewPatients = hasPermission(user, "PATIENTS", "VIEW");
   const canCreatePatient =
     canUpdate && hasPermission(user, "PATIENTS", "CREATE");
@@ -21,7 +23,9 @@ export default async function CRMPage() {
       userArea={<SessionUser user={user} />}
     >
       <CRMHome
+        canCreate={canCreate}
         canUpdate={canUpdate}
+        canDelete={canDelete}
         canViewPatients={canViewPatients}
         canCreatePatient={canCreatePatient}
         canLinkPatient={canLinkPatient}

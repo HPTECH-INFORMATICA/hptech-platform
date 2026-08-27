@@ -1,6 +1,7 @@
 "use client";
 
 import Badge from "@/components/ui/Badge";
+import Button from "@/components/ui/Button";
 import Select from "@/components/ui/Select";
 import LeadPatientDialog from "./LeadPatientDialog";
 import type { Lead, LeadStatus } from "@/types/lead";
@@ -8,6 +9,7 @@ import type { Lead, LeadStatus } from "@/types/lead";
 type LeadRowProps = {
   lead: Lead;
   canUpdate: boolean;
+  canDelete: boolean;
   canViewPatients: boolean;
   canCreatePatient: boolean;
   canLinkPatient: boolean;
@@ -15,11 +17,14 @@ type LeadRowProps = {
   statusLabels: Record<LeadStatus, string>;
   isMoving: boolean;
   onMove: (lead: Lead, status: LeadStatus) => void;
+  onEdit: (lead: Lead) => void;
+  onDelete: (lead: Lead) => void;
 };
 
 export default function LeadRow({
   lead,
   canUpdate,
+  canDelete,
   canViewPatients,
   canCreatePatient,
   canLinkPatient,
@@ -27,6 +32,8 @@ export default function LeadRow({
   statusLabels,
   isMoving,
   onMove,
+  onEdit,
+  onDelete,
 }: LeadRowProps) {
   const contact = lead.whatsapp ?? lead.phone ?? lead.email;
   const statusOptions = Object.entries(statusLabels).map(([status, label]) => ({
@@ -93,14 +100,35 @@ export default function LeadRow({
         />
       </div>
 
-      {canViewPatients ? (
-        <div className="mt-3 flex justify-end border-t border-hp-border pt-3">
-          <LeadPatientDialog
-            lead={lead}
-            canCreate={canCreatePatient}
-            canLink={canLinkPatient}
-            canUnlink={canUnlinkPatient}
-          />
+      {canViewPatients || canUpdate || canDelete ? (
+        <div
+          className="mt-3 flex flex-wrap justify-end gap-2 border-t border-hp-border pt-3"
+          draggable={false}
+          onDragStart={(event) => event.preventDefault()}
+          onPointerDown={(event) => event.stopPropagation()}
+        >
+          {canUpdate ? (
+            <Button size="sm" variant="ghost" onClick={() => onEdit(lead)}>
+              Editar
+            </Button>
+          ) : null}
+          {canViewPatients ? (
+            <LeadPatientDialog
+              lead={lead}
+              canCreate={canCreatePatient}
+              canLink={canLinkPatient}
+              canUnlink={canUnlinkPatient}
+            />
+          ) : null}
+          {canDelete ? (
+            <Button
+              size="sm"
+              variant="danger"
+              onClick={() => onDelete(lead)}
+            >
+              Remover
+            </Button>
+          ) : null}
         </div>
       ) : null}
     </article>

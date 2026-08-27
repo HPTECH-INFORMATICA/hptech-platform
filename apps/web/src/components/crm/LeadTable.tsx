@@ -34,23 +34,29 @@ const STATUS_ACCENTS: Record<LeadStatus, string> = {
 type LeadTableProps = {
   kanban: LeadKanban;
   canUpdate: boolean;
+  canDelete: boolean;
   canViewPatients: boolean;
   canCreatePatient: boolean;
   canLinkPatient: boolean;
   canUnlinkPatient: boolean;
   movingLeadId: string | null;
   onMove: (lead: Lead, status: LeadStatus) => void;
+  onEdit: (lead: Lead) => void;
+  onDelete: (lead: Lead) => void;
 };
 
 export default function LeadTable({
   kanban,
   canUpdate,
+  canDelete,
   canViewPatients,
   canCreatePatient,
   canLinkPatient,
   canUnlinkPatient,
   movingLeadId,
   onMove,
+  onEdit,
+  onDelete,
 }: LeadTableProps) {
   const leadsById = new Map(
     STATUSES.flatMap((status) => kanban[status]).map((lead) => [
@@ -116,6 +122,7 @@ export default function LeadTable({
                     key={lead.id}
                     lead={lead}
                     canUpdate={canUpdate}
+                    canDelete={canDelete}
                     canViewPatients={canViewPatients}
                     canCreatePatient={canCreatePatient}
                     canLinkPatient={canLinkPatient}
@@ -123,6 +130,8 @@ export default function LeadTable({
                     statusLabels={STATUS_LABELS}
                     isMoving={movingLeadId === lead.id}
                     onMove={onMove}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
                   />
                 ))}
 

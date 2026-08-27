@@ -25,7 +25,7 @@ export interface Lead {
   whatsapp: string | null;
   email: string | null;
   birth_date: string | null;
-  source: LeadSource | string;
+  source: LeadSource | string | null;
   interest: string | null;
   pipeline_status: LeadStatus;
   notes: string | null;

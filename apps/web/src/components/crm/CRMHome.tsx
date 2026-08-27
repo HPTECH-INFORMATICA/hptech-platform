@@ -3,6 +3,10 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import LeadFilters from "./LeadFilters";
+import {
+  LeadDeleteDialog,
+  LeadEditorDialog,
+} from "./LeadManagementDialogs";
 import LeadSearch from "./LeadSearch";
 import LeadTable from "./LeadTable";
 import Alert from "@/components/ui/Alert";
@@ -57,7 +61,9 @@ function moveLead(
 }
 
 type CRMHomeProps = {
+  canCreate: boolean;
   canUpdate: boolean;
+  canDelete: boolean;
   canViewPatients: boolean;
   canCreatePatient: boolean;
   canLinkPatient: boolean;
@@ -65,7 +71,9 @@ type CRMHomeProps = {
 };
 
 export default function CRMHome({
+  canCreate,
   canUpdate,
+  canDelete,
   canViewPatients,
   canCreatePatient,
   canLinkPatient,
@@ -75,6 +83,9 @@ export default function CRMHome({
   const [search, setSearch] = useState("");
   const [selectedSource, setSelectedSource] = useState("");
   const [movingLeadId, setMovingLeadId] = useState<string | null>(null);
+  const [editorOpen, setEditorOpen] = useState(false);
+  const [editingLead, setEditingLead] = useState<Lead | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Lead | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -92,6 +103,27 @@ export default function CRMHome({
       setIsLoading(false);
     }
   }, []);
+
+  const refreshKanban = useCallback(async () => {
+    setError(null);
+    try {
+      setKanban(await getLeadKanban());
+    } catch {
+      setError(
+        "A alteração foi concluída, mas não foi possível atualizar o Kanban. Tente novamente.",
+      );
+    }
+  }, []);
+
+  function openCreate() {
+    setEditingLead(null);
+    setEditorOpen(true);
+  }
+
+  function openEdit(lead: Lead) {
+    setEditingLead(lead);
+    setEditorOpen(true);
+  }
 
   useEffect(() => {
     let isActive = true;
@@ -233,6 +265,7 @@ export default function CRMHome({
       <PageHeader
         title="Pipeline comercial"
         description="Acompanhe os leads e mova cada oportunidade entre os estágios."
+        actions={canCreate ? <Button onClick={openCreate}>Novo lead</Button> : undefined}
       />
 
       <Section title="Consulta de leads">
@@ -265,6 +298,7 @@ export default function CRMHome({
             title="Nenhum lead encontrado"
             description="Ainda não existem leads no funil comercial."
             titleAs="h3"
+            action={canCreate ? <Button onClick={openCreate}>Cadastrar primeiro lead</Button> : undefined}
           />
         ) : !hasFilteredLeads ? (
           <EmptyState
@@ -276,15 +310,37 @@ export default function CRMHome({
           <LeadTable
             kanban={filteredKanban}
             canUpdate={canUpdate}
+            canDelete={canDelete}
             canViewPatients={canViewPatients}
             canCreatePatient={canCreatePatient}
             canLinkPatient={canLinkPatient}
             canUnlinkPatient={canUnlinkPatient}
             movingLeadId={movingLeadId}
             onMove={handleMove}
+            onEdit={openEdit}
+            onDelete={setDeleteTarget}
           />
         )}
       </Section>
+
+      {editorOpen ? (
+        <LeadEditorDialog
+          open
+          lead={editingLead}
+          onOpenChange={(open) => {
+            setEditorOpen(open);
+            if (!open) setEditingLead(null);
+          }}
+          onSaved={refreshKanban}
+        />
+      ) : null}
+      {deleteTarget ? (
+        <LeadDeleteDialog
+          lead={deleteTarget}
+          onOpenChange={(open) => !open && setDeleteTarget(null)}
+          onDeleted={refreshKanban}
+        />
+      ) : null}
     </div>
   );
 }
