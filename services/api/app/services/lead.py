@@ -21,8 +21,32 @@ class LeadService:
         db: Session,
         company_id: uuid.UUID,
         data: LeadCreate,
+        user_id: uuid.UUID,
     ) -> Lead:
-        return LeadRepository.create(db, company_id, data)
+        lead = LeadRepository.create(db, company_id, data)
+        LeadHistoryRepository.create(
+            db,
+            company_id,
+            lead.id,
+            user_id,
+            LeadHistoryCreate(
+                company_id=company_id,
+                lead_id=lead.id,
+                user_id=user_id,
+                action="LEAD_CREATED",
+                description="Lead criado",
+            ),
+        )
+        AuditLogRepository.add(
+            db,
+            company_id=company_id,
+            actor_user_id=user_id,
+            target_type="LEAD",
+            target_id=lead.id,
+            action="LEAD_CREATED",
+            details={"state": "ACTIVE"},
+        )
+        return lead
 
     @staticmethod
     def get_by_id(
@@ -51,12 +75,42 @@ class LeadService:
         db: Session,
         lead: Lead,
         data: LeadUpdate,
-    ) -> Lead:
-        return LeadRepository.update(
-            db,
-            lead,
-            data,
+        user_id: uuid.UUID,
+    ) -> tuple[Lead, bool]:
+        requested = data.model_dump(exclude_unset=True)
+        changed_fields = [
+            field for field, value in requested.items() if getattr(lead, field) != value
+        ]
+        if not changed_fields:
+            return lead, False
+
+        changed_data = LeadUpdate.model_validate(
+            {field: requested[field] for field in changed_fields}
         )
+        lead = LeadRepository.update(db, lead, changed_data)
+        LeadHistoryRepository.create(
+            db,
+            lead.company_id,
+            lead.id,
+            user_id,
+            LeadHistoryCreate(
+                company_id=lead.company_id,
+                lead_id=lead.id,
+                user_id=user_id,
+                action="LEAD_UPDATED",
+                description=f"Campos alterados: {', '.join(sorted(changed_fields))}",
+            ),
+        )
+        AuditLogRepository.add(
+            db,
+            company_id=lead.company_id,
+            actor_user_id=user_id,
+            target_type="LEAD",
+            target_id=lead.id,
+            action="LEAD_UPDATED",
+            details={"fields": sorted(changed_fields)},
+        )
+        return lead, True
 
     @staticmethod
     def update_pipeline(
@@ -88,6 +142,15 @@ class LeadService:
             lead.id,
             user_id,
             history_data,
+        )
+        AuditLogRepository.add(
+            db,
+            company_id=lead.company_id,
+            actor_user_id=user_id,
+            target_type="LEAD",
+            target_id=lead.id,
+            action="LEAD_PIPELINE_CHANGED",
+            details={"from": previous_status, "to": data.pipeline_status},
         )
 
         return lead

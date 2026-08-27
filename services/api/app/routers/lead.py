@@ -121,14 +121,18 @@ def create_lead(
     identity: Annotated[AuthenticatedIdentity, Depends(require_crm_create)],
     db: Session = Depends(get_db),
 ) -> LeadResponse:
-    lead = LeadService.create(
-        db,
-        identity.company.id,
-        data,
-    )
-
-    db.commit()
-    db.refresh(lead)
+    try:
+        lead = LeadService.create(
+            db,
+            identity.company.id,
+            data,
+            identity.user.id,
+        )
+        db.commit()
+        db.refresh(lead)
+    except Exception:
+        db.rollback()
+        raise
 
     return lead
 
@@ -205,14 +209,19 @@ def update_lead(
             detail="Lead não encontrado",
         )
 
-    lead = LeadService.update(
-        db,
-        lead,
-        data,
-    )
-
-    db.commit()
-    db.refresh(lead)
+    try:
+        lead, changed = LeadService.update(
+            db,
+            lead,
+            data,
+            identity.user.id,
+        )
+        if changed:
+            db.commit()
+            db.refresh(lead)
+    except Exception:
+        db.rollback()
+        raise
 
     return lead
 
@@ -351,14 +360,17 @@ def update_lead_pipeline(
             detail="Lead não encontrado",
         )
 
-    lead = LeadService.update_pipeline(
-        db,
-        lead,
-        data,
-        identity.user.id,
-    )
-
-    db.commit()
-    db.refresh(lead)
+    try:
+        lead = LeadService.update_pipeline(
+            db,
+            lead,
+            data,
+            identity.user.id,
+        )
+        db.commit()
+        db.refresh(lead)
+    except Exception:
+        db.rollback()
+        raise
 
     return lead

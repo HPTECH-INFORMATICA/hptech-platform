@@ -234,9 +234,15 @@ async def test_create_forces_authenticated_tenant(
     authenticate_as(identity)
     captured: dict[str, object] = {}
 
-    def create(_db: object, company_id: UUID, data: object) -> dict[str, object]:
+    def create(
+        _db: object,
+        company_id: UUID,
+        data: object,
+        user_id: UUID,
+    ) -> dict[str, object]:
         captured["company_id"] = company_id
         captured["data"] = data
+        captured["user_id"] = user_id
         return lead_response(company_id)
 
     monkeypatch.setattr(LeadService, "create", create)
@@ -245,6 +251,7 @@ async def test_create_forces_authenticated_tenant(
 
     assert response.status_code == 201
     assert captured["company_id"] == identity.company.id
+    assert captured["user_id"] == identity.user.id
     assert response.json()["company_id"] == str(identity.company.id)
 
 
@@ -257,6 +264,27 @@ async def test_create_rejects_company_id_as_unknown_input(client: AsyncClient) -
     )
 
     assert response.status_code == 422
+
+
+async def test_create_rolls_back_when_service_fails(
+    client: AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    identity = make_identity()
+    db = MagicMock()
+    app.dependency_overrides[get_db] = lambda: db
+    authenticate_as(identity)
+
+    def fail(*_args: object) -> None:
+        raise RuntimeError("persistence failed")
+
+    monkeypatch.setattr(LeadService, "create", fail)
+
+    with pytest.raises(RuntimeError, match="persistence failed"):
+        await client.post("/api/v1/leads", json={"name": "Lead"})
+
+    db.rollback.assert_called_once()
+    db.commit.assert_not_called()
 
 
 @pytest.mark.parametrize(
@@ -418,6 +446,57 @@ async def test_pipeline_history_uses_authenticated_user(
 
     assert response.status_code == 200
     assert captured["user_id"] == identity.user.id
+
+
+async def test_semantic_noop_does_not_commit(
+    client: AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    identity = make_identity()
+    lead_id = uuid4()
+    lead = make_lead(identity.company.id)
+    lead.id = lead_id
+    db = MagicMock()
+    app.dependency_overrides[get_db] = lambda: db
+    authenticate_as(identity)
+    monkeypatch.setattr(LeadService, "get_by_id", lambda *_args: lead)
+    monkeypatch.setattr(
+        LeadService,
+        "update",
+        lambda *_args: (lead, False),
+    )
+
+    response = await client.patch(
+        f"/api/v1/leads/{lead_id}",
+        json={"name": "  Lead   Exemplo  "},
+    )
+
+    assert response.status_code == 200
+    db.commit.assert_not_called()
+    db.refresh.assert_not_called()
+
+
+async def test_update_rolls_back_when_service_fails(
+    client: AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    identity = make_identity()
+    lead = make_lead(identity.company.id)
+    db = MagicMock()
+    app.dependency_overrides[get_db] = lambda: db
+    authenticate_as(identity)
+    monkeypatch.setattr(LeadService, "get_by_id", lambda *_args: lead)
+
+    def fail(*_args: object) -> None:
+        raise RuntimeError("persistence failed")
+
+    monkeypatch.setattr(LeadService, "update", fail)
+
+    with pytest.raises(RuntimeError, match="persistence failed"):
+        await client.patch(f"/api/v1/leads/{lead.id}", json={"name": "Outro"})
+
+    db.rollback.assert_called_once()
+    db.commit.assert_not_called()
 
 
 async def test_pipeline_rejects_client_supplied_history_author(
