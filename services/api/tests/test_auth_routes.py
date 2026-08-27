@@ -292,6 +292,10 @@ async def test_auth_me_returns_current_identity_without_sensitive_data(
                 "module": "PATIENTS",
                 "actions": ["CREATE", "DELETE", "UPDATE", "VIEW"],
             },
+            {
+                "module": "PROFESSIONALS",
+                "actions": ["CREATE", "DELETE", "UPDATE", "VIEW"],
+            },
         ],
     }
     assert "password_hash" not in response.text
@@ -365,6 +369,14 @@ async def test_auth_me_returns_permissions_from_current_database_role(
     }
     expected_permissions.append(
         {"module": "PATIENTS", "actions": patient_actions[role]}
+    )
+    professional_actions = {
+        UserRole.OWNER: ["CREATE", "DELETE", "UPDATE", "VIEW"],
+        UserRole.MANAGER: ["CREATE", "UPDATE", "VIEW"],
+        UserRole.VIEWER: ["VIEW"],
+    }
+    expected_permissions.append(
+        {"module": "PROFESSIONALS", "actions": professional_actions[role]}
     )
 
     assert response.json()["permissions"] == expected_permissions

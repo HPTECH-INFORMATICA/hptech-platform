@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import Boolean, ForeignKey, Integer, String
+from sqlalchemy import Boolean, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
@@ -20,6 +20,9 @@ class User(
     Base,
 ):
     __tablename__ = "users"
+    __table_args__ = (
+        UniqueConstraint("company_id", "id", name="uq_users_company_id_id"),
+    )
 
     company_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -82,4 +85,11 @@ class User(
         "LeadHistory",
         back_populates="user",
         passive_deletes=True,
+    )
+
+    professional = relationship(
+        "Professional",
+        back_populates="user",
+        uselist=False,
+        overlaps="company,professionals",
     )

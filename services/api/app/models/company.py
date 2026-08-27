@@ -127,3 +127,11 @@ class Company(
         cascade="all, delete-orphan",
         passive_deletes=True,
     )
+
+    professionals = relationship(
+        "Professional",
+        back_populates="company",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        overlaps="professional,user",
+    )

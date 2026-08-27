@@ -17,7 +17,7 @@ import { AccessControlApiError, getAccessControlCatalog, resetRolePermissions, u
 type Props = { canManageUsers: boolean; onManageUsers: () => void; onDirtyChange: (dirty: boolean) => void };
 const roleLabels: Record<string, string> = { OWNER: "Proprietário", ADMIN: "Administrador", MANAGER: "Gerente", PROFESSIONAL: "Profissional", RECEPTIONIST: "Recepcionista", SALES: "Vendas", FINANCIAL: "Financeiro", VIEWER: "Visualizador" };
 const roleDescriptions: Record<string, string> = { OWNER: "Autoridade máxima protegida da empresa.", ADMIN: "Administração da empresa, usuários e operação.", MANAGER: "Gestão da operação comercial.", PROFESSIONAL: "Consulta operacional em modo leitura.", RECEPTIONIST: "Atendimento e atualização da operação comercial.", SALES: "Criação e atualização da operação comercial.", FINANCIAL: "Consulta operacional em modo leitura.", VIEWER: "Consulta da plataforma em modo leitura." };
-const moduleLabels: Record<string, string> = { DASHBOARD: "Dashboard", CRM: "CRM", COMPANY: "Empresa", USERS: "Usuários", ACCESS_CONTROL: "Acessos e permissões", AUDIT: "Auditoria", SERVICES: "Serviços", PATIENTS: "Pacientes" };
+const moduleLabels: Record<string, string> = { DASHBOARD: "Dashboard", CRM: "CRM", COMPANY: "Empresa", USERS: "Usuários", ACCESS_CONTROL: "Acessos e permissões", AUDIT: "Auditoria", SERVICES: "Serviços", PATIENTS: "Pacientes", PROFESSIONALS: "Profissionais" };
 const actionLabels: Record<string, string> = { VIEW: "Visualizar", CREATE: "Criar", UPDATE: "Editar", DELETE: "Excluir", BLOCK: "Bloquear", MANAGE_ROLE: "Gerenciar papel", MANAGE: "Gerenciar acessos" };
 
 function pairKey(module: string, action: string) { return `${module}/${action}`; }
