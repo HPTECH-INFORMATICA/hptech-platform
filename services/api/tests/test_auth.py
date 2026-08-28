@@ -40,6 +40,7 @@ def make_user(
         name="Empresa de teste",
         slug="empresa-teste",
         status=company_status,
+        timezone="America/Sao_Paulo",
         deleted_at=(datetime.now(timezone.utc) if company_deleted else None),
     )
     return User(

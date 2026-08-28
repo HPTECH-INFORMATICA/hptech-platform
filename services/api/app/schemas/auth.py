@@ -24,6 +24,7 @@ class CurrentCompanyResponse(BaseModel):
     name: str
     slug: str
     status: CompanyStatus
+    timezone: str
 
 
 class CurrentPermissionResponse(BaseModel):

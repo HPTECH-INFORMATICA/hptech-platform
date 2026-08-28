@@ -31,7 +31,7 @@ pytestmark = pytest.mark.anyio
 
 def make_identity(role: UserRole = UserRole.OWNER) -> AuthenticatedIdentity:
     now = datetime.now(timezone.utc)
-    company = Company(id=uuid4(), name="Empresa Teste", slug=f"empresa-{uuid4()}", status=CompanyStatus.ACTIVE, created_at=now, updated_at=now)
+    company = Company(id=uuid4(), name="Empresa Teste", slug=f"empresa-{uuid4()}", status=CompanyStatus.ACTIVE, timezone="America/Sao_Paulo", created_at=now, updated_at=now)
     user = User(id=uuid4(), company_id=company.id, name="Pessoa Teste", email=f"{uuid4()}@example.com", password_hash="hash-seguro-de-teste", role=role, is_active=True, created_at=now, updated_at=now)
     user.company = company
     return AuthenticatedIdentity(user=user, company=company, role=role, permissions=permissions_for_role(role))

@@ -45,6 +45,7 @@ def make_identity(role: UserRole = UserRole.OWNER) -> AuthenticatedIdentity:
         name="Empresa Exemplo",
         slug=f"empresa-{uuid4()}",
         status=CompanyStatus.ACTIVE,
+        timezone="America/Sao_Paulo",
         created_at=now,
         updated_at=now,
     )

@@ -22,7 +22,8 @@ from app.services.user_admin import (
 
 def make_identity(role: UserRole = UserRole.OWNER) -> AuthenticatedIdentity:
     company = Company(
-        id=uuid4(), name="Empresa Teste", slug=str(uuid4()), status=CompanyStatus.ACTIVE
+        id=uuid4(), name="Empresa Teste", slug=str(uuid4()),
+        status=CompanyStatus.ACTIVE, timezone="America/Sao_Paulo"
     )
     user = make_user(company.id, role=role)
     user.company = company

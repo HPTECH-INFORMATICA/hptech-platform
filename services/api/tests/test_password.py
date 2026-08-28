@@ -39,6 +39,7 @@ def make_user(*, password: str = "senha-atual", auth_version: int = 1) -> User:
         name="Empresa de teste",
         slug="empresa-password-test",
         status=CompanyStatus.ACTIVE,
+        timezone="America/Sao_Paulo",
     )
     return User(
         id=uuid4(),

@@ -40,7 +40,14 @@ class CompanyService:
 
         changed: list[str] = []
         values = data.model_dump(exclude_unset=True)
-        for field in ("name", "legal_name", "document", "email", "phone"):
+        for field in (
+            "name",
+            "legal_name",
+            "document",
+            "email",
+            "phone",
+            "timezone",
+        ):
             if field in values and getattr(company, field) != values[field]:
                 setattr(company, field, values[field])
                 changed.append(field)

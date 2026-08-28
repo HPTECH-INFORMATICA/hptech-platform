@@ -34,6 +34,7 @@ def make_identity(role: UserRole, company_id=None) -> AuthenticatedIdentity:
     company = Company(
         id=company_id or uuid4(), name="Empresa Teste", slug=str(uuid4()),
         status=CompanyStatus.ACTIVE,
+        timezone="America/Sao_Paulo",
     )
     user = User(
         id=uuid4(), company_id=company.id, name="Pessoa Teste",

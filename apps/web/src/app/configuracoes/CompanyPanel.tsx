@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useEffect, useId, useMemo, useState, type FormEvent } from "react";
 
 import Alert from "@/components/ui/Alert";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
+import SearchBox from "@/components/ui/SearchBox";
 import Section from "@/components/ui/Section";
 import Skeleton from "@/components/ui/Skeleton";
+import { getCompanyTimezoneOptions } from "@/lib/timezones";
 import {
   CompanyApiError,
   getCompany,
@@ -28,6 +30,7 @@ type Draft = {
   document: string;
   email: string;
   phone: string;
+  timezone: string;
 };
 
 const statusLabels: Record<string, string> = {
@@ -44,6 +47,7 @@ function toDraft(company: CompanyData): Draft {
     document: company.document ?? "",
     email: company.email ?? "",
     phone: company.phone ?? "",
+    timezone: company.timezone,
   };
 }
 
@@ -55,6 +59,7 @@ function toInput(draft: Draft): CompanyUpdateInput {
     document: optional(draft.document),
     email: optional(draft.email)?.toLowerCase() ?? null,
     phone: optional(draft.phone),
+    timezone: draft.timezone,
   };
 }
 
@@ -65,7 +70,22 @@ function companyInput(company: CompanyData): CompanyUpdateInput {
     document: company.document,
     email: company.email,
     phone: company.phone,
+    timezone: company.timezone,
   };
+}
+
+function timezoneLabel(timezone: string): string {
+  try {
+    const name = new Intl.DateTimeFormat("pt-BR", {
+      timeZone: timezone,
+      timeZoneName: "longGeneric",
+    })
+      .formatToParts(new Date())
+      .find((part) => part.type === "timeZoneName")?.value;
+    return name && name !== timezone ? `${timezone} — ${name}` : timezone;
+  } catch {
+    return timezone;
+  }
 }
 
 function errorMessage(error: unknown): string {
@@ -101,6 +121,7 @@ export default function CompanyPanel({
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [reload, setReload] = useState(0);
+  const timezoneListId = useId();
 
   const dirty = useMemo(() => {
     if (!editing || !company || !draft) return false;
@@ -192,6 +213,11 @@ export default function CompanyPanel({
   }
   if (!company || !draft) return null;
 
+  const visibleTimezoneOptions = getCompanyTimezoneOptions(
+    company.timezone,
+    draft.timezone,
+  );
+
   return (
     <Section
       title="Empresa"
@@ -210,6 +236,24 @@ export default function CompanyPanel({
               <Input label="Documento" description="Identificador cadastral da empresa." maxLength={30} value={draft.document} onChange={(event) => updateField("document", event.target.value)} />
               <Input label="Email" type="email" maxLength={150} value={draft.email} onChange={(event) => updateField("email", event.target.value)} />
               <Input label="Telefone" type="tel" maxLength={30} value={draft.phone} onChange={(event) => updateField("phone", event.target.value)} />
+              <div className="md:col-span-2">
+                <SearchBox
+                  label="Fuso horário"
+                  description="Digite parte do identificador IANA e selecione uma opção, como America/Manaus."
+                  list={timezoneListId}
+                  value={draft.timezone}
+                  onChange={(event) => updateField("timezone", event.target.value)}
+                  autoComplete="off"
+                  required
+                />
+                <datalist id={timezoneListId}>
+                  {visibleTimezoneOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </datalist>
+              </div>
               <Input label="Slug" description="Identificador estrutural. Não pode ser alterado neste lote." value={company.slug} readOnly />
               <Input label="Status" description="Gerenciado pela operação HPTECH." value={statusLabels[company.status] ?? company.status} readOnly />
             </div>
@@ -227,6 +271,7 @@ export default function CompanyPanel({
             <DefinitionItem label="Documento" value={company.document ?? ""} />
             <DefinitionItem label="Email" value={company.email ?? ""} />
             <DefinitionItem label="Telefone" value={company.phone ?? ""} />
+            <DefinitionItem label="Fuso horário" value={timezoneLabel(company.timezone)} />
             <DefinitionItem label="Slug" value={company.slug} />
             <DefinitionItem label="Status" value={statusLabels[company.status] ?? company.status} />
           </dl>

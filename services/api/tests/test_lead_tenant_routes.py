@@ -41,6 +41,7 @@ def make_identity(
         name=f"Empresa {resolved_company_id}",
         slug=f"empresa-{resolved_company_id}",
         status=company_status,
+        timezone="America/Sao_Paulo",
     )
     user = User(
         id=uuid4(),

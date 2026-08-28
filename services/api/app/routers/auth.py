@@ -209,6 +209,7 @@ def get_me(
             name=identity.company.name,
             slug=identity.company.slug,
             status=identity.company.status,
+            timezone=identity.company.timezone,
         ),
         permissions=[
             CurrentPermissionResponse(

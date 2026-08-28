@@ -7,6 +7,7 @@ export type CompanyData = {
   phone: string | null;
   slug: string;
   status: string;
+  timezone: string;
   created_at: string;
   updated_at: string;
 };
@@ -17,6 +18,7 @@ export type CompanyUpdateInput = {
   document: string | null;
   email: string | null;
   phone: string | null;
+  timezone: string;
 };
 
 export class CompanyApiError extends Error {
@@ -44,6 +46,7 @@ function parseCompany(value: unknown): CompanyData | null {
     !nullableString(value.phone) ||
     typeof value.slug !== "string" ||
     typeof value.status !== "string" ||
+    typeof value.timezone !== "string" ||
     typeof value.created_at !== "string" ||
     typeof value.updated_at !== "string"
   ) {

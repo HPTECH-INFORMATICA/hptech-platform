@@ -12,6 +12,7 @@ from pydantic import (
 )
 
 from app.core.identity import CompanyStatus
+from app.core.timezones import normalize_iana_timezone
 
 
 class CompanyResponse(BaseModel):
@@ -25,6 +26,7 @@ class CompanyResponse(BaseModel):
     phone: str | None
     slug: str
     status: CompanyStatus
+    timezone: str
     created_at: datetime
     updated_at: datetime
 
@@ -37,6 +39,7 @@ class CompanyUpdate(BaseModel):
     document: str | None = Field(default=None, max_length=30)
     email: EmailStr | None = Field(default=None, max_length=150)
     phone: str | None = Field(default=None, max_length=30)
+    timezone: str | None = Field(default=None, max_length=64)
 
     @field_validator("name", mode="before")
     @classmethod
@@ -61,6 +64,11 @@ class CompanyUpdate(BaseModel):
         if isinstance(value, str):
             return value.strip().lower() or None
         return value
+
+    @field_validator("timezone", mode="before")
+    @classmethod
+    def normalize_timezone(cls, value: object) -> str:
+        return normalize_iana_timezone(value)
 
     @model_validator(mode="after")
     def require_change(self) -> Self:

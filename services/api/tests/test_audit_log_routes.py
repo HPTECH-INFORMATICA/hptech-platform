@@ -27,7 +27,10 @@ FORBIDDEN_METADATA_KEYS = {
 
 
 def make_identity(role: UserRole) -> AuthenticatedIdentity:
-    company = Company(id=uuid4(), name="Empresa Teste", slug=str(uuid4()), status=CompanyStatus.ACTIVE)
+    company = Company(
+        id=uuid4(), name="Empresa Teste", slug=str(uuid4()),
+        status=CompanyStatus.ACTIVE, timezone="America/Sao_Paulo",
+    )
     user = User(
         id=uuid4(), company_id=company.id, name="Pessoa Teste",
         email=f"{uuid4()}@example.com", password_hash="hash-seguro-de-teste",

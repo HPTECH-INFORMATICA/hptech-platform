@@ -56,6 +56,7 @@ def make_identity(
         name="Empresa Exemplo",
         slug=f"empresa-{uuid4()}",
         status=CompanyStatus.ACTIVE,
+        timezone="America/Sao_Paulo",
         created_at=now,
         updated_at=now,
     )

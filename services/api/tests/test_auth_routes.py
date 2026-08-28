@@ -39,6 +39,7 @@ def make_identity() -> AuthenticatedIdentity:
         name="Empresa de teste",
         slug="empresa-teste",
         status=CompanyStatus.ACTIVE,
+        timezone="America/Sao_Paulo",
     )
     user = User(
         id=uuid4(),
@@ -266,6 +267,7 @@ async def test_auth_me_returns_current_identity_without_sensitive_data(
             "name": identity.company.name,
             "slug": identity.company.slug,
             "status": "ACTIVE",
+            "timezone": "America/Sao_Paulo",
         },
         "permissions": [
             {"module": "DASHBOARD", "actions": ["VIEW"]},

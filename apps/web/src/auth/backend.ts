@@ -86,6 +86,7 @@ function parseCurrentUser(value: unknown): CurrentUser | null {
     !isNonEmptyString(company.name) ||
     !isNonEmptyString(company.slug) ||
     !isNonEmptyString(company.status) ||
+    !isNonEmptyString(company.timezone) ||
     !permissions
   ) {
     return null;
@@ -102,6 +103,7 @@ function parseCurrentUser(value: unknown): CurrentUser | null {
       name: company.name,
       slug: company.slug,
       status: company.status,
+      timezone: company.timezone,
     },
     permissions,
   };

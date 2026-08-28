@@ -8,14 +8,34 @@ from app.models.user import User
 
 @pytest.mark.parametrize("status", list(CompanyStatus))
 def test_company_accepts_documented_statuses(status: CompanyStatus) -> None:
-    company = Company(name="Empresa de teste", slug="empresa-teste", status=status)
+    company = Company(
+        name="Empresa de teste",
+        slug="empresa-teste",
+        status=status,
+        timezone="America/Sao_Paulo",
+    )
 
     assert company.status == status.value
 
 
 def test_company_rejects_invalid_status() -> None:
     with pytest.raises(ValueError, match="Status de empresa inválido"):
-        Company(name="Empresa de teste", slug="empresa-teste", status="INVALID")
+        Company(
+            name="Empresa de teste",
+            slug="empresa-teste",
+            status="INVALID",
+            timezone="America/Sao_Paulo",
+        )
+
+
+def test_company_rejects_invalid_timezone() -> None:
+    with pytest.raises(ValueError, match="fuso horário IANA válido"):
+        Company(
+            name="Empresa de teste",
+            slug="empresa-teste",
+            status=CompanyStatus.ACTIVE,
+            timezone="GMT-3",
+        )
 
 
 @pytest.mark.parametrize("role", list(UserRole))

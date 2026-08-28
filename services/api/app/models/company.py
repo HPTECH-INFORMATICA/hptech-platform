@@ -2,6 +2,7 @@ from sqlalchemy import String
 from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from app.core.identity import CompanyStatus, normalize_company_status
+from app.core.timezones import normalize_iana_timezone
 from app.db.base_class import Base
 from app.db.mixins import (
     SoftDeleteMixin,
@@ -57,6 +58,11 @@ class Company(
         default=CompanyStatus.TRIAL.value,
     )
 
+    timezone: Mapped[str] = mapped_column(
+        String(64),
+        nullable=False,
+    )
+
     @validates("status")
     def validate_status(
         self,
@@ -64,6 +70,10 @@ class Company(
         value: str | CompanyStatus,
     ) -> str:
         return normalize_company_status(value)
+
+    @validates("timezone")
+    def validate_timezone(self, _key: str, value: object) -> str:
+        return normalize_iana_timezone(value)
 
     users = relationship(
         "User",

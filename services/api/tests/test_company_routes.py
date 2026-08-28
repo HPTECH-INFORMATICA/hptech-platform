@@ -34,6 +34,7 @@ def make_identity(role: UserRole, *, company_id=None) -> AuthenticatedIdentity:
         phone="(11) 99999-0000",
         slug=f"empresa-{uuid4()}",
         status=CompanyStatus.ACTIVE,
+        timezone="America/Sao_Paulo",
         created_at=now,
         updated_at=now,
     )
@@ -83,6 +84,7 @@ async def test_owner_and_admin_can_get_company(
     assert response.status_code == 200
     assert response.json()["id"] == str(identity.company.id)
     assert response.json()["slug"] == identity.company.slug
+    assert response.json()["timezone"] == "America/Sao_Paulo"
 
 
 async def test_viewer_cannot_get_or_update_company(client: AsyncClient) -> None:
@@ -110,12 +112,19 @@ async def test_unauthenticated_company_requests_return_401(
         {"status": "ACTIVE"},
         {"slug": "outro-slug"},
         {"company_id": "00000000-0000-0000-0000-000000000000"},
+        {"timezone": None},
+        {"timezone": ""},
+        {"timezone": "GMT-3"},
+        {"timezone": "BRT"},
+        {"timezone": "-03:00"},
+        {"timezone": "america/sao_paulo"},
+        {"timezone": "Area/Inexistente"},
         {"unknown": "value"},
     ],
 )
 async def test_invalid_or_protected_fields_return_422(
     client: AsyncClient,
-    payload: dict[str, str],
+    payload: dict[str, object],
 ) -> None:
     app.dependency_overrides[get_current_user] = lambda: make_identity(UserRole.OWNER)
     response = await client.patch("/api/v1/company", json=payload)
@@ -187,11 +196,47 @@ def test_no_op_does_not_create_audit_event(
     result = CompanyService.update(
         MagicMock(),
         identity,
-        CompanyUpdate(phone=identity.company.phone),
+        CompanyUpdate(timezone=identity.company.timezone),
     )
 
     assert result is identity.company
     audit.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "timezone_name",
+    ["America/Sao_Paulo", "America/Manaus", "Europe/Lisbon"],
+)
+def test_company_update_accepts_iana_timezone(timezone_name: str) -> None:
+    assert CompanyUpdate(timezone=timezone_name).timezone == timezone_name
+
+
+def test_company_update_trims_timezone_without_changing_case() -> None:
+    data = CompanyUpdate(timezone="  America/Sao_Paulo  ")
+    assert data.timezone == "America/Sao_Paulo"
+
+
+def test_timezone_change_uses_existing_sanitized_audit_event(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    identity = make_identity(UserRole.OWNER)
+    monkeypatch.setattr(
+        CompanyRepository,
+        "get_by_id",
+        lambda *_args, **_kwargs: identity.company,
+    )
+    audit = MagicMock()
+    monkeypatch.setattr(AuditLogRepository, "add", audit)
+
+    result = CompanyService.update(
+        MagicMock(),
+        identity,
+        CompanyUpdate(timezone="America/Manaus"),
+    )
+
+    assert result.timezone == "America/Manaus"
+    assert audit.call_args.kwargs["details"] == {"fields": ["timezone"]}
+    assert set(audit.call_args.kwargs["details"]) == {"fields"}
 
 
 def test_company_update_normalizes_safe_fields() -> None:
@@ -201,6 +246,7 @@ def test_company_update_normalizes_safe_fields() -> None:
         document="  DOC-123  ",
         email="  CONTATO@EXAMPLE.COM  ",
         phone="  (11) 96666-5555  ",
+        timezone="  America/Sao_Paulo  ",
     )
     assert data.model_dump() == {
         "name": "Empresa Nova",
@@ -208,6 +254,7 @@ def test_company_update_normalizes_safe_fields() -> None:
         "document": "DOC-123",
         "email": "contato@example.com",
         "phone": "(11) 96666-5555",
+        "timezone": "America/Sao_Paulo",
     }
 
 

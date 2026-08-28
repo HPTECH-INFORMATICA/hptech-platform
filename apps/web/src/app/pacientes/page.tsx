@@ -4,9 +4,9 @@ import AppShell from "@/components/layout/AppShell";
 
 import PatientsPage from "./PatientsPage";
 
-function todayInSaoPaulo(): string {
+function todayInTimezone(timezone: string): string {
   const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone: "America/Sao_Paulo",
+    timeZone: timezone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -24,7 +24,10 @@ export default async function PatientsRoute() {
       permissions={user.permissions}
       userArea={<SessionUser user={user} />}
     >
-      <PatientsPage currentUser={user} maxBirthDate={todayInSaoPaulo()} />
+      <PatientsPage
+        currentUser={user}
+        maxBirthDate={todayInTimezone(user.company.timezone)}
+      />
     </AppShell>
   );
 }

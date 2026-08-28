@@ -3,6 +3,7 @@ export type CurrentCompany = {
   name: string;
   slug: string;
   status: string;
+  timezone: string;
 };
 
 export const permissionModules = [
