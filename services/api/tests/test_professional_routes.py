@@ -1,4 +1,5 @@
 from collections.abc import AsyncIterator
+from dataclasses import replace
 from datetime import datetime, timezone
 from unittest.mock import MagicMock
 from uuid import uuid4
@@ -13,6 +14,7 @@ from app.core.identity import (
     CompanyStatus,
     PermissionAction,
     PermissionModule,
+    Permission,
     UserRole,
 )
 from app.core.rbac import has_permission, permissions_for_role
@@ -130,6 +132,70 @@ async def client() -> AsyncIterator[AsyncClient]:
 
 async def test_routes_require_authentication(client: AsyncClient) -> None:
     assert (await client.get("/api/v1/professionals")).status_code == 401
+    assert (
+        await client.get("/api/v1/professionals/link-candidates")
+    ).status_code == 401
+
+
+async def test_link_candidates_use_professional_permissions_without_users_view(
+    client: AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    manager = make_identity(UserRole.MANAGER)
+    assert not has_permission(
+        manager.permissions, PermissionModule.USERS, PermissionAction.VIEW
+    )
+    app.dependency_overrides[get_current_user] = lambda: manager
+    monkeypatch.setattr(
+        ProfessionalDomain,
+        "list_user_candidates",
+        lambda *_args, **_kwargs: {
+            "items": [],
+            "total": 0,
+            "page": 1,
+            "page_size": 20,
+        },
+    )
+
+    response = await client.get("/api/v1/professionals/link-candidates")
+
+    assert response.status_code == 200
+
+
+async def test_link_candidates_require_create_or_update(
+    client: AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    viewer = make_identity(UserRole.VIEWER)
+    app.dependency_overrides[get_current_user] = lambda: viewer
+    assert (
+        await client.get("/api/v1/professionals/link-candidates")
+    ).status_code == 403
+
+    overridden = replace(
+        viewer,
+        permissions=viewer.permissions
+        + (
+            Permission(
+                PermissionModule.PROFESSIONALS,
+                frozenset({PermissionAction.CREATE}),
+            ),
+        ),
+    )
+    app.dependency_overrides[get_current_user] = lambda: overridden
+    monkeypatch.setattr(
+        ProfessionalDomain,
+        "list_user_candidates",
+        lambda *_args, **_kwargs: {
+            "items": [],
+            "total": 0,
+            "page": 1,
+            "page_size": 20,
+        },
+    )
+    assert (
+        await client.get("/api/v1/professionals/link-candidates")
+    ).status_code == 200
 
 
 @pytest.mark.parametrize(
@@ -481,6 +547,79 @@ def test_repository_queries_are_tenant_scoped_and_search_name_only() -> None:
     assert all("professionals.deleted_at IS NULL" in value for value in statements)
     assert all("professionals.display_name" in value for value in statements)
     assert all("users.email" not in value for value in statements)
+
+
+def test_candidate_repository_is_scoped_searchable_and_excludes_ineligible() -> None:
+    db = MagicMock()
+    db.scalar.return_value = 0
+    db.execute.return_value.scalars.return_value.all.return_value = []
+    company_id = uuid4()
+    professional_id = uuid4()
+    current_user_id = uuid4()
+
+    ProfessionalRepository.list_user_candidates(
+        db,
+        company_id,
+        page=2,
+        page_size=10,
+        search="pessoa@example.com",
+        current_professional_id=professional_id,
+        current_user_id=current_user_id,
+    )
+
+    statements = [str(db.scalar.call_args.args[0]), str(db.execute.call_args.args[0])]
+    assert all("users.company_id" in value for value in statements)
+    assert all("users.deleted_at IS NULL" in value for value in statements)
+    assert all("users.is_active" in value for value in statements)
+    assert all("professionals.user_id = users.id" in value for value in statements)
+    assert all("users.name" in value and "users.email" in value for value in statements)
+    assert "OFFSET" in statements[1]
+
+
+def test_candidate_domain_preserves_current_link_and_rejects_foreign_professional(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    identity = make_identity()
+    linked_user = make_user(identity, is_active=False)
+    professional = make_professional(identity, user_id=linked_user.id)
+    repository = MagicMock(return_value=([linked_user], 1))
+    monkeypatch.setattr(
+        ProfessionalRepository,
+        "get_by_id",
+        lambda *_args, **_kwargs: professional,
+    )
+    monkeypatch.setattr(
+        ProfessionalRepository,
+        "list_user_candidates",
+        repository,
+    )
+
+    result = ProfessionalDomain.list_user_candidates(
+        MagicMock(),
+        identity,
+        page=1,
+        page_size=20,
+        search=None,
+        professional_id=professional.id,
+    )
+
+    assert result.items[0].id == linked_user.id
+    assert repository.call_args.kwargs["current_user_id"] == linked_user.id
+
+    monkeypatch.setattr(
+        ProfessionalRepository,
+        "get_by_id",
+        lambda *_args, **_kwargs: None,
+    )
+    with pytest.raises(ProfessionalNotFoundError):
+        ProfessionalDomain.list_user_candidates(
+            MagicMock(),
+            identity,
+            page=1,
+            page_size=20,
+            search=None,
+            professional_id=uuid4(),
+        )
 
 
 def test_transaction_rolls_back_on_failure(

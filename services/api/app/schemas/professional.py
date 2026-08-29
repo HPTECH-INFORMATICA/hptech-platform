@@ -75,3 +75,20 @@ class ProfessionalListResponse(BaseModel):
     total: int
     page: int
     page_size: int
+
+
+class ProfessionalUserCandidateResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True, extra="forbid")
+
+    id: uuid.UUID
+    name: str
+    email: str
+
+
+class ProfessionalUserCandidateListResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    items: list[ProfessionalUserCandidateResponse]
+    total: int
+    page: int
+    page_size: int

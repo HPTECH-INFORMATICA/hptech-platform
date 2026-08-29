@@ -13,6 +13,8 @@ from app.schemas.professional import (
     ProfessionalResponse,
     ProfessionalStatusUpdate,
     ProfessionalUpdate,
+    ProfessionalUserCandidateListResponse,
+    ProfessionalUserCandidateResponse,
 )
 
 
@@ -88,6 +90,44 @@ class ProfessionalDomain:
         )
         return ProfessionalListResponse(
             items=[ProfessionalResponse.model_validate(item) for item in items],
+            total=total,
+            page=page,
+            page_size=page_size,
+        )
+
+    @staticmethod
+    def list_user_candidates(
+        db: Session,
+        identity: AuthenticatedIdentity,
+        *,
+        page: int,
+        page_size: int,
+        search: str | None,
+        professional_id: uuid.UUID | None,
+    ) -> ProfessionalUserCandidateListResponse:
+        current_user_id: uuid.UUID | None = None
+        if professional_id is not None:
+            professional = ProfessionalRepository.get_by_id(
+                db, identity.company.id, professional_id
+            )
+            if professional is None:
+                raise ProfessionalNotFoundError
+            current_user_id = professional.user_id
+
+        items, total = ProfessionalRepository.list_user_candidates(
+            db,
+            identity.company.id,
+            page=page,
+            page_size=page_size,
+            search=search,
+            current_professional_id=professional_id,
+            current_user_id=current_user_id,
+        )
+        return ProfessionalUserCandidateListResponse(
+            items=[
+                ProfessionalUserCandidateResponse.model_validate(item)
+                for item in items
+            ],
             total=total,
             page=page,
             page_size=page_size,

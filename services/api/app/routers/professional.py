@@ -5,14 +5,16 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.identity import AuthenticatedIdentity, PermissionAction, PermissionModule
+from app.core.rbac import has_permission
 from app.db.session import get_db
-from app.dependencies.auth import require_permission
+from app.dependencies.auth import get_current_user, require_permission
 from app.schemas.professional import (
     ProfessionalCreate,
     ProfessionalListResponse,
     ProfessionalResponse,
     ProfessionalStatusUpdate,
     ProfessionalUpdate,
+    ProfessionalUserCandidateListResponse,
 )
 from app.services.professional import (
     ProfessionalDomain,
@@ -29,6 +31,27 @@ require_view = require_permission(PermissionModule.PROFESSIONALS, PermissionActi
 require_create = require_permission(PermissionModule.PROFESSIONALS, PermissionAction.CREATE)
 require_update = require_permission(PermissionModule.PROFESSIONALS, PermissionAction.UPDATE)
 require_delete = require_permission(PermissionModule.PROFESSIONALS, PermissionAction.DELETE)
+
+
+def require_link_management(
+    identity: Annotated[AuthenticatedIdentity, Depends(get_current_user)],
+) -> AuthenticatedIdentity:
+    can_create = has_permission(
+        identity.permissions,
+        PermissionModule.PROFESSIONALS,
+        PermissionAction.CREATE,
+    )
+    can_update = has_permission(
+        identity.permissions,
+        PermissionModule.PROFESSIONALS,
+        PermissionAction.UPDATE,
+    )
+    if not (can_create or can_update):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="PermissÃ£o insuficiente para consultar contas elegÃ­veis.",
+        )
+    return identity
 
 
 def translate_professional_error(error: Exception) -> None:
@@ -72,6 +95,32 @@ def list_professionals(
         search=search,
         is_active=is_active,
     )
+
+
+@router.get(
+    "/link-candidates",
+    response_model=ProfessionalUserCandidateListResponse,
+)
+def list_professional_user_candidates(
+    identity: Annotated[AuthenticatedIdentity, Depends(require_link_management)],
+    db: Annotated[Session, Depends(get_db)],
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=100)] = 20,
+    search: Annotated[str | None, Query(max_length=150)] = None,
+    professional_id: uuid.UUID | None = None,
+) -> ProfessionalUserCandidateListResponse:
+    try:
+        return ProfessionalDomain.list_user_candidates(
+            db,
+            identity,
+            page=page,
+            page_size=page_size,
+            search=search,
+            professional_id=professional_id,
+        )
+    except ProfessionalNotFoundError as error:
+        translate_professional_error(error)
+        raise AssertionError("unreachable")
 
 
 @router.get("/{professional_id}", response_model=ProfessionalResponse)

@@ -30,6 +30,11 @@ const navigationGroups = [
     label: "Centro Clínico",
     items: [
       { label: "Pacientes", href: "/pacientes", module: "PATIENTS" },
+      {
+        label: "Profissionais",
+        href: "/profissionais",
+        module: "PROFESSIONALS",
+      },
       { label: "Serviços", href: "/servicos", module: "SERVICES" },
       { label: "Agenda", planned: true },
     ],

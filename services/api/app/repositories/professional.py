@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import func, select
+from sqlalchemy import and_, case, exists, func, or_, select
 from sqlalchemy.orm import Session
 
 from app.models.professional import Professional
@@ -103,6 +103,68 @@ class ProfessionalRepository:
         if exclude_professional_id is not None:
             filters.append(Professional.id != exclude_professional_id)
         return db.execute(select(Professional).where(*filters)).scalar_one_or_none()
+
+    @staticmethod
+    def list_user_candidates(
+        db: Session,
+        company_id: uuid.UUID,
+        *,
+        page: int,
+        page_size: int,
+        search: str | None,
+        current_professional_id: uuid.UUID | None,
+        current_user_id: uuid.UUID | None,
+    ) -> tuple[list[User], int]:
+        linked_to_another_professional = exists(
+            select(Professional.id).where(
+                Professional.company_id == company_id,
+                Professional.user_id == User.id,
+                *(
+                    (Professional.id != current_professional_id,)
+                    if current_professional_id is not None
+                    else ()
+                ),
+            )
+        )
+        filters = [
+            User.company_id == company_id,
+            User.deleted_at.is_(None),
+            ~linked_to_another_professional,
+        ]
+        if current_user_id is None:
+            filters.append(User.is_active.is_(True))
+        else:
+            filters.append(
+                or_(User.is_active.is_(True), User.id == current_user_id)
+            )
+        if search and (term := search.strip()):
+            filters.append(
+                or_(
+                    User.name.icontains(term, autoescape=True),
+                    User.email.icontains(term, autoescape=True),
+                )
+            )
+
+        total = db.scalar(
+            select(func.count()).select_from(User).where(and_(*filters))
+        ) or 0
+        ordering = (
+            (
+                case((User.id == current_user_id, 0), else_=1),
+                func.lower(User.name),
+                User.id,
+            )
+            if current_user_id is not None
+            else (func.lower(User.name), User.id)
+        )
+        statement = (
+            select(User)
+            .where(and_(*filters))
+            .order_by(*ordering)
+            .offset((page - 1) * page_size)
+            .limit(page_size)
+        )
+        return list(db.execute(statement).scalars().all()), total
 
     @staticmethod
     def update(
