@@ -45,6 +45,12 @@ SAFE_METADATA_KEYS: dict[str, frozenset[str]] = {
     "PROFESSIONAL_UPDATED": frozenset({"fields"}),
     "PROFESSIONAL_STATUS_CHANGED": frozenset({"from", "to"}),
     "PROFESSIONAL_SOFT_DELETED": frozenset({"state"}),
+    "PROFESSIONAL_AVAILABILITY_WEEKLY_UPDATED": frozenset(
+        {"previous_count", "new_count", "weekdays"}
+    ),
+    "PROFESSIONAL_AVAILABILITY_EXCEPTION_CREATED": frozenset({"kind", "scope"}),
+    "PROFESSIONAL_AVAILABILITY_EXCEPTION_UPDATED": frozenset({"fields"}),
+    "PROFESSIONAL_AVAILABILITY_EXCEPTION_DELETED": frozenset({"kind", "scope"}),
     "LEAD_CREATED": frozenset({"state"}),
     "LEAD_UPDATED": frozenset({"fields"}),
     "LEAD_PIPELINE_CHANGED": frozenset({"from", "to"}),

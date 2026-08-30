@@ -17,3 +17,7 @@ from app.models.password_reset_token import PasswordResetToken  # noqa: E402, F4
 from app.models.role_permission_override import RolePermissionOverride  # noqa: E402, F401
 from app.models.patient import Patient  # noqa: E402, F401
 from app.models.professional import Professional  # noqa: E402, F401
+from app.models.professional_availability import (  # noqa: E402, F401
+    ProfessionalAvailabilityException,
+    ProfessionalWeeklyAvailability,
+)
