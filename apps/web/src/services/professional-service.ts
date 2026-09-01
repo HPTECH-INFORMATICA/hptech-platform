@@ -32,6 +32,46 @@ export type ProfessionalUserCandidateList = {
   page_size: number;
 };
 
+export type WeeklyAvailabilityInterval = {
+  weekday: number;
+  start_time: string;
+  end_time: string;
+};
+
+export type WeeklyAvailability = {
+  professional_id: string;
+  timezone: string;
+  intervals: WeeklyAvailabilityInterval[];
+};
+
+export type AvailabilityExceptionKind = "AVAILABLE" | "UNAVAILABLE";
+
+export type AvailabilityExceptionData = {
+  id: string;
+  professional_id: string;
+  local_date: string;
+  kind: AvailabilityExceptionKind;
+  start_time: string | null;
+  end_time: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type AvailabilityExceptionInput = {
+  local_date: string;
+  kind: AvailabilityExceptionKind;
+  start_time: string | null;
+  end_time: string | null;
+};
+
+export type AvailabilityExceptionList = {
+  items: AvailabilityExceptionData[];
+  total: number;
+  page: number;
+  page_size: number;
+  timezone: string;
+};
+
 export class ProfessionalApiError extends Error {
   constructor(public readonly status: number, message: string) {
     super(message);
@@ -59,6 +99,79 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export function listProfessionals(params: URLSearchParams) {
   return request<ProfessionalList>(`?${params.toString()}`);
+}
+
+export function getProfessional(id: string) {
+  return request<ProfessionalData>(`/${encodeURIComponent(id)}`);
+}
+
+export function getWeeklyAvailability(professionalId: string) {
+  return request<WeeklyAvailability>(
+    `/${encodeURIComponent(professionalId)}/availability/weekly`,
+  );
+}
+
+export function replaceWeeklyAvailability(
+  professionalId: string,
+  intervals: WeeklyAvailabilityInterval[],
+) {
+  return request<WeeklyAvailability>(
+    `/${encodeURIComponent(professionalId)}/availability/weekly`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ intervals }),
+    },
+  );
+}
+
+export function listAvailabilityExceptions(
+  professionalId: string,
+  params: URLSearchParams,
+) {
+  const query = params.toString();
+  return request<AvailabilityExceptionList>(
+    `/${encodeURIComponent(professionalId)}/availability/exceptions${query ? `?${query}` : ""}`,
+  );
+}
+
+export function createAvailabilityException(
+  professionalId: string,
+  data: AvailabilityExceptionInput,
+) {
+  return request<AvailabilityExceptionData>(
+    `/${encodeURIComponent(professionalId)}/availability/exceptions`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    },
+  );
+}
+
+export function updateAvailabilityException(
+  professionalId: string,
+  exceptionId: string,
+  data: AvailabilityExceptionInput,
+) {
+  return request<AvailabilityExceptionData>(
+    `/${encodeURIComponent(professionalId)}/availability/exceptions/${encodeURIComponent(exceptionId)}`,
+    {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    },
+  );
+}
+
+export function deleteAvailabilityException(
+  professionalId: string,
+  exceptionId: string,
+) {
+  return request<void>(
+    `/${encodeURIComponent(professionalId)}/availability/exceptions/${encodeURIComponent(exceptionId)}`,
+    { method: "DELETE" },
+  );
 }
 
 export function listProfessionalUserCandidates(params: URLSearchParams) {

@@ -15,6 +15,13 @@ export const professionalCandidateQueryKeys = new Set([
   "professional_id",
 ]);
 
+export const professionalExceptionQueryKeys = new Set([
+  "date_from",
+  "date_to",
+  "page",
+  "page_size",
+]);
+
 export type ProfessionalBackendTarget = {
   path: string;
   queryKeys: ReadonlySet<string> | null;
@@ -45,6 +52,37 @@ export function resolveProfessionalBackendTarget(
   }
   if (path.length === 2 && path[1] === "status" && method === "PATCH") {
     return { path: `/professionals/${id}/status`, queryKeys: null };
+  }
+  if (
+    path.length === 3 &&
+    path[1] === "availability" &&
+    path[2] === "weekly" &&
+    ["GET", "PUT"].includes(method)
+  ) {
+    return { path: `/professionals/${id}/availability/weekly`, queryKeys: null };
+  }
+  if (
+    path.length === 3 &&
+    path[1] === "availability" &&
+    path[2] === "exceptions" &&
+    ["GET", "POST"].includes(method)
+  ) {
+    return {
+      path: `/professionals/${id}/availability/exceptions`,
+      queryKeys: method === "GET" ? professionalExceptionQueryKeys : null,
+    };
+  }
+  if (
+    path.length === 4 &&
+    path[1] === "availability" &&
+    path[2] === "exceptions" &&
+    UUID_PATTERN.test(path[3]) &&
+    ["PATCH", "DELETE"].includes(method)
+  ) {
+    return {
+      path: `/professionals/${id}/availability/exceptions/${encodeURIComponent(path[3])}`,
+      queryKeys: null,
+    };
   }
   return null;
 }

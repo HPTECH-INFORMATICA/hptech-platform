@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 
 import { hasPermission, type CurrentUser } from "@/auth/types";
 import Alert from "@/components/ui/Alert";
@@ -135,8 +136,6 @@ export default function ProfessionalsPage({ currentUser }: { currentUser: Curren
   const canCreate = hasPermission(currentUser, "PROFESSIONALS", "CREATE");
   const canUpdate = hasPermission(currentUser, "PROFESSIONALS", "UPDATE");
   const canDelete = hasPermission(currentUser, "PROFESSIONALS", "DELETE");
-  const hasActions = canUpdate || canDelete;
-
   useEffect(() => {
     const timer = window.setTimeout(() => {
       setDebouncedSearch(search.trim());
@@ -344,9 +343,14 @@ export default function ProfessionalsPage({ currentUser }: { currentUser: Curren
   }
 
   function actions(professional: ProfessionalData) {
-    if (!hasActions) return null;
     return (
       <div className="flex flex-wrap gap-2">
+        <Link
+          href={`/profissionais/${encodeURIComponent(professional.id)}/disponibilidade`}
+          className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-md)] px-3 text-sm font-semibold text-hp-primary outline-none transition-colors hover:bg-hp-primary-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hp-focus sm:min-h-9"
+        >
+          Disponibilidade
+        </Link>
         {canUpdate ? (
           <Button size="sm" variant="ghost" onClick={() => openEdit(professional)}>
             Editar
@@ -449,7 +453,7 @@ export default function ProfessionalsPage({ currentUser }: { currentUser: Curren
                   <TableHead>Nome</TableHead>
                   <TableHead>Conta de acesso</TableHead>
                   <TableHead>Status</TableHead>
-                  {hasActions ? <TableHead>Ações</TableHead> : null}
+                  <TableHead>Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -462,7 +466,7 @@ export default function ProfessionalsPage({ currentUser }: { currentUser: Curren
                       {professional.user_id ? "Vinculado" : "Sem conta vinculada"}
                     </TableCell>
                     <TableCell><StatusBadge active={professional.is_active} /></TableCell>
-                    {hasActions ? <TableCell>{actions(professional)}</TableCell> : null}
+                    <TableCell>{actions(professional)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

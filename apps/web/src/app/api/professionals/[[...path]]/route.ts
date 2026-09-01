@@ -53,7 +53,7 @@ async function handle(request: Request, context: RouteContext) {
   if (queryError) return privateJson({ error: queryError }, 400);
 
   try {
-    const hasBody = ["POST", "PATCH"].includes(method);
+    const hasBody = ["POST", "PUT", "PATCH"].includes(method);
     const query = url.searchParams.toString();
     const response = await authenticatedBackendFetch(
       `${target.path}${query ? `?${query}` : ""}`,
@@ -71,5 +71,6 @@ async function handle(request: Request, context: RouteContext) {
 
 export const GET = handle;
 export const POST = handle;
+export const PUT = handle;
 export const PATCH = handle;
 export const DELETE = handle;

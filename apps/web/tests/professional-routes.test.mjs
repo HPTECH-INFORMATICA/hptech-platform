@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   professionalCandidateQueryKeys,
+  professionalExceptionQueryKeys,
   professionalListQueryKeys,
   resolveProfessionalBackendTarget,
   validateProfessionalQuery,
@@ -26,6 +27,36 @@ test("BFF allowlist resolves only the official Professional routes", () => {
   assert.equal(resolveProfessionalBackendTarget(["invalid"], "GET"), null);
   assert.equal(resolveProfessionalBackendTarget([id, "unknown"], "GET"), null);
   assert.equal(resolveProfessionalBackendTarget(undefined, "DELETE"), null);
+});
+
+test("BFF allowlist resolves the official availability routes", () => {
+  assert.deepEqual(resolveProfessionalBackendTarget([id, "availability", "weekly"], "GET"), {
+    path: `/professionals/${id}/availability/weekly`,
+    queryKeys: null,
+  });
+  assert.equal(
+    resolveProfessionalBackendTarget([id, "availability", "weekly"], "PUT")?.path,
+    `/professionals/${id}/availability/weekly`,
+  );
+  assert.deepEqual(resolveProfessionalBackendTarget([id, "availability", "exceptions"], "GET"), {
+    path: `/professionals/${id}/availability/exceptions`,
+    queryKeys: professionalExceptionQueryKeys,
+  });
+  assert.equal(
+    resolveProfessionalBackendTarget([id, "availability", "exceptions"], "POST")?.path,
+    `/professionals/${id}/availability/exceptions`,
+  );
+  assert.equal(
+    resolveProfessionalBackendTarget([id, "availability", "exceptions", id], "PATCH")?.path,
+    `/professionals/${id}/availability/exceptions/${id}`,
+  );
+  assert.equal(
+    resolveProfessionalBackendTarget([id, "availability", "exceptions", id], "DELETE")?.path,
+    `/professionals/${id}/availability/exceptions/${id}`,
+  );
+  assert.equal(resolveProfessionalBackendTarget([id, "availability", "weekly"], "POST"), null);
+  assert.equal(resolveProfessionalBackendTarget([id, "availability", "exceptions"], "PUT"), null);
+  assert.equal(resolveProfessionalBackendTarget([id, "availability", "exceptions", "invalid"], "PATCH"), null);
 });
 
 test("list and candidate queries reject unknown parameters", () => {
@@ -64,5 +95,19 @@ test("detail and mutation targets reject every query parameter", () => {
   assert.match(
     validateProfessionalQuery(new URLSearchParams("search=A"), null),
     /nÃ£o permitidos/i,
+  );
+});
+
+test("exception list accepts only its documented filters", () => {
+  assert.equal(
+    validateProfessionalQuery(
+      new URLSearchParams("date_from=2026-01-01&date_to=2026-12-31&page=1&page_size=20"),
+      professionalExceptionQueryKeys,
+    ),
+    null,
+  );
+  assert.match(
+    validateProfessionalQuery(new URLSearchParams("search=A"), professionalExceptionQueryKeys),
+    /permitido/i,
   );
 });

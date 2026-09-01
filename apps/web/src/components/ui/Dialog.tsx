@@ -191,6 +191,20 @@ function isPointerFromAnotherDialog(
   );
 }
 
+function isPointerFromCurrentDialogContent(
+  target: EventTarget | null,
+  currentDialog: HTMLDialogElement,
+): boolean {
+  const view = currentDialog.ownerDocument.defaultView;
+
+  return Boolean(
+    view &&
+      target instanceof view.Node &&
+      target !== currentDialog &&
+      currentDialog.contains(target),
+  );
+}
+
 function createConsumerCancelEvent(
   nativeEvent: Event,
   currentTarget: HTMLDialogElement,
@@ -1120,6 +1134,11 @@ export const DialogContent = forwardRef<
         return;
       }
 
+      if (isPointerFromCurrentDialogContent(event.target, event.currentTarget)) {
+        backdropPointerRef.current = null;
+        return;
+      }
+
       if (!modal) {
         backdropPointerRef.current = null;
         return;
@@ -1144,6 +1163,11 @@ export const DialogContent = forwardRef<
       }
 
       if (isPointerFromAnotherDialog(event.target, event.currentTarget)) {
+        backdropPointerRef.current = null;
+        return;
+      }
+
+      if (isPointerFromCurrentDialogContent(event.target, event.currentTarget)) {
         backdropPointerRef.current = null;
         return;
       }
