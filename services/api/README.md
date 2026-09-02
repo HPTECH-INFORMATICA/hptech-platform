@@ -12,7 +12,7 @@ Autenticação JWT, isolamento multiempresa e autorização RBAC estão implemen
 
 ## Pré-requisitos
 
-- Python 3.12 ou superior
+- Python 3.12
 - PostgreSQL
 - PowerShell no Windows
 
@@ -37,7 +37,7 @@ Ative o ambiente:
 Instale as dependências:
 
 ```powershell
-python -m pip install -r requirements.txt
+python -m pip install -r requirements-dev.txt
 ```
 
 Valide o ambiente:
@@ -94,7 +94,7 @@ Aplique as migrations pendentes:
 python -m alembic upgrade head
 ```
 
-A head atual do projeto é `e7b94c1d2a63`.
+A head atual do projeto é `b6e4d2a91c73`.
 
 O bootstrap administrativo do primeiro OWNER está descrito em
 `../../docs/SECURITY_DEPLOY_CHECKLIST.md`; ele exige uma empresa existente e
@@ -128,11 +128,22 @@ Health check:
 http://127.0.0.1:8000/api/v1/health
 ```
 
+Readiness com verificação PostgreSQL sanitizada:
+
+```text
+http://127.0.0.1:8000/api/v1/readiness
+```
+
+`health` comprova apenas o processo vivo. `readiness` executa somente
+`SELECT 1`, possui timeout de conexão e retorna `503` sem detalhes internos
+quando o banco não está disponível.
+
 ## Endpoints atuais
 
 ```text
 GET    /
 GET    /api/v1/health
+GET    /api/v1/readiness
 POST   /api/v1/leads
 GET    /api/v1/leads
 GET    /api/v1/leads/kanban
@@ -179,6 +190,11 @@ python -B -c "from app.main import app; print(app.title)"
 ```
 
 Os testes automatizados cobrem autenticação, RBAC, isolamento multiempresa, CORS e demais primitivas de segurança atuais.
+
+Antes de importar a aplicação, `tests/conftest.py` força `APP_ENV=test` e uma
+URL PostgreSQL exclusivamente loopback com nome terminado em `_test`. Isso
+impede que a suíte use a `DATABASE_URL` do `.env` ou alcance Neon/produção. Os
+testes atuais usam doubles determinísticos e não criam banco externo.
 
 ## Limitações conhecidas
 

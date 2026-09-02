@@ -29,6 +29,17 @@ do servidor Next.js e nunca deve usar o prefixo `NEXT_PUBLIC_`.
 
 Não versione `.env.local`.
 
+## Deploy planejado
+
+O frontend ainda não está provisionado na Vercel. O contrato versionado em
+`vercel.json` usa o framework Next.js e os comandos `pnpm install
+--frozen-lockfile` e `pnpm build`, considerando `apps/web` como Root Directory.
+
+Na criação controlada do projeto, configure somente no ambiente servidor a
+variável `API_URL` com a URL nativa do backend já validada. Não use
+`NEXT_PUBLIC_API_URL`. O domínio `app.hptechinformatica.com` somente deve ser
+associado depois que a URL nativa Vercel estiver saudável.
+
 ## Execução local
 
 A partir da raiz do monorepo:

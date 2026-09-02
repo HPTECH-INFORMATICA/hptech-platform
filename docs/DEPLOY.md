@@ -4,6 +4,15 @@
 
 Este documento define a estratégia inicial de publicação, configuração de ambientes e operação da HPTECH Platform.
 
+## Estado operacional
+
+> **PLANEJADO / AINDA NÃO PROVISIONADO:** a arquitetura Vercel → Render →
+> Neon descrita neste documento é o contrato de produção aprovado, mas os
+> projetos Vercel e Render e os domínios `app` e `api` ainda não foram
+> provisionados. Nenhuma URL nativa dos provedores deve ser inferida. Os
+> registros DNS somente poderão ser criados com os targets reais retornados
+> pelos provedores após o provisionamento controlado.
+
 A plataforma será composta por:
 
 - frontend;
@@ -151,15 +160,20 @@ apps/web
 
 # Configuração do Projeto na Vercel
 
-Configurações previstas:
+Configurações planejadas:
 
 ```text
 Framework Preset: Next.js
 Root Directory: apps/web
-Install Command: pnpm install
+Install Command: pnpm install --frozen-lockfile
 Build Command: pnpm build
 Output Directory: padrão do Next.js
 ```
+
+O arquivo `apps/web/vercel.json` materializa somente comandos públicos e não
+contém variáveis de ambiente. O projeto deve usar `apps/web` como Root
+Directory. A variável privada `API_URL` deve ser criada pelo operador somente
+depois que a URL nativa do backend Render tiver sido validada.
 
 Como o projeto utiliza monorepo, a configuração poderá exigir acesso ao arquivo:
 
@@ -179,7 +193,7 @@ Tecnologia:
 FastAPI
 ```
 
-Hospedagem inicial:
+Hospedagem planejada:
 
 ```text
 Render
@@ -197,7 +211,20 @@ Comando de inicialização previsto:
 uvicorn app.main:app --host 0.0.0.0 --port $PORT
 ```
 
-O comando definitivo será validado após a criação da estrutura do backend.
+O arquivo `render.yaml` materializa esse contrato sem valores secretos e mantém
+o deploy automático desabilitado. A criação efetiva do serviço continua sendo
+uma operação externa sujeita a aprovação humana.
+
+## Liveness, readiness e migrations
+
+- `GET /api/v1/health` comprova somente que o processo FastAPI está vivo;
+- `GET /api/v1/readiness` executa apenas `SELECT 1` e retorna resposta
+  sanitizada para comprovar a dependência PostgreSQL;
+- migrations não são executadas automaticamente no build ou startup;
+- após backup verificável, execute `python -m alembic upgrade head` em uma
+  etapa operacional controlada antes de liberar tráfego;
+- a falha de readiness deve bloquear a liberação, sem expor detalhes da
+  conexão.
 
 ---
 
@@ -323,9 +350,9 @@ coverage
 
 ---
 
-# Domínios
+# Domínios planejados
 
-Estrutura recomendada:
+Estrutura planejada e ainda não configurada para a aplicação:
 
 ```text
 hptechinformatica.com
@@ -350,6 +377,10 @@ Backend FastAPI
 staging.hptechinformatica.com
 Ambiente de homologação
 ```
+
+Os targets de `app` e `api` não estão definidos neste repositório. Preserve MX,
+SPF, DKIM e demais registros de email existentes. Crie os registros da
+aplicação somente com os targets reais fornecidos por Vercel e Render.
 
 ---
 

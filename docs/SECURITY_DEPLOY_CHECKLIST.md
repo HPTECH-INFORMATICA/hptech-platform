@@ -43,6 +43,10 @@ Este checklist é obrigatório antes da exposição pública da HPTECH Platform.
 
    A senha é solicitada sem eco. Não existe signup público nem OWNER automático.
 
+Migrations não fazem parte do build nem do comando de startup. Execute-as em
+etapa controlada, com backup verificável, e confirme `/api/v1/readiness` antes
+de liberar tráfego.
+
 ## Headers, rede e observabilidade
 
 - Confirmar no endpoint público CSP, `X-Content-Type-Options`,
