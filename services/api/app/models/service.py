@@ -1,7 +1,16 @@
 import uuid
 from decimal import Decimal
 
-from sqlalchemy import Boolean, CheckConstraint, ForeignKey, Integer, Numeric, String, Text
+from sqlalchemy import (
+    Boolean,
+    CheckConstraint,
+    ForeignKey,
+    Integer,
+    Numeric,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -21,6 +30,11 @@ class Service(
 ):
     __tablename__ = "services"
     __table_args__ = (
+        UniqueConstraint(
+            "company_id",
+            "id",
+            name="uq_services_company_id_id",
+        ),
         CheckConstraint(
             "duration_minutes > 0",
             name="ck_services_duration_minutes_positive",

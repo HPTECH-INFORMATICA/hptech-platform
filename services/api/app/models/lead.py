@@ -1,7 +1,14 @@
 import uuid
 from datetime import date
 
-from sqlalchemy import Date, ForeignKey, ForeignKeyConstraint, String, Text
+from sqlalchemy import (
+    Date,
+    ForeignKey,
+    ForeignKeyConstraint,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -21,6 +28,11 @@ class Lead(
 ):
     __tablename__ = "leads"
     __table_args__ = (
+        UniqueConstraint(
+            "company_id",
+            "id",
+            name="uq_leads_company_id_id",
+        ),
         ForeignKeyConstraint(
             ["company_id", "patient_id"],
             ["patients.company_id", "patients.id"],
