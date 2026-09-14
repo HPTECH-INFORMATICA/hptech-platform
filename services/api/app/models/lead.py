@@ -117,6 +117,10 @@ class Lead(
     appointments = relationship(
         "Appointment",
         back_populates="lead",
+        primaryjoin=(
+            "and_(Lead.company_id == Appointment.company_id, "
+            "Lead.id == foreign(Appointment.lead_id))"
+        ),
     )
 
     transactions = relationship(

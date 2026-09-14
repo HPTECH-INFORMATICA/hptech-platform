@@ -93,6 +93,10 @@ class Service(
     appointments = relationship(
         "Appointment",
         back_populates="service",
+        primaryjoin=(
+            "and_(Service.company_id == Appointment.company_id, "
+            "Service.id == foreign(Appointment.service_id))"
+        ),
     )
 
     category = relationship(

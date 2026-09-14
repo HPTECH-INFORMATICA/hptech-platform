@@ -79,6 +79,10 @@ class User(
     appointments = relationship(
         "Appointment",
         back_populates="professional",
+        primaryjoin=(
+            "and_(User.company_id == Appointment.company_id, "
+            "User.id == foreign(Appointment.professional_id))"
+        ),
     )
 
     lead_history = relationship(

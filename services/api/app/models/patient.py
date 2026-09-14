@@ -44,3 +44,11 @@ class Patient(UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin, Base):
         back_populates="patient",
         foreign_keys="Lead.patient_id",
     )
+    appointments = relationship(
+        "Appointment",
+        back_populates="patient",
+        primaryjoin=(
+            "and_(Patient.company_id == Appointment.company_id, "
+            "Patient.id == foreign(Appointment.patient_id))"
+        ),
+    )

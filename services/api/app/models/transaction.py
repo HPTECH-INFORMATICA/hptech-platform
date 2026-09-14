@@ -2,7 +2,14 @@ import uuid
 from datetime import date
 from decimal import Decimal
 
-from sqlalchemy import Date, ForeignKey, Numeric, String, Text
+from sqlalchemy import (
+    Date,
+    ForeignKey,
+    ForeignKeyConstraint,
+    Numeric,
+    String,
+    Text,
+)
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -21,6 +28,14 @@ class Transaction(
     Base,
 ):
     __tablename__ = "transactions"
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["company_id", "appointment_id"],
+            ["appointments.company_id", "appointments.id"],
+            name="fk_transactions_company_appointment",
+            ondelete="RESTRICT",
+        ),
+    )
 
     company_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
@@ -38,7 +53,6 @@ class Transaction(
 
     appointment_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("appointments.id", ondelete="SET NULL"),
         nullable=True,
         index=True,
     )
@@ -106,4 +120,8 @@ class Transaction(
     appointment = relationship(
         "Appointment",
         back_populates="transactions",
+        primaryjoin=(
+            "and_(Transaction.company_id == Appointment.company_id, "
+            "foreign(Transaction.appointment_id) == Appointment.id)"
+        ),
     )

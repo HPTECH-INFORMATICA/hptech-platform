@@ -66,3 +66,11 @@ class Professional(UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin, Base):
         back_populates="professional",
         overlaps="company,professionals",
     )
+    appointments = relationship(
+        "Appointment",
+        back_populates="clinical_professional",
+        primaryjoin=(
+            "and_(Professional.company_id == Appointment.company_id, "
+            "Professional.id == foreign(Appointment.clinical_professional_id))"
+        ),
+    )
