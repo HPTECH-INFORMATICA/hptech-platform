@@ -12,8 +12,11 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    func,
+    literal_column,
+    text,
 )
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import ExcludeConstraint, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base_class import Base
@@ -233,3 +236,25 @@ class Appointment(
             "Appointment.id == foreign(Transaction.appointment_id))"
         ),
     )
+
+
+Appointment.__table__.append_constraint(
+    ExcludeConstraint(
+        (Appointment.__table__.c.company_id, "="),
+        (Appointment.__table__.c.clinical_professional_id, "="),
+        (
+            func.tstzrange(
+                Appointment.__table__.c.starts_at,
+                Appointment.__table__.c.ends_at,
+                literal_column("'[)'"),
+            ),
+            "&&",
+        ),
+        where=text(
+            "status IN ('SCHEDULED', 'CONFIRMED', 'IN_PROGRESS') "
+            "AND deleted_at IS NULL"
+        ),
+        name="ex_appointments_professional_schedule_overlap",
+        using="gist",
+    )
+)

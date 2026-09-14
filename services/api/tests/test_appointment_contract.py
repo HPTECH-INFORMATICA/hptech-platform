@@ -1,4 +1,7 @@
 from sqlalchemy import CheckConstraint, inspect
+from sqlalchemy.dialects import postgresql
+from sqlalchemy.dialects.postgresql import ExcludeConstraint
+from sqlalchemy.schema import CreateTable
 
 from app.db import base as _models  # noqa: F401
 from app.models.appointment import Appointment
@@ -99,3 +102,29 @@ def test_appointment_relationships_keep_company_in_the_join() -> None:
         transaction_relationships["appointment"].primaryjoin
     )
     assert "transactions.company_id" in transaction_join
+
+
+def test_appointment_overlap_exclusion_is_registered() -> None:
+    exclusions = {
+        constraint.name: constraint
+        for constraint in Appointment.__table__.constraints
+        if isinstance(constraint, ExcludeConstraint)
+    }
+    constraint = exclusions[
+        "ex_appointments_professional_schedule_overlap"
+    ]
+
+    assert constraint.using == "gist"
+    assert str(constraint.where) == (
+        "status IN ('SCHEDULED', 'CONFIRMED', 'IN_PROGRESS') "
+        "AND deleted_at IS NULL"
+    )
+
+    table_sql = str(
+        CreateTable(Appointment.__table__).compile(
+            dialect=postgresql.dialect()
+        )
+    )
+    assert "company_id WITH =" in table_sql
+    assert "clinical_professional_id WITH =" in table_sql
+    assert "tstzrange(starts_at, ends_at, '[)') WITH &&" in table_sql
