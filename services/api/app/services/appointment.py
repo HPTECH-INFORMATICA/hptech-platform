@@ -7,7 +7,7 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.core.timezones import normalize_iana_timezone
-from app.core.identity import AuthenticatedIdentity
+from app.core.identity import AuthenticatedIdentity, UserRole
 from app.models.appointment import Appointment
 from app.repositories.appointment import AppointmentRepository
 from app.repositories.audit_log import AuditLogRepository
@@ -179,6 +179,33 @@ def require_mutable_fields(
 
 class AppointmentDomain:
     @staticmethod
+    def _own_professional_id(
+        db: Session,
+        identity: AuthenticatedIdentity,
+    ) -> uuid.UUID | None:
+        if identity.role is not UserRole.PROFESSIONAL:
+            return None
+        professional = ProfessionalRepository.get_by_user_id(
+            db,
+            identity.company.id,
+            identity.user.id,
+        )
+        if professional is None or not professional.is_active or professional.deleted_at is not None:
+            raise AppointmentNotFoundError
+        return professional.id
+
+    @classmethod
+    def _enforce_scope(
+        cls,
+        db: Session,
+        identity: AuthenticatedIdentity,
+        appointment: Appointment,
+    ) -> None:
+        own_id = cls._own_professional_id(db, identity)
+        if own_id is not None and appointment.clinical_professional_id != own_id:
+            raise AppointmentNotFoundError
+
+    @staticmethod
     def _appointment(
         db: Session,
         identity: AuthenticatedIdentity,
@@ -194,6 +221,7 @@ class AppointmentDomain:
         )
         if appointment is None:
             raise AppointmentNotFoundError
+        AppointmentDomain._enforce_scope(db, identity, appointment)
         return appointment
 
     @staticmethod
@@ -392,6 +420,9 @@ class AppointmentDomain:
     ) -> AppointmentListResponse:
         page = filters["page"]
         page_size = filters["page_size"]
+        own_id = cls._own_professional_id(db, identity)
+        if own_id is not None:
+            filters["professional_id"] = own_id
         items, total = AppointmentRepository.list_by_company(
             db, identity.company.id, **filters
         )

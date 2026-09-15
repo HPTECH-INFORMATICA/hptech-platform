@@ -47,6 +47,7 @@ async def apply_security_headers(request: Request, call_next):
             "/api/v1/leads",
             "/api/v1/lead-history",
             "/api/v1/audit-logs",
+            "/api/v1/appointments",
         )
     ):
         response.headers["Cache-Control"] = "private, no-store"

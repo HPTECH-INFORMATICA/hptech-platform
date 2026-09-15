@@ -38,6 +38,7 @@ class PermissionModule(StrEnum):
     SERVICE_CATEGORIES = "SERVICE_CATEGORIES"
     PATIENTS = "PATIENTS"
     PROFESSIONALS = "PROFESSIONALS"
+    APPOINTMENTS = "APPOINTMENTS"
 
 
 class PermissionAction(StrEnum):

@@ -6,6 +6,7 @@ from uuid import uuid4
 
 from app.repositories.appointment import AppointmentRepository
 from app.repositories.audit_log import AuditLogRepository
+from app.core.identity import UserRole
 from app.schemas.appointment import (
     AppointmentCreate,
     AppointmentStatus,
@@ -19,6 +20,7 @@ def identity() -> SimpleNamespace:
     return SimpleNamespace(
         company=SimpleNamespace(id=uuid4(), timezone="America/Sao_Paulo"),
         user=SimpleNamespace(id=uuid4()),
+        role=UserRole.OWNER,
     )
 
 
