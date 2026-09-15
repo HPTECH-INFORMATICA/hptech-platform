@@ -36,7 +36,7 @@ const navigationGroups = [
         module: "PROFESSIONALS",
       },
       { label: "Serviços", href: "/servicos", module: "SERVICES" },
-      { label: "Agenda", planned: true },
+      { label: "Agenda", href: "/agenda", module: "APPOINTMENTS" },
     ],
   },
   {
