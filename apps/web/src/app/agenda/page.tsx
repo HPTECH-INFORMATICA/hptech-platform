@@ -25,6 +25,7 @@ export default async function AgendaRoute() {
       userArea={<SessionUser user={user} />}
     >
       <AgendaPage
+        currentUser={user}
         timezone={user.company.timezone}
         initialDate={todayInTimezone(user.company.timezone)}
       />

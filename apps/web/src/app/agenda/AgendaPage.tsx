@@ -2,23 +2,39 @@
 
 import { useEffect, useMemo, useState } from "react";
 
+import { hasPermission, type CurrentUser } from "@/auth/types";
 import Alert from "@/components/ui/Alert";
 import Badge, { type BadgeProps } from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
+import Dialog, {
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/Dialog";
 import EmptyState from "@/components/ui/EmptyState";
 import PageHeader from "@/components/ui/PageHeader";
 import Select from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
+import useToast from "@/hooks/useToast";
 import {
   listAppointments,
+  transitionAppointment,
+  type AppointmentAction,
   type AppointmentData,
   type AppointmentStatus,
 } from "@/services/appointment-service";
+import { listPatients, type PatientData } from "@/services/patient-service";
 import {
   listProfessionals,
   type ProfessionalData,
 } from "@/services/professional-service";
+import { listServices, type ServiceData } from "@/services/service-service";
+
+import AppointmentEditor, { type AppointmentEditorMode } from "./AppointmentEditor";
 
 const DAY_IN_MS = 86_400_000;
 const QUERY_PADDING_IN_MS = 14 * 60 * 60 * 1000;
@@ -36,8 +52,26 @@ const statusPresentation: Record<
 };
 
 type AgendaPageProps = {
+  currentUser: CurrentUser;
   timezone: string;
   initialDate: string;
+};
+
+const availableActions: Partial<
+  Record<AppointmentStatus, { action: AppointmentAction; label: string }[]>
+> = {
+  SCHEDULED: [
+    { action: "confirm", label: "Confirmar" },
+    { action: "start", label: "Iniciar" },
+    { action: "no-show", label: "Não compareceu" },
+    { action: "cancel", label: "Cancelar" },
+  ],
+  CONFIRMED: [
+    { action: "start", label: "Iniciar" },
+    { action: "no-show", label: "Não compareceu" },
+    { action: "cancel", label: "Cancelar" },
+  ],
+  IN_PROGRESS: [{ action: "complete", label: "Concluir" }],
 };
 
 function dateKeyInTimezone(value: Date, timezone: string): string {
@@ -123,16 +157,62 @@ async function listActiveProfessionals(): Promise<ProfessionalData[]> {
   return [first, ...remaining].flatMap((result) => result.items);
 }
 
+async function listActivePatients(): Promise<PatientData[]> {
+  const pageSize = 100;
+  const params = new URLSearchParams({
+    page: "1",
+    page_size: String(pageSize),
+    is_active: "true",
+  });
+  const first = await listPatients(params);
+  const pages = Math.ceil(first.total / pageSize);
+  const remaining = await Promise.all(
+    Array.from({ length: Math.max(0, pages - 1) }, (_, index) => {
+      const pageParams = new URLSearchParams(params);
+      pageParams.set("page", String(index + 2));
+      return listPatients(pageParams);
+    }),
+  );
+  return [first, ...remaining].flatMap((result) => result.items);
+}
+
+async function listActiveServices(): Promise<ServiceData[]> {
+  const pageSize = 100;
+  const params = new URLSearchParams({
+    page: "1",
+    page_size: String(pageSize),
+    is_active: "true",
+  });
+  const first = await listServices(params);
+  const pages = Math.ceil(first.total / pageSize);
+  const remaining = await Promise.all(
+    Array.from({ length: Math.max(0, pages - 1) }, (_, index) => {
+      const pageParams = new URLSearchParams(params);
+      pageParams.set("page", String(index + 2));
+      return listServices(pageParams);
+    }),
+  );
+  return [first, ...remaining].flatMap((result) => result.items);
+}
+
 function AppointmentCard({
   appointment,
   timezone,
+  onOpen,
 }: {
   appointment: AppointmentData;
   timezone: string;
+  onOpen: () => void;
 }) {
   const status = statusPresentation[appointment.status];
   return (
-    <Card variant="subtle" padding="sm" className="space-y-2">
+    <button
+      type="button"
+      onClick={onOpen}
+      className="block w-full rounded-[var(--radius-lg)] text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hp-focus"
+      aria-label={`Abrir ${appointment.service_name_snapshot} às ${formatTime(appointment.starts_at, timezone)}`}
+    >
+      <Card variant="subtle" padding="sm" interactive className="space-y-2">
       <div className="flex min-w-0 items-start justify-between gap-2">
         <p className="font-semibold text-hp-foreground">
           <time dateTime={appointment.starts_at}>
@@ -153,11 +233,17 @@ function AppointmentCard({
       <p className="text-xs text-hp-muted">
         {appointment.service_duration_minutes_snapshot} min
       </p>
-    </Card>
+      </Card>
+    </button>
   );
 }
 
-export default function AgendaPage({ timezone, initialDate }: AgendaPageProps) {
+export default function AgendaPage({
+  currentUser,
+  timezone,
+  initialDate,
+}: AgendaPageProps) {
+  const { toast } = useToast();
   const [weekStart, setWeekStart] = useState(() => startOfWeek(initialDate));
   const [selectedDay, setSelectedDay] = useState(initialDate);
   const [professionals, setProfessionals] = useState<ProfessionalData[]>([]);
@@ -165,6 +251,25 @@ export default function AgendaPage({ timezone, initialDate }: AgendaPageProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reload, setReload] = useState(0);
+  const [patients, setPatients] = useState<PatientData[]>([]);
+  const [services, setServices] = useState<ServiceData[]>([]);
+  const [referencesLoading, setReferencesLoading] = useState(false);
+  const [referencesError, setReferencesError] = useState<string | null>(null);
+  const [selectedAppointment, setSelectedAppointment] =
+    useState<AppointmentData | null>(null);
+  const [editorMode, setEditorMode] = useState<AppointmentEditorMode | null>(null);
+  const [editorKey, setEditorKey] = useState(0);
+  const [actionBusy, setActionBusy] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+
+  const canCreate = hasPermission(currentUser, "APPOINTMENTS", "CREATE");
+  const canUpdate = hasPermission(currentUser, "APPOINTMENTS", "UPDATE");
+  const canReadReferences =
+    hasPermission(currentUser, "PATIENTS", "VIEW") &&
+    hasPermission(currentUser, "PROFESSIONALS", "VIEW") &&
+    hasPermission(currentUser, "SERVICES", "VIEW");
+  const canOpenCreate = canCreate && canReadReferences;
+  const canEditAppointment = canUpdate && canReadReferences;
 
   const days = useMemo(
     () => Array.from({ length: 7 }, (_, index) => addCivilDays(weekStart, index)),
@@ -203,6 +308,34 @@ export default function AgendaPage({ timezone, initialDate }: AgendaPageProps) {
     return () => controller.abort();
   }, [days, reload, timezone, window.end, window.start]);
 
+  useEffect(() => {
+    if (!canReadReferences) return;
+    let active = true;
+
+    const loadReferences = async () => {
+      setReferencesLoading(true);
+      setReferencesError(null);
+      try {
+        const [patientResult, serviceResult] = await Promise.all([
+          listActivePatients(),
+          listActiveServices(),
+        ]);
+        if (!active) return;
+        setPatients(patientResult);
+        setServices(serviceResult);
+      } catch (reason) {
+        if (active) setReferencesError(errorMessage(reason));
+      } finally {
+        if (active) setReferencesLoading(false);
+      }
+    };
+
+    void loadReferences();
+    return () => {
+      active = false;
+    };
+  }, [canReadReferences, reload]);
+
   const appointmentsByCell = useMemo(() => {
     const result = new Map<string, AppointmentData[]>();
     for (const appointment of appointments) {
@@ -229,12 +362,64 @@ export default function AgendaPage({ timezone, initialDate }: AgendaPageProps) {
     setSelectedDay(initialDate);
   }
 
+  function openEditor(mode: AppointmentEditorMode) {
+    setEditorKey((value) => value + 1);
+    setEditorMode(mode);
+  }
+
+  function handleSaved(appointment: AppointmentData) {
+    setEditorMode(null);
+    setSelectedAppointment(appointment);
+    setReload((value) => value + 1);
+    toast({
+      variant: "success",
+      description:
+        editorMode === "create"
+          ? "Agendamento criado com sucesso."
+          : editorMode === "reschedule"
+            ? "Agendamento reagendado com sucesso."
+            : "Agendamento atualizado com sucesso.",
+    });
+  }
+
+  async function runAction(action: AppointmentAction) {
+    if (!selectedAppointment) return;
+    setActionBusy(true);
+    setActionError(null);
+    try {
+      const updated = await transitionAppointment(selectedAppointment.id, action);
+      setSelectedAppointment(updated);
+      setAppointments((current) =>
+        current.map((item) => (item.id === updated.id ? updated : item)),
+      );
+      toast({ variant: "success", description: "Status atualizado com sucesso." });
+    } catch (reason) {
+      setActionError(errorMessage(reason));
+    } finally {
+      setActionBusy(false);
+    }
+  }
+
   const weekLabel = `${formatCivilDate(days[0], { day: "2-digit", month: "short" })} – ${formatCivilDate(days[6], { day: "2-digit", month: "short", year: "numeric" })}`;
   const dayOptions = days.map((day) => ({
     value: day,
     label: formatCivilDate(day, { weekday: "long", day: "2-digit", month: "short" }),
   }));
   const resolvedSelectedDay = days.includes(selectedDay) ? selectedDay : days[0];
+  const selectedPatient = selectedAppointment
+    ? patients.find((patient) => patient.id === selectedAppointment.patient_id)
+    : null;
+  const selectedProfessional = selectedAppointment
+    ? professionals.find(
+        (professional) => professional.id === selectedAppointment.professional_id,
+      )
+    : null;
+  const selectedActions = selectedAppointment
+    ? availableActions[selectedAppointment.status] ?? []
+    : [];
+  const selectedMutable =
+    selectedAppointment?.status === "SCHEDULED" ||
+    selectedAppointment?.status === "CONFIRMED";
 
   return (
     <div className="space-y-8">
@@ -244,6 +429,9 @@ export default function AgendaPage({ timezone, initialDate }: AgendaPageProps) {
         metadata={<Badge variant="neutral">Semana de {weekLabel}</Badge>}
         actions={
           <div className="flex flex-wrap gap-2" aria-label="Navegação da agenda">
+            {canOpenCreate ? (
+              <Button onClick={() => openEditor("create")}>Novo agendamento</Button>
+            ) : null}
             <Button variant="outline" onClick={() => changeWeek(-1)}>
               Semana anterior
             </Button>
@@ -306,7 +494,15 @@ export default function AgendaPage({ timezone, initialDate }: AgendaPageProps) {
                   <Card key={professional.id} variant="outlined" padding="sm" className="space-y-3">
                     <h3 className="font-semibold text-hp-foreground">{professional.display_name}</h3>
                     {entries.length ? entries.map((appointment) => (
-                      <AppointmentCard key={appointment.id} appointment={appointment} timezone={timezone} />
+                      <AppointmentCard
+                        key={appointment.id}
+                        appointment={appointment}
+                        timezone={timezone}
+                        onOpen={() => {
+                          setActionError(null);
+                          setSelectedAppointment(appointment);
+                        }}
+                      />
                     )) : <p className="text-sm text-hp-muted">Sem agendamentos.</p>}
                   </Card>
                 );
@@ -348,7 +544,15 @@ export default function AgendaPage({ timezone, initialDate }: AgendaPageProps) {
                         <td key={professional.id} className="border-b border-hp-border p-3">
                           <div className="space-y-2">
                             {entries.length ? entries.map((appointment) => (
-                              <AppointmentCard key={appointment.id} appointment={appointment} timezone={timezone} />
+                              <AppointmentCard
+                                key={appointment.id}
+                                appointment={appointment}
+                                timezone={timezone}
+                                onOpen={() => {
+                                  setActionError(null);
+                                  setSelectedAppointment(appointment);
+                                }}
+                              />
                             )) : <span className="text-sm text-hp-subtle">Livre</span>}
                           </div>
                         </td>
@@ -360,6 +564,125 @@ export default function AgendaPage({ timezone, initialDate }: AgendaPageProps) {
             </table>
           </div>
         </section>
+      ) : null}
+
+      <Dialog
+        open={selectedAppointment !== null && editorMode === null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedAppointment(null);
+            setActionError(null);
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{selectedAppointment?.service_name_snapshot}</DialogTitle>
+            <DialogDescription>
+              Detalhes operacionais do agendamento no fuso {timezone}.
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedAppointment ? (
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center gap-2">
+                <Badge variant={statusPresentation[selectedAppointment.status].variant}>
+                  {statusPresentation[selectedAppointment.status].label}
+                </Badge>
+                <span className="text-sm text-hp-muted">
+                  {selectedAppointment.service_duration_minutes_snapshot} min
+                </span>
+              </div>
+              <dl className="grid gap-4 text-sm sm:grid-cols-2">
+                <div>
+                  <dt className="font-medium text-hp-muted">Data</dt>
+                  <dd className="mt-1 text-hp-foreground">
+                    {formatCivilDate(
+                      dateKeyInTimezone(
+                        new Date(selectedAppointment.starts_at),
+                        timezone,
+                      ),
+                      { weekday: "long", day: "2-digit", month: "long", year: "numeric" },
+                    )}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="font-medium text-hp-muted">Horário</dt>
+                  <dd className="mt-1 text-hp-foreground">
+                    {formatTime(selectedAppointment.starts_at, timezone)} – {formatTime(selectedAppointment.ends_at, timezone)}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="font-medium text-hp-muted">Paciente</dt>
+                  <dd className="mt-1 text-hp-foreground">
+                    {selectedPatient?.name ?? "Paciente não disponível"}
+                  </dd>
+                </div>
+                <div>
+                  <dt className="font-medium text-hp-muted">Profissional</dt>
+                  <dd className="mt-1 text-hp-foreground">
+                    {selectedProfessional?.display_name ?? "Profissional não disponível"}
+                  </dd>
+                </div>
+              </dl>
+              {selectedAppointment.notes ? (
+                <div>
+                  <h3 className="text-sm font-medium text-hp-muted">Observações</h3>
+                  <p className="mt-1 whitespace-pre-wrap break-words text-sm text-hp-foreground">
+                    {selectedAppointment.notes}
+                  </p>
+                </div>
+              ) : null}
+              {actionError ? <Alert variant="danger" description={actionError} /> : null}
+            </div>
+          ) : null}
+
+          <DialogFooter>
+            <DialogClose className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-md)] px-4 font-semibold text-hp-foreground hover:bg-hp-surface-subtle">
+              Fechar
+            </DialogClose>
+            {canEditAppointment && selectedMutable ? (
+              <>
+                <Button variant="outline" onClick={() => openEditor("edit")}>
+                  Editar
+                </Button>
+                <Button variant="outline" onClick={() => openEditor("reschedule")}>
+                  Reagendar
+                </Button>
+              </>
+            ) : null}
+            {canUpdate
+              ? selectedActions.map(({ action, label }) => (
+                  <Button
+                    key={action}
+                    variant={action === "cancel" ? "danger" : "primary"}
+                    loading={actionBusy}
+                    disabled={actionBusy}
+                    onClick={() => void runAction(action)}
+                  >
+                    {label}
+                  </Button>
+                ))
+              : null}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {editorMode ? (
+        <AppointmentEditor
+          key={`${editorMode}:${selectedAppointment?.id ?? "new"}:${editorKey}`}
+          mode={editorMode}
+          appointment={editorMode === "create" ? null : selectedAppointment}
+          timezone={timezone}
+          initialDate={resolvedSelectedDay}
+          patients={patients}
+          professionals={professionals}
+          services={services}
+          referencesLoading={referencesLoading}
+          referencesError={referencesError}
+          onClose={() => setEditorMode(null)}
+          onSaved={handleSaved}
+        />
       ) : null}
     </div>
   );

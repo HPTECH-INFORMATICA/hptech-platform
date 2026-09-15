@@ -3,7 +3,11 @@ import test from "node:test";
 
 import {
   AppointmentApiError,
+  createAppointment,
   listAppointments,
+  rescheduleAppointment,
+  transitionAppointment,
+  updateAppointment,
 } from "../src/services/appointment-service.ts";
 
 function appointment(id) {
@@ -74,4 +78,47 @@ test("agenda exposes the sanitized BFF error", async (context) => {
       error.status === 401 &&
       error.message === "Sessão inválida.",
   );
+});
+
+test("mutations use only the official BFF paths and methods", async (context) => {
+  const originalFetch = globalThis.fetch;
+  const requests = [];
+  context.after(() => {
+    globalThis.fetch = originalFetch;
+  });
+  globalThis.fetch = async (input, init) => {
+    requests.push({ path: String(input), method: init?.method, body: init?.body });
+    return Response.json(appointment("00000000-0000-4000-8000-000000000001"));
+  };
+  const id = "00000000-0000-4000-8000-000000000001";
+  const civil = {
+    local_datetime: "2026-09-15T09:00:00",
+    utc_offset_minutes: -180,
+  };
+
+  await createAppointment({
+    patient_id: "10000000-0000-4000-8000-000000000001",
+    professional_id: "20000000-0000-4000-8000-000000000001",
+    service_id: "30000000-0000-4000-8000-000000000001",
+    lead_id: null,
+    starts_at: civil,
+    notes: null,
+  });
+  await updateAppointment(id, { notes: "Retorno" });
+  await rescheduleAppointment(id, {
+    starts_at: civil,
+    duration_minutes: 60,
+  });
+  await transitionAppointment(id, "confirm");
+
+  assert.deepEqual(
+    requests.map(({ path, method }) => ({ path, method })),
+    [
+      { path: "/api/appointments", method: "POST" },
+      { path: `/api/appointments/${id}`, method: "PATCH" },
+      { path: `/api/appointments/${id}/reschedule`, method: "POST" },
+      { path: `/api/appointments/${id}/confirm`, method: "POST" },
+    ],
+  );
+  assert.equal(JSON.parse(requests[0].body).starts_at.utc_offset_minutes, -180);
 });

@@ -23,6 +23,40 @@ export type AppointmentData = {
   updated_at: string;
 };
 
+export type AppointmentCivilDateTime = {
+  local_datetime: string;
+  utc_offset_minutes: number | null;
+};
+
+export type AppointmentCreateInput = {
+  patient_id: string;
+  professional_id: string;
+  service_id: string;
+  lead_id: string | null;
+  starts_at: AppointmentCivilDateTime;
+  notes: string | null;
+};
+
+export type AppointmentUpdateInput = {
+  patient_id?: string;
+  professional_id?: string;
+  service_id?: string;
+  duration_minutes?: number;
+  notes?: string | null;
+};
+
+export type AppointmentRescheduleInput = {
+  starts_at: AppointmentCivilDateTime;
+  duration_minutes?: number;
+};
+
+export type AppointmentAction =
+  | "confirm"
+  | "start"
+  | "complete"
+  | "cancel"
+  | "no-show";
+
 type AppointmentList = {
   items: AppointmentData[];
   total: number;
@@ -56,6 +90,27 @@ async function requestPage(params: URLSearchParams): Promise<AppointmentList> {
   return response.json() as Promise<AppointmentList>;
 }
 
+async function requestAppointment(
+  path: string,
+  init?: RequestInit,
+): Promise<AppointmentData> {
+  const response = await fetch(`/api/appointments${path}`, {
+    ...init,
+    headers: { Accept: "application/json", ...init?.headers },
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as
+      | { detail?: string; error?: string }
+      | null;
+    throw new AppointmentApiError(
+      response.status,
+      body?.detail ?? body?.error ?? "Não foi possível concluir a operação.",
+    );
+  }
+  return response.json() as Promise<AppointmentData>;
+}
+
 export async function listAppointments(
   windowStart: string,
   windowEnd: string,
@@ -79,4 +134,38 @@ export async function listAppointments(
     }),
   );
   return [first, ...remaining].flatMap((result) => result.items);
+}
+
+export function createAppointment(data: AppointmentCreateInput) {
+  return requestAppointment("", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+}
+
+export function updateAppointment(id: string, data: AppointmentUpdateInput) {
+  return requestAppointment(`/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+}
+
+export function rescheduleAppointment(
+  id: string,
+  data: AppointmentRescheduleInput,
+) {
+  return requestAppointment(`/${encodeURIComponent(id)}/reschedule`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+}
+
+export function transitionAppointment(id: string, action: AppointmentAction) {
+  return requestAppointment(
+    `/${encodeURIComponent(id)}/${encodeURIComponent(action)}`,
+    { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" },
+  );
 }
