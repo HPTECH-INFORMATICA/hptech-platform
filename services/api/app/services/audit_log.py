@@ -58,6 +58,11 @@ SAFE_METADATA_KEYS: dict[str, frozenset[str]] = {
     "PATIENT_CREATED_FROM_LEAD": frozenset({"lead_id", "state"}),
     "LEAD_LINKED_TO_PATIENT": frozenset({"patient_id"}),
     "LEAD_UNLINKED_FROM_PATIENT": frozenset({"patient_id"}),
+    "APPOINTMENT_CREATED": frozenset({"status"}),
+    "APPOINTMENT_UPDATED": frozenset({"fields"}),
+    "APPOINTMENT_RESCHEDULED": frozenset({"duration_changed"}),
+    "APPOINTMENT_STATUS_CHANGED": frozenset({"from", "to"}),
+    "APPOINTMENT_CANCELED": frozenset({"from", "to"}),
 }
 
 

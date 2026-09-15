@@ -112,6 +112,22 @@ class ProfessionalAvailabilityRepository:
         return list(db.execute(select(ProfessionalAvailabilityException).where(*filters)).scalars().all())
 
     @staticmethod
+    def list_exceptions_between(
+        db: Session,
+        company_id: uuid.UUID,
+        professional_id: uuid.UUID,
+        date_from: date,
+        date_to: date,
+    ) -> list[ProfessionalAvailabilityException]:
+        statement = select(ProfessionalAvailabilityException).where(
+            ProfessionalAvailabilityException.company_id == company_id,
+            ProfessionalAvailabilityException.professional_id == professional_id,
+            ProfessionalAvailabilityException.local_date >= date_from,
+            ProfessionalAvailabilityException.local_date <= date_to,
+        )
+        return list(db.execute(statement).scalars().all())
+
+    @staticmethod
     def get_exception(
         db: Session,
         company_id: uuid.UUID,
