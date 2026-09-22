@@ -257,6 +257,8 @@ export default function AgendaPage({
   const [referencesError, setReferencesError] = useState<string | null>(null);
   const [selectedAppointment, setSelectedAppointment] =
     useState<AppointmentData | null>(null);
+  const [editorAppointment, setEditorAppointment] =
+    useState<AppointmentData | null>(null);
   const [editorMode, setEditorMode] = useState<AppointmentEditorMode | null>(null);
   const [editorKey, setEditorKey] = useState(0);
   const [actionBusy, setActionBusy] = useState(false);
@@ -363,12 +365,24 @@ export default function AgendaPage({
   }
 
   function openEditor(mode: AppointmentEditorMode) {
-    setEditorKey((value) => value + 1);
-    setEditorMode(mode);
+    if (mode === "create") {
+      setEditorAppointment(null);
+      setEditorKey((value) => value + 1);
+      setEditorMode(mode);
+      return;
+    }
+
+    setEditorAppointment(selectedAppointment);
+    setSelectedAppointment(null);
+    globalThis.setTimeout(() => {
+      setEditorKey((value) => value + 1);
+      setEditorMode(mode);
+    }, 0);
   }
 
   function handleSaved(appointment: AppointmentData) {
     setEditorMode(null);
+    setEditorAppointment(null);
     setSelectedAppointment(appointment);
     setReload((value) => value + 1);
     toast({
@@ -566,16 +580,17 @@ export default function AgendaPage({
         </section>
       ) : null}
 
-      <Dialog
-        open={selectedAppointment !== null && editorMode === null}
-        onOpenChange={(open) => {
-          if (!open) {
-            setSelectedAppointment(null);
-            setActionError(null);
-          }
-        }}
-      >
-        <DialogContent>
+      {editorMode === null ? (
+        <Dialog
+          open={selectedAppointment !== null}
+          onOpenChange={(open) => {
+            if (!open) {
+              setSelectedAppointment(null);
+              setActionError(null);
+            }
+          }}
+        >
+          <DialogContent>
           <DialogHeader>
             <DialogTitle>{selectedAppointment?.service_name_snapshot}</DialogTitle>
             <DialogDescription>
@@ -665,14 +680,15 @@ export default function AgendaPage({
                 ))
               : null}
           </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
+      ) : null}
 
       {editorMode ? (
         <AppointmentEditor
-          key={`${editorMode}:${selectedAppointment?.id ?? "new"}:${editorKey}`}
+          key={`${editorMode}:${editorAppointment?.id ?? "new"}:${editorKey}`}
           mode={editorMode}
-          appointment={editorMode === "create" ? null : selectedAppointment}
+          appointment={editorAppointment}
           timezone={timezone}
           initialDate={resolvedSelectedDay}
           patients={patients}
@@ -680,7 +696,10 @@ export default function AgendaPage({
           services={services}
           referencesLoading={referencesLoading}
           referencesError={referencesError}
-          onClose={() => setEditorMode(null)}
+          onClose={() => {
+            setEditorMode(null);
+            setEditorAppointment(null);
+          }}
           onSaved={handleSaved}
         />
       ) : null}
