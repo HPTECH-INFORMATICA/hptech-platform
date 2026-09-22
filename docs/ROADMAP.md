@@ -137,9 +137,10 @@ CRM
 
 Agenda
 
-- Calendário
-- Agendamentos
-- Confirmações
+- Calendário semanal operacional — concluído
+- Agendamentos, reagendamento e ciclo de atendimento — concluído
+- Confirmação manual no ciclo do agendamento — concluído
+- Confirmações automatizadas e integrações de mensageria — evolução futura
 
 ---
 

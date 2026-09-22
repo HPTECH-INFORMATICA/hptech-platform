@@ -163,23 +163,46 @@ updated_at
 
 ## Appointments
 
-Representa um agendamento.
+Representa um agendamento clínico tenant-aware. Horários são persistidos como
+instantes com timezone, enquanto a entrada da API usa data e hora civil no fuso
+IANA configurado para a empresa.
 
-Campos iniciais:
+Campos atuais:
 
 ```text
 id
 company_id
 lead_id
 professional_id
+patient_id
+clinical_professional_id
+service_id
+service_name_snapshot
+service_duration_minutes_snapshot
+service_price_snapshot
 title
 description
-start_at
-end_at
+starts_at
+ends_at
 status
+notes
+deleted_at
 created_at
 updated_at
 ```
+
+`professional_id` é a referência legada para `users.id` e permanece nullable.
+O contrato clínico usa `clinical_professional_id` com referência tenant-safe
+para `professionals.id`.
+
+Os estados suportados são `SCHEDULED`, `CONFIRMED`, `IN_PROGRESS`, `COMPLETED`,
+`CANCELED` e `NO_SHOW`. Agendamentos ativos do mesmo profissional não podem se
+sobrepor; a restrição PostgreSQL considera o intervalo semiaberto `[starts_at,
+ends_at)` e ignora registros cancelados, concluídos, ausentes ou removidos.
+
+Os snapshots de serviço preservam nome, duração e preço existentes no momento
+da criação. As relações com paciente, profissional clínico e serviço usam
+chaves compostas com `company_id` para impedir referências entre tenants.
 
 ---
 

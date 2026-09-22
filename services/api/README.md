@@ -158,6 +158,16 @@ GET    /api/v1/services/{service_id}
 PATCH  /api/v1/services/{service_id}
 PATCH  /api/v1/services/{service_id}/status
 DELETE /api/v1/services/{service_id}
+GET    /api/v1/appointments
+POST   /api/v1/appointments
+GET    /api/v1/appointments/{appointment_id}
+PATCH  /api/v1/appointments/{appointment_id}
+POST   /api/v1/appointments/{appointment_id}/reschedule
+POST   /api/v1/appointments/{appointment_id}/confirm
+POST   /api/v1/appointments/{appointment_id}/start
+POST   /api/v1/appointments/{appointment_id}/complete
+POST   /api/v1/appointments/{appointment_id}/cancel
+POST   /api/v1/appointments/{appointment_id}/no-show
 ```
 
 A movimentação pelo endpoint de pipeline cria o histórico internamente. Não existe endpoint público para criação manual de histórico.
@@ -174,6 +184,24 @@ passa a `false`. A desativação pelo endpoint de status não remove o registro.
 Criação, atualização, mudança de status e remoção geram eventos no AuditLog na
 mesma transação da mutação. Agenda, Appointment e Patient não fazem parte deste
 lote.
+
+### Agendamentos
+
+O módulo `APPOINTMENTS` usa `VIEW`, `CREATE` e `UPDATE`. O backend deriva o
+tenant exclusivamente da identidade autenticada; referências de outro tenant e
+agendamentos fora do escopo do profissional autenticado respondem como não
+encontrados.
+
+A criação recebe uma data e hora civil, resolve o instante pelo fuso IANA da
+empresa e exige desambiguação explícita durante transições de horário de verão.
+Antes de persistir, o domínio valida paciente, profissional, serviço,
+disponibilidade efetiva e conflitos de agenda. O PostgreSQL mantém uma segunda
+barreira contra sobreposição por exclusion constraint.
+
+O ciclo operacional suportado é `SCHEDULED`, `CONFIRMED`, `IN_PROGRESS`,
+`COMPLETED`, `CANCELED` e `NO_SHOW`. Criação, edição, reagendamento e transições
+geram eventos de auditoria na mesma transação. O contrato completo está em
+`docs/modules/agenda.md`.
 
 ## Validações técnicas
 
