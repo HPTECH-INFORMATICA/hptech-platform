@@ -140,6 +140,31 @@ APPOINTMENTS_VIEW_CREATE = Permission(
     frozenset({PermissionAction.VIEW, PermissionAction.CREATE}),
 )
 APPOINTMENTS_VIEW = Permission(PermissionModule.APPOINTMENTS, VIEW)
+FINANCIAL_ALL = Permission(
+    PermissionModule.FINANCIAL,
+    frozenset(
+        {
+            PermissionAction.VIEW,
+            PermissionAction.CREATE,
+            PermissionAction.UPDATE,
+            PermissionAction.DELETE,
+        }
+    ),
+)
+FINANCIAL_WRITE = Permission(
+    PermissionModule.FINANCIAL,
+    frozenset(
+        {
+            PermissionAction.VIEW,
+            PermissionAction.CREATE,
+            PermissionAction.UPDATE,
+        }
+    ),
+)
+FINANCIAL_VIEW_CREATE = Permission(
+    PermissionModule.FINANCIAL,
+    frozenset({PermissionAction.VIEW, PermissionAction.CREATE}),
+)
 USERS_ADMIN = frozenset(
     {
         PermissionAction.VIEW,
@@ -165,6 +190,7 @@ ROLE_PERMISSIONS: dict[UserRole, tuple[Permission, ...]] = {
         PATIENTS_ALL,
         PROFESSIONALS_ALL,
         APPOINTMENTS_WRITE,
+        FINANCIAL_ALL,
     ),
     UserRole.ADMIN: (
         Permission(PermissionModule.DASHBOARD, VIEW),
@@ -178,6 +204,7 @@ ROLE_PERMISSIONS: dict[UserRole, tuple[Permission, ...]] = {
         PATIENTS_ALL,
         PROFESSIONALS_ALL,
         APPOINTMENTS_WRITE,
+        FINANCIAL_ALL,
     ),
     UserRole.MANAGER: (
         Permission(PermissionModule.DASHBOARD, VIEW),
@@ -187,6 +214,7 @@ ROLE_PERMISSIONS: dict[UserRole, tuple[Permission, ...]] = {
         PATIENTS_WRITE,
         PROFESSIONALS_WRITE,
         APPOINTMENTS_WRITE,
+        FINANCIAL_WRITE,
     ),
     UserRole.SALES: (
         Permission(PermissionModule.DASHBOARD, VIEW),
@@ -203,6 +231,7 @@ ROLE_PERMISSIONS: dict[UserRole, tuple[Permission, ...]] = {
         PATIENTS_WRITE,
         PROFESSIONALS_WRITE,
         APPOINTMENTS_WRITE,
+        FINANCIAL_VIEW_CREATE,
     ),
     UserRole.PROFESSIONAL: (
         Permission(PermissionModule.DASHBOARD, VIEW),
@@ -218,6 +247,7 @@ ROLE_PERMISSIONS: dict[UserRole, tuple[Permission, ...]] = {
         Permission(PermissionModule.CRM, VIEW),
         PATIENTS_VIEW,
         PROFESSIONALS_VIEW,
+        FINANCIAL_ALL,
     ),
     UserRole.VIEWER: (
         Permission(PermissionModule.DASHBOARD, VIEW),
