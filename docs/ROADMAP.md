@@ -148,9 +148,12 @@ Agenda
 
 Financeiro
 
-- Contas
-- Fluxo de Caixa
-- Recebimentos
+- Lançamentos de receitas e despesas — concluído
+- Ciclo pendente, pago e cancelado — concluído
+- API multiempresa protegida por RBAC — concluído
+- Interface operacional responsiva — concluído
+- Fluxo de caixa consolidado — evolução futura
+- Recebimentos automáticos derivados de atendimentos — evolução futura
 
 ---
 

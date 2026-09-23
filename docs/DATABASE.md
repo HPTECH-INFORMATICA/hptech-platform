@@ -208,25 +208,40 @@ chaves compostas com `company_id` para impedir referências entre tenants.
 
 ## Financial Transactions
 
-Representa entradas e saídas financeiras.
+Representa receitas e despesas operacionais por empresa.
 
-Campos iniciais:
+Campos publicados:
 
 ```text
 id
 company_id
-type
-category
+lead_id
+appointment_id
 description
+transaction_type
+category
 amount
 due_date
-payment_date
+paid_date
 status
+payment_method
+notes
+deleted_at
 created_at
 updated_at
 ```
 
-O campo `amount` deverá ser armazenado como decimal, nunca como texto.
+`amount` é armazenado como `NUMERIC(12, 2)` e deve ser maior que zero.
+`transaction_type` aceita `INCOME` ou `EXPENSE`; `status` aceita `PENDING`,
+`PAID` ou `CANCELED`. Um lançamento pago exige `paid_date`, enquanto os demais
+estados não podem manter essa data.
+
+As referências opcionais a lead e agendamento usam chaves estrangeiras
+compostas com `company_id`, impedindo vínculos entre tenants. O par
+`(company_id, id)` também é único para sustentar essas relações tenant-safe.
+
+Remoções são lógicas por `deleted_at`; o histórico financeiro permanece
+preservado.
 
 Exemplo visual:
 
@@ -234,7 +249,7 @@ Exemplo visual:
 R$ 150,00
 ```
 
-No banco, o valor será armazenado numericamente.
+No banco, o valor é armazenado numericamente.
 
 ---
 
