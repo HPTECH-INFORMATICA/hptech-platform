@@ -25,6 +25,18 @@ export type FinancialTransactionList = {
   page_size: number;
 };
 
+export type FinancialSummaryData = {
+  due_from: string | null;
+  due_to: string | null;
+  paid_income: string;
+  paid_expense: string;
+  pending_income: string;
+  pending_expense: string;
+  realized_balance: string;
+  projected_balance: string;
+  transaction_count: number;
+};
+
 export type FinancialTransactionCreateInput = {
   transaction_type: FinancialTransactionType;
   description: string;
@@ -87,6 +99,17 @@ export async function listFinancialTransactions(
   );
   if (!response.ok) return parseError(response);
   return response.json() as Promise<FinancialTransactionList>;
+}
+
+export async function getFinancialSummary(
+  params: URLSearchParams,
+): Promise<FinancialSummaryData> {
+  const response = await fetch(`/api/financial/summary?${params.toString()}`, {
+    headers: { Accept: "application/json" },
+    cache: "no-store",
+  });
+  if (!response.ok) return parseError(response);
+  return response.json() as Promise<FinancialSummaryData>;
 }
 
 export function createFinancialTransaction(

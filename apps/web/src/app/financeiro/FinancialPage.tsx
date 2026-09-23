@@ -36,11 +36,13 @@ import {
   createFinancialTransaction,
   deleteFinancialTransaction,
   FinancialApiError,
+  getFinancialSummary,
   listFinancialTransactions,
   payFinancialTransaction,
   updateFinancialTransaction,
   type FinancialTransactionData,
   type FinancialTransactionType,
+  type FinancialSummaryData,
 } from "@/services/financial-service";
 
 const PAGE_SIZE = 20;
@@ -151,6 +153,9 @@ export default function FinancialPage({ currentUser, initialDate }: FinancialPag
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [reload, setReload] = useState(0);
+  const [summary, setSummary] = useState<FinancialSummaryData | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(true);
+  const [summaryError, setSummaryError] = useState<string | null>(null);
   const [editorOpen, setEditorOpen] = useState(false);
   const [editing, setEditing] = useState<FinancialTransactionData | null>(null);
   const [draft, setDraft] = useState(() => emptyDraft(initialDate));
@@ -202,6 +207,32 @@ export default function FinancialPage({ currentUser, initialDate }: FinancialPag
     void load();
     return () => { active = false; };
   }, [dueFrom, dueTo, filterError, page, reload, statusFilter, typeFilter]);
+
+  useEffect(() => {
+    let active = true;
+    const params = new URLSearchParams();
+    if (dueFrom) params.set("due_from", dueFrom);
+    if (dueTo) params.set("due_to", dueTo);
+
+    async function loadSummary() {
+      setSummaryLoading(true);
+      setSummaryError(null);
+      if (filterError) {
+        if (active) setSummaryLoading(false);
+        return;
+      }
+      try {
+        const result = await getFinancialSummary(params);
+        if (active) setSummary(result);
+      } catch (error) {
+        if (active) setSummaryError(errorMessage(error));
+      } finally {
+        if (active) setSummaryLoading(false);
+      }
+    }
+    void loadSummary();
+    return () => { active = false; };
+  }, [dueFrom, dueTo, filterError, reload]);
 
   function refresh(message: string) {
     toast({ variant: "success", description: message });
@@ -323,6 +354,41 @@ export default function FinancialPage({ currentUser, initialDate }: FinancialPag
       />
 
       {!canCreate && !canUpdate && !canDelete ? <Alert variant="info" title="Acesso somente leitura" description="Seu papel permite consultar o financeiro, sem alterar lançamentos." /> : null}
+
+      <Section
+        title="Fluxo de caixa"
+        description={dueFrom || dueTo ? "Totais consolidados para o período de vencimento selecionado." : "Totais consolidados de todos os lançamentos ativos."}
+      >
+        {summaryError ? <Alert variant="danger" title="Não foi possível consolidar o fluxo de caixa" description={summaryError} /> : null}
+        {summaryLoading ? (
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-label="Carregando fluxo de caixa">
+            {Array.from({ length: 4 }, (_, index) => <Skeleton key={index} className="h-32 w-full" />)}
+          </div>
+        ) : summary && !summaryError ? (
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <Card status="success" statusLabel="Receitas pagas">
+              <p className="text-sm font-medium text-hp-muted">Receitas pagas</p>
+              <p className="mt-2 text-2xl font-semibold text-hp-success">{formatMoney(summary.paid_income)}</p>
+              <p className="mt-2 text-sm text-hp-muted">{formatMoney(summary.pending_income)} pendentes</p>
+            </Card>
+            <Card status="danger" statusLabel="Despesas pagas">
+              <p className="text-sm font-medium text-hp-muted">Despesas pagas</p>
+              <p className="mt-2 text-2xl font-semibold text-hp-danger">{formatMoney(summary.paid_expense)}</p>
+              <p className="mt-2 text-sm text-hp-muted">{formatMoney(summary.pending_expense)} pendentes</p>
+            </Card>
+            <Card status={Number(summary.realized_balance) >= 0 ? "success" : "danger"} statusLabel="Saldo realizado">
+              <p className="text-sm font-medium text-hp-muted">Saldo realizado</p>
+              <p className="mt-2 text-2xl font-semibold text-hp-foreground">{formatMoney(summary.realized_balance)}</p>
+              <p className="mt-2 text-sm text-hp-muted">Somente pagamentos concluídos</p>
+            </Card>
+            <Card status="info" statusLabel="Saldo projetado">
+              <p className="text-sm font-medium text-hp-muted">Saldo projetado</p>
+              <p className="mt-2 text-2xl font-semibold text-hp-foreground">{formatMoney(summary.projected_balance)}</p>
+              <p className="mt-2 text-sm text-hp-muted">{summary.transaction_count} {summary.transaction_count === 1 ? "lançamento ativo" : "lançamentos ativos"}</p>
+            </Card>
+          </div>
+        ) : null}
+      </Section>
 
       <Section title="Lançamentos" description="Filtre por tipo, status e período de vencimento.">
         <Card variant="subtle" padding="md">

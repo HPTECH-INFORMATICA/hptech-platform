@@ -6,6 +6,7 @@ import {
   createFinancialTransaction,
   deleteFinancialTransaction,
   FinancialApiError,
+  getFinancialSummary,
   listFinancialTransactions,
   payFinancialTransaction,
   updateFinancialTransaction,
@@ -61,6 +62,33 @@ test("financial service exposes sanitized BFF errors", async (context) => {
       error.status === 401 &&
       error.message === "Sessão inválida.",
   );
+});
+
+test("financial summary uses the dedicated BFF path", async (context) => {
+  const originalFetch = globalThis.fetch;
+  context.after(() => { globalThis.fetch = originalFetch; });
+  globalThis.fetch = async (input, init) => {
+    const url = new URL(String(input), "http://localhost");
+    assert.equal(url.pathname, "/api/financial/summary");
+    assert.equal(url.searchParams.get("due_from"), "2026-09-01");
+    assert.equal(init?.cache, "no-store");
+    return Response.json({
+      due_from: "2026-09-01",
+      due_to: "2026-09-30",
+      paid_income: "500.00",
+      paid_expense: "100.00",
+      pending_income: "200.00",
+      pending_expense: "50.00",
+      realized_balance: "400.00",
+      projected_balance: "550.00",
+      transaction_count: 4,
+    });
+  };
+
+  const result = await getFinancialSummary(
+    new URLSearchParams({ due_from: "2026-09-01", due_to: "2026-09-30" }),
+  );
+  assert.equal(result.projected_balance, "550.00");
 });
 
 test("financial mutations use only official BFF paths and methods", async (context) => {

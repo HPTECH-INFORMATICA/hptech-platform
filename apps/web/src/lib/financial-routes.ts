@@ -12,6 +12,8 @@ export const financialListQueryKeys = new Set([
   "page_size",
 ]);
 
+export const financialSummaryQueryKeys = new Set(["due_from", "due_to"]);
+
 export type FinancialBackendTarget = {
   path: string;
   queryKeys: ReadonlySet<string> | null;

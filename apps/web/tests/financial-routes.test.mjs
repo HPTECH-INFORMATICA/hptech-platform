@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   financialListQueryKeys,
+  financialSummaryQueryKeys,
   resolveFinancialBackendTarget,
   validateFinancialQuery,
 } from "../src/lib/financial-routes.ts";
@@ -68,5 +69,22 @@ test("detail and mutations reject query parameters", () => {
   assert.match(
     validateFinancialQuery(new URLSearchParams("status=PENDING"), null),
     /não permitidos/i,
+  );
+});
+
+test("summary accepts only the financial period", () => {
+  assert.equal(
+    validateFinancialQuery(
+      new URLSearchParams("due_from=2026-09-01&due_to=2026-09-30"),
+      financialSummaryQueryKeys,
+    ),
+    null,
+  );
+  assert.match(
+    validateFinancialQuery(
+      new URLSearchParams("status=PAID"),
+      financialSummaryQueryKeys,
+    ),
+    /não permitido/i,
   );
 });

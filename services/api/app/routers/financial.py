@@ -14,6 +14,7 @@ from app.schemas.financial import (
     FinancialTransactionPayment,
     FinancialTransactionResponse,
     FinancialTransactionUpdate,
+    FinancialSummaryResponse,
     TransactionStatus,
     TransactionType,
 )
@@ -27,6 +28,7 @@ from app.services.financial import (
 
 
 router = APIRouter(prefix="/financial/transactions", tags=["Financial"])
+summary_router = APIRouter(prefix="/financial", tags=["Financial"])
 require_view = require_permission(PermissionModule.FINANCIAL, PermissionAction.VIEW)
 require_create = require_permission(PermissionModule.FINANCIAL, PermissionAction.CREATE)
 require_update = require_permission(PermissionModule.FINANCIAL, PermissionAction.UPDATE)
@@ -41,6 +43,25 @@ def translate_financial_error(error: Exception) -> None:
     if isinstance(error, FinancialPersistenceError):
         raise HTTPException(status_code=409, detail="Não foi possível persistir o lançamento.") from error
     raise error
+
+
+@summary_router.get("/summary", response_model=FinancialSummaryResponse)
+def summarize_transactions(
+    identity: Annotated[AuthenticatedIdentity, Depends(require_view)],
+    db: Annotated[Session, Depends(get_db)],
+    due_from: date | None = None,
+    due_to: date | None = None,
+) -> FinancialSummaryResponse:
+    try:
+        return FinancialDomain.summary(
+            db,
+            identity,
+            due_from=due_from,
+            due_to=due_to,
+        )
+    except FinancialLifecycleError as error:
+        translate_financial_error(error)
+        raise AssertionError("unreachable")
 
 
 @router.get("", response_model=FinancialTransactionListResponse)

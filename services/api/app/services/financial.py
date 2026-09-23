@@ -1,5 +1,6 @@
 import uuid
 from datetime import UTC, date, datetime
+from decimal import Decimal
 
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
@@ -16,6 +17,7 @@ from app.schemas.financial import (
     FinancialTransactionPayment,
     FinancialTransactionResponse,
     FinancialTransactionUpdate,
+    FinancialSummaryResponse,
     TransactionStatus,
     TransactionType,
 )
@@ -144,6 +146,59 @@ class FinancialDomain:
             total=total,
             page=page,
             page_size=page_size,
+        )
+
+    @staticmethod
+    def summary(
+        db: Session,
+        identity: AuthenticatedIdentity,
+        *,
+        due_from: date | None,
+        due_to: date | None,
+    ) -> FinancialSummaryResponse:
+        if due_from is not None and due_to is not None and due_from > due_to:
+            raise FinancialLifecycleError("O período financeiro é inválido.")
+
+        grouped = FinancialRepository.summarize_by_company(
+            db,
+            identity.company.id,
+            due_from=due_from,
+            due_to=due_to,
+        )
+        totals: dict[tuple[str, str], Decimal] = {}
+        transaction_count = 0
+        for transaction_type, status, amount, count in grouped:
+            totals[(transaction_type, status)] = Decimal(amount)
+            transaction_count += count
+
+        paid_income = totals.get(
+            (TransactionType.INCOME.value, TransactionStatus.PAID.value),
+            Decimal("0"),
+        )
+        paid_expense = totals.get(
+            (TransactionType.EXPENSE.value, TransactionStatus.PAID.value),
+            Decimal("0"),
+        )
+        pending_income = totals.get(
+            (TransactionType.INCOME.value, TransactionStatus.PENDING.value),
+            Decimal("0"),
+        )
+        pending_expense = totals.get(
+            (TransactionType.EXPENSE.value, TransactionStatus.PENDING.value),
+            Decimal("0"),
+        )
+
+        return FinancialSummaryResponse(
+            due_from=due_from,
+            due_to=due_to,
+            paid_income=paid_income,
+            paid_expense=paid_expense,
+            pending_income=pending_income,
+            pending_expense=pending_expense,
+            realized_balance=paid_income - paid_expense,
+            projected_balance=(paid_income + pending_income)
+            - (paid_expense + pending_expense),
+            transaction_count=transaction_count,
         )
 
     @classmethod

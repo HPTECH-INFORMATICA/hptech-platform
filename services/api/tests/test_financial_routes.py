@@ -26,6 +26,7 @@ from app.schemas.financial import (
     FinancialTransactionListResponse,
     FinancialTransactionPayment,
     FinancialTransactionUpdate,
+    FinancialSummaryResponse,
     TransactionStatus,
     TransactionType,
 )
@@ -109,11 +110,43 @@ async def client() -> AsyncIterator[AsyncClient]:
 def test_openapi_exposes_financial_contract() -> None:
     paths = {path for path in app.openapi()["paths"] if "/financial/" in path}
     assert paths == {
+        "/api/v1/financial/summary",
         "/api/v1/financial/transactions",
         "/api/v1/financial/transactions/{transaction_id}",
         "/api/v1/financial/transactions/{transaction_id}/pay",
         "/api/v1/financial/transactions/{transaction_id}/cancel",
     }
+
+
+async def test_financial_summary_requires_view_and_preserves_period(
+    client: AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    identity = make_identity(UserRole.FINANCIAL)
+    app.dependency_overrides[get_current_user] = lambda: identity
+    summary = MagicMock(
+        return_value=FinancialSummaryResponse(
+            due_from=date(2026, 9, 1),
+            due_to=date(2026, 9, 30),
+            paid_income=Decimal("500.00"),
+            paid_expense=Decimal("100.00"),
+            pending_income=Decimal("200.00"),
+            pending_expense=Decimal("50.00"),
+            realized_balance=Decimal("400.00"),
+            projected_balance=Decimal("550.00"),
+            transaction_count=4,
+        )
+    )
+    monkeypatch.setattr(FinancialDomain, "summary", summary)
+
+    response = await client.get(
+        "/api/v1/financial/summary?due_from=2026-09-01&due_to=2026-09-30"
+    )
+
+    assert response.status_code == 200
+    assert response.json()["projected_balance"] == "550.00"
+    assert summary.call_args.kwargs["due_from"] == date(2026, 9, 1)
+    assert summary.call_args.kwargs["due_to"] == date(2026, 9, 30)
 
 
 async def test_financial_routes_require_authentication(client: AsyncClient) -> None:
@@ -342,6 +375,47 @@ def test_list_rejects_inverted_period() -> None:
             status=None,
             page=1,
             page_size=20,
+        )
+
+
+def test_summary_consolidates_only_grouped_paid_and_pending_values(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    identity = make_identity()
+    summarize = MagicMock(
+        return_value=[
+            ("INCOME", "PAID", Decimal("500.00"), 2),
+            ("EXPENSE", "PAID", Decimal("125.00"), 1),
+            ("INCOME", "PENDING", Decimal("200.00"), 1),
+            ("EXPENSE", "PENDING", Decimal("50.00"), 3),
+        ]
+    )
+    monkeypatch.setattr(FinancialRepository, "summarize_by_company", summarize)
+
+    result = FinancialDomain.summary(
+        MagicMock(),
+        identity,
+        due_from=date(2026, 9, 1),
+        due_to=date(2026, 9, 30),
+    )
+
+    assert result.paid_income == Decimal("500.00")
+    assert result.paid_expense == Decimal("125.00")
+    assert result.pending_income == Decimal("200.00")
+    assert result.pending_expense == Decimal("50.00")
+    assert result.realized_balance == Decimal("375.00")
+    assert result.projected_balance == Decimal("525.00")
+    assert result.transaction_count == 7
+    assert summarize.call_args.args[1] == identity.company.id
+
+
+def test_summary_rejects_inverted_period() -> None:
+    with pytest.raises(FinancialLifecycleError):
+        FinancialDomain.summary(
+            MagicMock(),
+            make_identity(),
+            due_from=date(2026, 10, 1),
+            due_to=date(2026, 9, 1),
         )
 
 

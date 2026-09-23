@@ -14,6 +14,7 @@ from app.routers.professional import router as professional_router
 from app.routers.professional_availability import router as professional_availability_router
 from app.routers.appointment import router as appointment_router
 from app.routers.financial import router as financial_router
+from app.routers.financial import summary_router as financial_summary_router
 from app.routers.user_admin import router as user_admin_router
 
 api_router = APIRouter(prefix="/api/v1")
@@ -31,5 +32,6 @@ api_router.include_router(patient_router)
 api_router.include_router(professional_router)
 api_router.include_router(professional_availability_router)
 api_router.include_router(appointment_router)
+api_router.include_router(financial_summary_router)
 api_router.include_router(financial_router)
 api_router.include_router(user_admin_router)

@@ -125,3 +125,17 @@ class FinancialTransactionListResponse(BaseModel):
     total: int
     page: int
     page_size: int
+
+
+class FinancialSummaryResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    due_from: date | None
+    due_to: date | None
+    paid_income: Decimal
+    paid_expense: Decimal
+    pending_income: Decimal
+    pending_expense: Decimal
+    realized_balance: Decimal
+    projected_balance: Decimal
+    transaction_count: int

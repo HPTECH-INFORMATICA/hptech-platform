@@ -1,5 +1,6 @@
 import uuid
 from datetime import date
+from decimal import Decimal
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -68,3 +69,36 @@ class FinancialRepository:
             .limit(page_size)
         )
         return list(db.execute(statement).scalars().all()), total
+
+    @staticmethod
+    def summarize_by_company(
+        db: Session,
+        company_id: uuid.UUID,
+        *,
+        due_from: date | None,
+        due_to: date | None,
+    ) -> list[tuple[str, str, Decimal, int]]:
+        filters = [
+            Transaction.company_id == company_id,
+            Transaction.deleted_at.is_(None),
+            Transaction.status.in_([
+                TransactionStatus.PENDING.value,
+                TransactionStatus.PAID.value,
+            ]),
+        ]
+        if due_from is not None:
+            filters.append(Transaction.due_date >= due_from)
+        if due_to is not None:
+            filters.append(Transaction.due_date <= due_to)
+
+        statement = (
+            select(
+                Transaction.transaction_type,
+                Transaction.status,
+                func.sum(Transaction.amount),
+                func.count(),
+            )
+            .where(*filters)
+            .group_by(Transaction.transaction_type, Transaction.status)
+        )
+        return [tuple(row) for row in db.execute(statement).all()]

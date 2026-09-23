@@ -13,6 +13,7 @@ O módulo é composto por:
 - repositório tenant-aware;
 - domínio transacional no backend;
 - API FastAPI protegida por RBAC;
+- consolidação server-side do fluxo de caixa;
 - BFF same-origin autenticado no Next.js;
 - interface responsiva para consulta e operação dos lançamentos.
 
@@ -37,6 +38,7 @@ de pagamento. Referências opcionais a lead e agendamento são tenant-safe.
 
 ```text
 GET    /api/v1/financial/transactions
+GET    /api/v1/financial/summary
 POST   /api/v1/financial/transactions
 GET    /api/v1/financial/transactions/{transaction_id}
 PATCH  /api/v1/financial/transactions/{transaction_id}
@@ -47,6 +49,10 @@ POST   /api/v1/financial/transactions/{transaction_id}/cancel
 
 A listagem aceita período de vencimento, tipo, status e paginação. O
 `company_id` nunca é recebido do cliente; ele vem da identidade autenticada.
+
+O resumo financeiro consolida, no backend, receitas e despesas pagas e
+pendentes. Cancelados e removidos não participam dos totais. O saldo realizado
+considera somente pagamentos concluídos; o saldo projetado inclui pendências.
 
 ## RBAC
 
@@ -64,6 +70,7 @@ papéis não recebem acesso financeiro por padrão.
 A rota `/financeiro` exige `FINANCIAL:VIEW`. A tela oferece:
 
 - filtros por tipo, status e vencimento;
+- indicadores de receitas, despesas, saldo realizado e saldo projetado;
 - paginação;
 - representação em tabela no desktop e cartões no mobile;
 - criação e edição de lançamentos pendentes;
@@ -78,7 +85,6 @@ allowlist de caminhos e allowlist de parâmetros.
 
 Permanecem como evoluções futuras:
 
-- fluxo de caixa consolidado e indicadores agregados;
 - contas recorrentes;
 - conciliação bancária;
 - comissões;
