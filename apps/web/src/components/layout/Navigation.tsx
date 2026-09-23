@@ -42,7 +42,7 @@ const navigationGroups = [
   {
     id: "financial",
     label: "Centro Financeiro",
-    items: [{ label: "Financeiro", planned: true }],
+    items: [{ label: "Financeiro", href: "/financeiro", module: "FINANCIAL" }],
   },
   {
     id: "administrative",
