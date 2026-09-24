@@ -145,3 +145,10 @@ class Company(
         passive_deletes=True,
         overlaps="professional,user",
     )
+
+    landing_pages = relationship(
+        "LandingPage",
+        back_populates="company",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )

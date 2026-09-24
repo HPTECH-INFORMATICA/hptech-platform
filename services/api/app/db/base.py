@@ -21,3 +21,4 @@ from app.models.professional_availability import (  # noqa: E402, F401
     ProfessionalAvailabilityException,
     ProfessionalWeeklyAvailability,
 )
+from app.models.landing_page import LandingPage  # noqa: E402, F401
