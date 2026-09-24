@@ -254,6 +254,11 @@ def test_create_derives_tenant_lead_from_appointment_and_audits(
         return transaction
 
     monkeypatch.setattr(FinancialRepository, "add", add)
+    monkeypatch.setattr(
+        FinancialRepository,
+        "get_active_income_by_appointment",
+        MagicMock(return_value=None),
+    )
     audit = MagicMock()
     monkeypatch.setattr(AuditLogRepository, "add", audit)
     db = MagicMock()
@@ -276,6 +281,36 @@ def test_create_derives_tenant_lead_from_appointment_and_audits(
     assert result.status == "PENDING"
     assert audit.call_args.kwargs["action"] == "FINANCIAL_TRANSACTION_CREATED"
     db.commit.assert_called_once()
+
+
+def test_create_rejects_duplicate_active_appointment_income(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    identity = make_identity()
+    appointment_id = uuid4()
+    monkeypatch.setattr(
+        AppointmentRepository,
+        "get_by_id",
+        MagicMock(return_value=SimpleNamespace(lead_id=None)),
+    )
+    monkeypatch.setattr(
+        FinancialRepository,
+        "get_active_income_by_appointment",
+        MagicMock(return_value=make_transaction(identity)),
+    )
+
+    with pytest.raises(FinancialLifecycleError, match="receita ativa"):
+        FinancialDomain.create(
+            MagicMock(),
+            identity,
+            FinancialTransactionCreate(
+                transaction_type=TransactionType.INCOME,
+                description="Consulta",
+                amount=Decimal("150.00"),
+                due_date=date(2026, 9, 30),
+                appointment_id=appointment_id,
+            ),
+        )
 
 
 def test_create_rejects_mismatched_lead_and_appointment(

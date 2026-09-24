@@ -153,7 +153,7 @@ Financeiro
 - API multiempresa protegida por RBAC — concluído
 - Interface operacional responsiva — concluído
 - Fluxo de caixa consolidado — concluído
-- Recebimentos automáticos derivados de atendimentos — evolução futura
+- Recebimentos automáticos derivados de atendimentos — concluído
 
 ---
 

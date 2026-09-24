@@ -9,8 +9,10 @@ from sqlalchemy.orm import Session
 from app.core.timezones import normalize_iana_timezone
 from app.core.identity import AuthenticatedIdentity, UserRole
 from app.models.appointment import Appointment
+from app.models.transaction import Transaction
 from app.repositories.appointment import AppointmentRepository
 from app.repositories.audit_log import AuditLogRepository
+from app.repositories.financial import FinancialRepository
 from app.repositories.lead import LeadRepository
 from app.repositories.patient import PatientRepository
 from app.repositories.professional import ProfessionalRepository
@@ -27,6 +29,7 @@ from app.schemas.appointment import (
     AppointmentStatus,
     AppointmentUpdate,
 )
+from app.schemas.financial import TransactionStatus, TransactionType
 from app.services.effective_availability import interval_is_effectively_available
 
 
@@ -444,6 +447,44 @@ class AppointmentDomain:
         appointment = cls._appointment(db, identity, appointment_id, lock=True)
         current = AppointmentStatus(appointment.status)
         require_status_transition(current, target)
+
+        if (
+            target is AppointmentStatus.COMPLETED
+            and appointment.service_price_snapshot > 0
+            and FinancialRepository.get_active_income_by_appointment(
+                db,
+                identity.company.id,
+                appointment.id,
+            )
+            is None
+        ):
+            due_date = appointment.ends_at.astimezone(
+                ZoneInfo(normalize_iana_timezone(identity.company.timezone))
+            ).date()
+            transaction = Transaction(
+                company_id=identity.company.id,
+                lead_id=appointment.lead_id,
+                appointment_id=appointment.id,
+                description=f"Atendimento — {appointment.service_name_snapshot}",
+                transaction_type=TransactionType.INCOME.value,
+                category="Atendimento",
+                amount=appointment.service_price_snapshot,
+                due_date=due_date,
+                paid_date=None,
+                status=TransactionStatus.PENDING.value,
+                payment_method=None,
+                notes=None,
+            )
+            FinancialRepository.add(db, transaction)
+            AuditLogRepository.add(
+                db,
+                company_id=identity.company.id,
+                actor_user_id=identity.user.id,
+                target_type="FINANCIAL_TRANSACTION",
+                target_id=transaction.id,
+                action="FINANCIAL_TRANSACTION_CREATED",
+                details={"type": TransactionType.INCOME.value, "status": "PENDING"},
+            )
         appointment.status = target.value
         action = (
             "APPOINTMENT_CANCELED"

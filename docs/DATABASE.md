@@ -243,6 +243,12 @@ compostas com `company_id`, impedindo vínculos entre tenants. O par
 Remoções são lógicas por `deleted_at`; o histórico financeiro permanece
 preservado.
 
+O índice único parcial `uq_transactions_active_income_appointment` impede duas
+receitas `INCOME` não removidas para o mesmo par `(company_id, appointment_id)`.
+Assim, a conclusão de um atendimento pode gerar seu recebível de forma
+idempotente e segura sob concorrência, sem impedir despesas ou lançamentos sem
+agendamento.
+
 Exemplo visual:
 
 ```text

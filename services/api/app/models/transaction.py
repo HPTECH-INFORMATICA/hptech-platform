@@ -7,10 +7,12 @@ from sqlalchemy import (
     Date,
     ForeignKey,
     ForeignKeyConstraint,
+    Index,
     Numeric,
     String,
     Text,
     UniqueConstraint,
+    text,
 )
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -64,6 +66,17 @@ class Transaction(
             "(status = 'PAID' AND paid_date IS NOT NULL) OR "
             "(status <> 'PAID' AND paid_date IS NULL)",
             name="ck_transactions_paid_date_matches_status",
+        ),
+        Index(
+            "uq_transactions_active_income_appointment",
+            "company_id",
+            "appointment_id",
+            unique=True,
+            postgresql_where=text(
+                "appointment_id IS NOT NULL "
+                "AND transaction_type = 'INCOME' "
+                "AND deleted_at IS NULL"
+            ),
         ),
     )
 

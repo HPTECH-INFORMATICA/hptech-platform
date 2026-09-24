@@ -14,6 +14,7 @@ O módulo é composto por:
 - domínio transacional no backend;
 - API FastAPI protegida por RBAC;
 - consolidação server-side do fluxo de caixa;
+- geração automática de recebíveis ao concluir atendimentos;
 - BFF same-origin autenticado no Next.js;
 - interface responsiva para consulta e operação dos lançamentos.
 
@@ -33,6 +34,15 @@ por `deleted_at`.
 
 O banco valida valor positivo, enums oficiais e coerência entre status e data
 de pagamento. Referências opcionais a lead e agendamento são tenant-safe.
+
+Ao concluir um atendimento com preço maior que zero, o backend cria uma receita
+`PENDING` vinculada ao agendamento na mesma transação da mudança de estado. O
+valor e a descrição vêm do snapshot do serviço, e o vencimento usa a data local
+do término no fuso da empresa. Serviços gratuitos não geram recebível.
+
+Cada agendamento pode manter somente uma receita ativa por empresa. Essa
+invariante é aplicada no domínio e por índice único parcial no PostgreSQL;
+lançamentos removidos logicamente não bloqueiam uma recriação deliberada.
 
 ## API
 
@@ -88,5 +98,4 @@ Permanecem como evoluções futuras:
 - contas recorrentes;
 - conciliação bancária;
 - comissões;
-- geração automática de recebíveis a partir de atendimentos concluídos;
 - integrações com meios de pagamento e emissão fiscal.

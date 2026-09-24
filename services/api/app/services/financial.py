@@ -214,6 +214,19 @@ class FinancialDomain:
             data.lead_id,
             data.appointment_id,
         )
+        if (
+            data.transaction_type is TransactionType.INCOME
+            and data.appointment_id is not None
+            and FinancialRepository.get_active_income_by_appointment(
+                db,
+                identity.company.id,
+                data.appointment_id,
+            )
+            is not None
+        ):
+            raise FinancialLifecycleError(
+                "O agendamento já possui uma receita ativa."
+            )
         transaction = Transaction(
             company_id=identity.company.id,
             lead_id=lead_id,

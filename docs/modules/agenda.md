@@ -52,6 +52,18 @@ Nome, duração e preço do serviço são copiados para o agendamento. Alteraç�
 posteriores no cadastro do serviço não reescrevem o histórico clínico ou
 financeiro do agendamento existente.
 
+## Integração financeira
+
+Ao concluir um atendimento com preço maior que zero, o mesmo domínio
+transacional cria uma receita pendente vinculada ao agendamento. O valor e a
+descrição usam o snapshot do serviço, e o vencimento considera a data local do
+término no fuso IANA da empresa.
+
+A conclusão e a criação do recebível são atômicas: ambas persistem juntas ou
+nenhuma persiste. Serviços gratuitos não geram lançamento. Uma restrição
+parcial no PostgreSQL impede mais de uma receita ativa para o mesmo agendamento
+e empresa, inclusive sob concorrência.
+
 ## Ciclo operacional
 
 Transições permitidas:

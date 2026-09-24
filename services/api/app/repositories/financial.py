@@ -34,6 +34,20 @@ class FinancialRepository:
         return db.execute(statement).scalar_one_or_none()
 
     @staticmethod
+    def get_active_income_by_appointment(
+        db: Session,
+        company_id: uuid.UUID,
+        appointment_id: uuid.UUID,
+    ) -> Transaction | None:
+        statement = select(Transaction).where(
+            Transaction.company_id == company_id,
+            Transaction.appointment_id == appointment_id,
+            Transaction.transaction_type == TransactionType.INCOME.value,
+            Transaction.deleted_at.is_(None),
+        )
+        return db.execute(statement).scalar_one_or_none()
+
+    @staticmethod
     def list_by_company(
         db: Session,
         company_id: uuid.UUID,
