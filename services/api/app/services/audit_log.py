@@ -68,6 +68,12 @@ SAFE_METADATA_KEYS: dict[str, frozenset[str]] = {
     "FINANCIAL_TRANSACTION_PAID": frozenset({"from", "to"}),
     "FINANCIAL_TRANSACTION_CANCELED": frozenset({"from", "to"}),
     "FINANCIAL_TRANSACTION_SOFT_DELETED": frozenset({"status"}),
+    "LANDING_PAGE_CREATED": frozenset({"status", "template"}),
+    "LANDING_PAGE_UPDATED": frozenset({"fields"}),
+    "LANDING_PAGE_PUBLISHED": frozenset({"from", "to"}),
+    "LANDING_PAGE_UNPUBLISHED": frozenset({"from", "to"}),
+    "LANDING_PAGE_ARCHIVED": frozenset({"from", "to"}),
+    "LANDING_PAGE_SOFT_DELETED": frozenset({"status"}),
 }
 
 
