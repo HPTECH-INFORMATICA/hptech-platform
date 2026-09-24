@@ -40,6 +40,7 @@ class PermissionModule(StrEnum):
     PROFESSIONALS = "PROFESSIONALS"
     APPOINTMENTS = "APPOINTMENTS"
     FINANCIAL = "FINANCIAL"
+    LANDING_PAGES = "LANDING_PAGES"
 
 
 class PermissionAction(StrEnum):

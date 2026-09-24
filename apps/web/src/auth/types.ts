@@ -19,6 +19,7 @@ export const permissionModules = [
   "PROFESSIONALS",
   "APPOINTMENTS",
   "FINANCIAL",
+  "LANDING_PAGES",
 ] as const;
 export type PermissionModule = (typeof permissionModules)[number];
 export const permissionActions = [

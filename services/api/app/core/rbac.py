@@ -165,6 +165,27 @@ FINANCIAL_VIEW_CREATE = Permission(
     PermissionModule.FINANCIAL,
     frozenset({PermissionAction.VIEW, PermissionAction.CREATE}),
 )
+LANDING_PAGES_ALL = Permission(
+    PermissionModule.LANDING_PAGES,
+    frozenset(
+        {
+            PermissionAction.VIEW,
+            PermissionAction.CREATE,
+            PermissionAction.UPDATE,
+            PermissionAction.DELETE,
+        }
+    ),
+)
+LANDING_PAGES_WRITE = Permission(
+    PermissionModule.LANDING_PAGES,
+    frozenset(
+        {
+            PermissionAction.VIEW,
+            PermissionAction.CREATE,
+            PermissionAction.UPDATE,
+        }
+    ),
+)
 USERS_ADMIN = frozenset(
     {
         PermissionAction.VIEW,
@@ -191,6 +212,7 @@ ROLE_PERMISSIONS: dict[UserRole, tuple[Permission, ...]] = {
         PROFESSIONALS_ALL,
         APPOINTMENTS_WRITE,
         FINANCIAL_ALL,
+        LANDING_PAGES_ALL,
     ),
     UserRole.ADMIN: (
         Permission(PermissionModule.DASHBOARD, VIEW),
@@ -205,6 +227,7 @@ ROLE_PERMISSIONS: dict[UserRole, tuple[Permission, ...]] = {
         PROFESSIONALS_ALL,
         APPOINTMENTS_WRITE,
         FINANCIAL_ALL,
+        LANDING_PAGES_ALL,
     ),
     UserRole.MANAGER: (
         Permission(PermissionModule.DASHBOARD, VIEW),
@@ -215,6 +238,7 @@ ROLE_PERMISSIONS: dict[UserRole, tuple[Permission, ...]] = {
         PROFESSIONALS_WRITE,
         APPOINTMENTS_WRITE,
         FINANCIAL_WRITE,
+        LANDING_PAGES_WRITE,
     ),
     UserRole.SALES: (
         Permission(PermissionModule.DASHBOARD, VIEW),
@@ -222,6 +246,7 @@ ROLE_PERMISSIONS: dict[UserRole, tuple[Permission, ...]] = {
         PATIENTS_VIEW_CREATE,
         PROFESSIONALS_VIEW,
         APPOINTMENTS_VIEW_CREATE,
+        LANDING_PAGES_WRITE,
     ),
     UserRole.RECEPTIONIST: (
         Permission(PermissionModule.DASHBOARD, VIEW),

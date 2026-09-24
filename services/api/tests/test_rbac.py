@@ -300,3 +300,59 @@ def test_financial_base_policy(
             PermissionModule.FINANCIAL,
             action,
         ) is (action in actions)
+
+
+@pytest.mark.parametrize(
+    ("role", "actions"),
+    [
+        (
+            UserRole.OWNER,
+            {
+                PermissionAction.VIEW,
+                PermissionAction.CREATE,
+                PermissionAction.UPDATE,
+                PermissionAction.DELETE,
+            },
+        ),
+        (
+            UserRole.ADMIN,
+            {
+                PermissionAction.VIEW,
+                PermissionAction.CREATE,
+                PermissionAction.UPDATE,
+                PermissionAction.DELETE,
+            },
+        ),
+        (
+            UserRole.MANAGER,
+            {
+                PermissionAction.VIEW,
+                PermissionAction.CREATE,
+                PermissionAction.UPDATE,
+            },
+        ),
+        (
+            UserRole.SALES,
+            {
+                PermissionAction.VIEW,
+                PermissionAction.CREATE,
+                PermissionAction.UPDATE,
+            },
+        ),
+        (UserRole.RECEPTIONIST, set()),
+        (UserRole.PROFESSIONAL, set()),
+        (UserRole.FINANCIAL, set()),
+        (UserRole.VIEWER, set()),
+    ],
+)
+def test_landing_pages_base_policy(
+    role: UserRole,
+    actions: set[PermissionAction],
+) -> None:
+    permissions = permissions_for_role(role)
+    for action in PermissionAction:
+        assert has_permission(
+            permissions,
+            PermissionModule.LANDING_PAGES,
+            action,
+        ) is (action in actions)
