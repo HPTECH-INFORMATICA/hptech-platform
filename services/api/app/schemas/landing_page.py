@@ -327,3 +327,22 @@ class LandingPageListResponse(BaseModel):
     total: int
     page: int
     page_size: int
+
+
+class PublicLandingPageCompany(BaseModel):
+    model_config = ConfigDict(from_attributes=True, extra="forbid")
+
+    name: str
+    slug: str
+
+
+class PublicLandingPageResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str
+    slug: str
+    template: LandingPageTemplate
+    content: LandingPageContent
+    seo: LandingPageSeo
+    published_at: datetime
+    company: PublicLandingPageCompany

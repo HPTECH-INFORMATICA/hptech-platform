@@ -14,6 +14,8 @@ from app.schemas.landing_page import (
     LandingPageResponse,
     LandingPageStatus,
     LandingPageUpdate,
+    PublicLandingPageCompany,
+    PublicLandingPageResponse,
 )
 
 
@@ -316,4 +318,28 @@ class LandingPageDomain:
             total=total,
             page=page,
             page_size=page_size,
+        )
+
+    @staticmethod
+    def public_detail(
+        db: Session,
+        company_slug: str,
+        landing_page_slug: str,
+    ) -> PublicLandingPageResponse:
+        result = LandingPageRepository.get_published_by_public_slug(
+            db,
+            company_slug,
+            landing_page_slug,
+        )
+        if result is None:
+            raise LandingPageNotFoundError
+        landing_page, company = result
+        return PublicLandingPageResponse(
+            name=landing_page.name,
+            slug=landing_page.slug,
+            template=landing_page.template,
+            content=landing_page.content,
+            seo=landing_page.seo,
+            published_at=landing_page.published_at,
+            company=PublicLandingPageCompany.model_validate(company),
         )

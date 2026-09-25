@@ -3,6 +3,8 @@ import uuid
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.core.identity import CompanyStatus
+from app.models.company import Company
 from app.models.landing_page import LandingPage
 from app.schemas.landing_page import LandingPageStatus
 
@@ -43,6 +45,29 @@ class LandingPageRepository:
             LandingPage.deleted_at.is_(None),
         )
         return db.execute(statement).scalar_one_or_none()
+
+    @staticmethod
+    def get_published_by_public_slug(
+        db: Session,
+        company_slug: str,
+        landing_page_slug: str,
+    ) -> tuple[LandingPage, Company] | None:
+        statement = (
+            select(LandingPage, Company)
+            .join(Company, Company.id == LandingPage.company_id)
+            .where(
+                Company.slug == company_slug,
+                Company.status.in_(
+                    (CompanyStatus.ACTIVE.value, CompanyStatus.TRIAL.value)
+                ),
+                Company.deleted_at.is_(None),
+                LandingPage.slug == landing_page_slug,
+                LandingPage.status == LandingPageStatus.PUBLISHED.value,
+                LandingPage.published_at.is_not(None),
+                LandingPage.deleted_at.is_(None),
+            )
+        )
+        return db.execute(statement).one_or_none()
 
     @staticmethod
     def list_by_company(

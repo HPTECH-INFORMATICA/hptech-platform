@@ -1,7 +1,15 @@
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Path,
+    Query,
+    Response,
+    status,
+)
 from sqlalchemy.orm import Session
 
 from app.core.identity import AuthenticatedIdentity, PermissionAction, PermissionModule
@@ -13,6 +21,7 @@ from app.schemas.landing_page import (
     LandingPageResponse,
     LandingPageStatus,
     LandingPageUpdate,
+    PublicLandingPageResponse,
 )
 from app.services.landing_page import (
     LandingPageConflictError,
@@ -24,6 +33,10 @@ from app.services.landing_page import (
 
 
 router = APIRouter(prefix="/landing-pages", tags=["Landing Pages"])
+public_router = APIRouter(
+    prefix="/public/landing-pages",
+    tags=["Public Landing Pages"],
+)
 require_view = require_permission(
     PermissionModule.LANDING_PAGES, PermissionAction.VIEW
 )
@@ -168,3 +181,44 @@ def delete_landing_page(
         LandingPageDomain.soft_delete(db, identity, landing_page_id)
     except Exception as error:
         translate_landing_page_error(error)
+
+
+@public_router.get(
+    "/{company_slug}/{landing_page_slug}",
+    response_model=PublicLandingPageResponse,
+)
+def get_public_landing_page(
+    company_slug: Annotated[
+        str,
+        Path(
+            min_length=1,
+            max_length=100,
+            pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$",
+        ),
+    ],
+    landing_page_slug: Annotated[
+        str,
+        Path(
+            min_length=1,
+            max_length=120,
+            pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$",
+        ),
+    ],
+    response: Response,
+    db: Annotated[Session, Depends(get_db)],
+) -> PublicLandingPageResponse:
+    try:
+        result = LandingPageDomain.public_detail(
+            db,
+            company_slug,
+            landing_page_slug,
+        )
+    except LandingPageNotFoundError as error:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Landing page não encontrada.",
+        ) from error
+    response.headers["Cache-Control"] = (
+        "public, max-age=60, stale-while-revalidate=300"
+    )
+    return result

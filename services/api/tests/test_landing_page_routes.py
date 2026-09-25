@@ -5,6 +5,7 @@ from uuid import uuid4
 
 import pytest
 from httpx import ASGITransport, AsyncClient
+from sqlalchemy.dialects import postgresql
 
 from app.core.identity import AuthenticatedIdentity, CompanyStatus, UserRole
 from app.core.rbac import permissions_for_role
@@ -19,6 +20,7 @@ from app.repositories.landing_page import LandingPageRepository
 from app.schemas.landing_page import (
     LandingPageCreate,
     LandingPageListResponse,
+    PublicLandingPageResponse,
     LandingPageUpdate,
 )
 from app.services.audit_log import sanitize_audit_metadata
@@ -26,6 +28,7 @@ from app.services.landing_page import (
     LandingPageConflictError,
     LandingPageDomain,
     LandingPageLifecycleError,
+    LandingPageNotFoundError,
 )
 
 
@@ -105,7 +108,67 @@ def test_openapi_exposes_authenticated_landing_page_contract() -> None:
         "/api/v1/landing-pages/{landing_page_id}/publish",
         "/api/v1/landing-pages/{landing_page_id}/unpublish",
         "/api/v1/landing-pages/{landing_page_id}/archive",
+        "/api/v1/public/landing-pages/{company_slug}/{landing_page_slug}",
     }
+
+
+async def test_public_route_does_not_require_authentication(
+    client: AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    identity = make_identity()
+    landing_page = make_landing_page(
+        identity,
+        status="PUBLISHED",
+        published_at=datetime.now(timezone.utc),
+        content={
+            "version": 1,
+            "blocks": [{"id": str(uuid4()), "type": "TEXT", "body": "Olá"}],
+        },
+    )
+    response_data = PublicLandingPageResponse(
+        name=landing_page.name,
+        slug=landing_page.slug,
+        template=landing_page.template,
+        content=landing_page.content,
+        seo=landing_page.seo,
+        published_at=landing_page.published_at,
+        company={"name": identity.company.name, "slug": identity.company.slug},
+    )
+    public_detail = MagicMock(return_value=response_data)
+    monkeypatch.setattr(LandingPageDomain, "public_detail", public_detail)
+
+    response = await client.get(
+        f"/api/v1/public/landing-pages/{identity.company.slug}/{landing_page.slug}"
+    )
+
+    assert response.status_code == 200
+    assert response.json()["company"] == {
+        "name": identity.company.name,
+        "slug": identity.company.slug,
+    }
+    assert response.headers["cache-control"] == (
+        "public, max-age=60, stale-while-revalidate=300"
+    )
+    public_detail.assert_called_once()
+
+
+async def test_public_route_hides_unavailable_pages(
+    client: AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        LandingPageDomain,
+        "public_detail",
+        MagicMock(side_effect=LandingPageNotFoundError),
+    )
+
+    response = await client.get(
+        "/api/v1/public/landing-pages/empresa-exemplo/pagina-exemplo"
+    )
+
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Landing page não encontrada."}
 
 
 async def test_routes_require_authentication(client: AsyncClient) -> None:
@@ -275,3 +338,56 @@ def test_landing_page_audit_metadata_is_allowlisted() -> None:
         "LANDING_PAGE_UPDATED",
         {"fields": ["name"], "payload": "secret"},
     ) == {"fields": ["name"]}
+
+
+def test_public_detail_returns_only_public_contract(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    identity = make_identity()
+    landing_page = make_landing_page(
+        identity,
+        status="PUBLISHED",
+        published_at=datetime.now(timezone.utc),
+    )
+    monkeypatch.setattr(
+        LandingPageRepository,
+        "get_published_by_public_slug",
+        MagicMock(return_value=(landing_page, identity.company)),
+    )
+
+    result = LandingPageDomain.public_detail(
+        MagicMock(),
+        identity.company.slug,
+        landing_page.slug,
+    )
+
+    assert result.company.slug == identity.company.slug
+    assert result.slug == landing_page.slug
+    assert "id" not in result.model_dump()
+    assert "company_id" not in result.model_dump()
+
+
+def test_public_repository_query_enforces_publication_and_company_state() -> None:
+    db = MagicMock()
+    db.execute.return_value.one_or_none.return_value = None
+
+    LandingPageRepository.get_published_by_public_slug(
+        db,
+        "empresa-exemplo",
+        "pagina-exemplo",
+    )
+
+    statement = db.execute.call_args.args[0]
+    sql = str(
+        statement.compile(
+            dialect=postgresql.dialect(),
+            compile_kwargs={"literal_binds": True},
+        )
+    )
+    assert "companies.slug = 'empresa-exemplo'" in sql
+    assert "companies.status IN ('ACTIVE', 'TRIAL')" in sql
+    assert "companies.deleted_at IS NULL" in sql
+    assert "landing_pages.slug = 'pagina-exemplo'" in sql
+    assert "landing_pages.status = 'PUBLISHED'" in sql
+    assert "landing_pages.published_at IS NOT NULL" in sql
+    assert "landing_pages.deleted_at IS NULL" in sql
