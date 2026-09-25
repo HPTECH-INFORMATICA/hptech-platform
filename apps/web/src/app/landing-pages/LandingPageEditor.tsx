@@ -5,6 +5,7 @@ import Card from "@/components/ui/Card";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Textarea from "@/components/ui/Textarea";
+import { createLandingPageTemplateContent } from "@/lib/landing-page-templates";
 import type {
   LandingPageBlock,
   LandingPageContent,
@@ -516,14 +517,33 @@ export default function LandingPageEditor({ draft, onChange }: LandingPageEditor
           onChange={(event) => updateField("slug", event.target.value.toLowerCase())}
         />
       </div>
-      <Select
-        label="Modelo"
-        value={draft.template}
-        options={templateOptions}
-        onChange={(event) =>
-          onChange({ ...draft, template: event.target.value as LandingPageTemplate })
-        }
-      />
+      <div className="grid items-end gap-3 sm:grid-cols-[1fr_auto]">
+        <Select
+          label="Modelo"
+          value={draft.template}
+          options={templateOptions}
+          description="O modelo define uma estrutura inicial que pode ser personalizada."
+          onChange={(event) =>
+            onChange({ ...draft, template: event.target.value as LandingPageTemplate })
+          }
+        />
+        <Button
+          variant="outline"
+          onClick={() =>
+            onChange({
+              ...draft,
+              content: createLandingPageTemplateContent(draft.template),
+            })
+          }
+        >
+          Aplicar modelo
+        </Button>
+      </div>
+      {draft.content.blocks.length > 0 ? (
+        <p className="text-sm text-hp-warning">
+          Aplicar o modelo substitui todos os blocos atuais deste rascunho.
+        </p>
+      ) : null}
 
       <section aria-labelledby="landing-page-blocks-title" className="space-y-4">
         <div className="flex flex-wrap items-end justify-between gap-3">
