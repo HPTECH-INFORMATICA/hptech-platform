@@ -21,7 +21,11 @@ const navigationGroups = [
     label: "Centro Comercial",
     items: [
       { label: "CRM", href: "/crm", module: "CRM" },
-      { label: "Landing Pages", planned: true },
+      {
+        label: "Landing Pages",
+        href: "/landing-pages",
+        module: "LANDING_PAGES",
+      },
       { label: "Sites", planned: true },
     ],
   },
