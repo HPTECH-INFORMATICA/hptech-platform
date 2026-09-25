@@ -2,6 +2,10 @@ import type { ChangeEvent } from "react";
 
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
+import Collapsible, {
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/Collapsible";
 import Input from "@/components/ui/Input";
 import Select from "@/components/ui/Select";
 import Textarea from "@/components/ui/Textarea";
@@ -12,6 +16,8 @@ import type {
   LandingPageSeo,
   LandingPageTemplate,
 } from "@/services/landing-page-service";
+
+import LandingPagePreview from "./LandingPagePreview";
 
 export type LandingPageDraft = {
   name: string;
@@ -599,6 +605,23 @@ export default function LandingPageEditor({ draft, onChange }: LandingPageEditor
           />
         ))}
       </section>
+
+      <Collapsible defaultOpen>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold text-hp-foreground">Pré-visualização</h2>
+            <p className="text-sm text-hp-muted">
+              Conferência visual segura; botões e formulário não executam ações.
+            </p>
+          </div>
+          <CollapsibleTrigger className="border border-hp-primary text-hp-primary">
+            Mostrar ou ocultar
+          </CollapsibleTrigger>
+        </div>
+        <CollapsibleContent className="mt-4">
+          <LandingPagePreview content={draft.content} />
+        </CollapsibleContent>
+      </Collapsible>
 
       <section aria-labelledby="landing-page-seo-title" className="space-y-4">
         <div>
