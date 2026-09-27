@@ -8,6 +8,7 @@ import {
   LandingPageApiError,
   listLandingPages,
   publishLandingPage,
+  submitPublicLandingPage,
   unpublishLandingPage,
   updateLandingPage,
 } from "../src/services/landing-page-service.ts";
@@ -42,6 +43,32 @@ test("list preserves allowlisted query through BFF", async (context) => {
     new URLSearchParams({ status: "DRAFT", page: "1", page_size: "20" }),
   );
   assert.equal(result.total, 1);
+});
+
+test("public submission uses only the same-origin BFF", async (context) => {
+  const originalFetch = globalThis.fetch;
+  context.after(() => { globalThis.fetch = originalFetch; });
+  globalThis.fetch = async (input, init) => {
+    assert.equal(
+      String(input),
+      "/api/public/landing-pages/empresa/campanha/submissions",
+    );
+    assert.equal(init?.method, "POST");
+    assert.equal(init?.cache, "no-store");
+    assert.deepEqual(JSON.parse(String(init?.body)), {
+      name: "Pessoa Exemplo",
+      email: "pessoa@example.com",
+      privacy_consent: true,
+    });
+    return Response.json({ accepted: true, message: "Recebemos seus dados." });
+  };
+
+  const result = await submitPublicLandingPage("empresa", "campanha", {
+    name: "Pessoa Exemplo",
+    email: "pessoa@example.com",
+    privacy_consent: true,
+  });
+  assert.equal(result.accepted, true);
 });
 
 test("service exposes sanitized BFF errors", async (context) => {

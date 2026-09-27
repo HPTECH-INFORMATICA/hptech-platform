@@ -68,6 +68,29 @@ export type LandingPageList = {
   page_size: number;
 };
 
+export type PublicLandingPageData = {
+  name: string;
+  slug: string;
+  template: LandingPageTemplate;
+  content: LandingPageContent;
+  seo: LandingPageSeo;
+  published_at: string;
+  company: { name: string; slug: string };
+};
+
+export type PublicLandingPageSubmissionInput = {
+  name: string;
+  email?: string;
+  phone?: string;
+  privacy_consent: true;
+  website?: string;
+};
+
+export type PublicLandingPageSubmissionResult = {
+  accepted: true;
+  message: string;
+};
+
 export type LandingPageCreateInput = {
   name: string;
   slug: string;
@@ -163,4 +186,22 @@ export async function deleteLandingPage(id: string): Promise<void> {
     cache: "no-store",
   });
   if (!response.ok) return parseError(response);
+}
+
+export async function submitPublicLandingPage(
+  companySlug: string,
+  landingPageSlug: string,
+  data: PublicLandingPageSubmissionInput,
+): Promise<PublicLandingPageSubmissionResult> {
+  const response = await fetch(
+    `/api/public/landing-pages/${encodeURIComponent(companySlug)}/${encodeURIComponent(landingPageSlug)}/submissions`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+      cache: "no-store",
+    },
+  );
+  if (!response.ok) return parseError(response);
+  return response.json() as Promise<PublicLandingPageSubmissionResult>;
 }
