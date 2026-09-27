@@ -26,3 +26,11 @@ export function publicLandingPageSubmissionBackendPath(
   const pagePath = publicLandingPageBackendPath(companySlug, landingPageSlug);
   return pagePath ? `${pagePath}/submissions` : null;
 }
+
+export function publicLandingPageFrontendPath(
+  companySlug: string,
+  landingPageSlug: string,
+): string | null {
+  if (!publicLandingPageBackendPath(companySlug, landingPageSlug)) return null;
+  return `/p/${encodeURIComponent(companySlug)}/${encodeURIComponent(landingPageSlug)}`;
+}

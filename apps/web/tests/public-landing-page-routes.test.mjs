@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   isPublicLandingPageSlug,
   publicLandingPageBackendPath,
+  publicLandingPageFrontendPath,
   publicLandingPageSubmissionBackendPath,
 } from "../src/lib/public-landing-page-routes.ts";
 
@@ -17,6 +18,14 @@ test("public landing page paths accept only canonical slugs", () => {
     "/public/landing-pages/empresa-exemplo/campanha-2026",
   );
   assert.equal(publicLandingPageBackendPath("empresa", "../admin"), null);
+});
+
+test("frontend path uses the same validated public identity", () => {
+  assert.equal(
+    publicLandingPageFrontendPath("empresa", "campanha"),
+    "/p/empresa/campanha",
+  );
+  assert.equal(publicLandingPageFrontendPath("Empresa", "campanha"), null);
 });
 
 test("submission path is derived only from a valid public page path", () => {

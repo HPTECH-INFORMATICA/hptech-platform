@@ -22,6 +22,7 @@ import Section from "@/components/ui/Section";
 import Select from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
 import useToast from "@/hooks/useToast";
+import { publicLandingPageFrontendPath } from "@/lib/public-landing-page-routes";
 import {
   archiveLandingPage,
   createLandingPage,
@@ -347,6 +348,22 @@ export default function LandingPagesPage({ currentUser }: { currentUser: Current
                       </div>
                     </dl>
                     <div className="mt-auto flex flex-wrap gap-2">
+                      {item.status === "PUBLISHED" ? (
+                        <a
+                          href={
+                            publicLandingPageFrontendPath(
+                              currentUser.company.slug,
+                              item.slug,
+                            ) ?? undefined
+                          }
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-md)] border border-hp-primary bg-transparent px-3 text-sm font-semibold text-hp-primary transition-colors hover:bg-hp-primary-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hp-focus sm:min-h-9"
+                        >
+                          Abrir página
+                          <span className="sr-only"> (abre em nova aba)</span>
+                        </a>
+                      ) : null}
                       {canUpdate && item.status === "DRAFT" ? (
                         <Button size="sm" variant="outline" onClick={() => openEdit(item)}>
                           Editar
