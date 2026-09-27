@@ -8,6 +8,7 @@ from app.core.identity import AuthenticatedIdentity
 from app.models.landing_page import LandingPage
 from app.repositories.audit_log import AuditLogRepository
 from app.repositories.landing_page import LandingPageRepository
+from app.schemas.lead import LeadCreate
 from app.schemas.landing_page import (
     LandingPageCreate,
     LandingPageListResponse,
@@ -16,7 +17,9 @@ from app.schemas.landing_page import (
     LandingPageUpdate,
     PublicLandingPageCompany,
     PublicLandingPageResponse,
+    PublicLandingPageSubmission,
 )
+from app.services.lead import LeadService
 
 
 class LandingPageNotFoundError(RuntimeError):
@@ -32,6 +35,10 @@ class LandingPageLifecycleError(ValueError):
 
 
 class LandingPagePersistenceError(RuntimeError):
+    pass
+
+
+class LandingPageSubmissionUnavailableError(RuntimeError):
     pass
 
 
@@ -343,3 +350,51 @@ class LandingPageDomain:
             published_at=landing_page.published_at,
             company=PublicLandingPageCompany.model_validate(company),
         )
+
+    @staticmethod
+    def public_submit(
+        db: Session,
+        company_slug: str,
+        landing_page_slug: str,
+        data: PublicLandingPageSubmission,
+    ) -> bool:
+        result = LandingPageRepository.get_published_by_public_slug(
+            db,
+            company_slug,
+            landing_page_slug,
+        )
+        if result is None:
+            raise LandingPageNotFoundError
+        landing_page, _company = result
+        has_contact_block = any(
+            block.get("type") == "CONTACT"
+            for block in landing_page.content.get("blocks", [])
+            if isinstance(block, dict)
+        )
+        if not has_contact_block:
+            raise LandingPageSubmissionUnavailableError
+        if data.website:
+            return False
+
+        lead = LeadService.create(
+            db,
+            landing_page.company_id,
+            LeadCreate(
+                name=data.name,
+                email=data.email,
+                phone=data.phone,
+                source="Landing Page",
+                interest=f"Landing page: {landing_page.name}"[:255],
+            ),
+            None,
+        )
+        AuditLogRepository.add(
+            db,
+            company_id=landing_page.company_id,
+            actor_user_id=None,
+            target_type="LEAD",
+            target_id=lead.id,
+            action="LANDING_PAGE_LEAD_CAPTURED",
+            details={"landing_page_id": str(landing_page.id)},
+        )
+        return True

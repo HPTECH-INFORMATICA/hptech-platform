@@ -22,3 +22,6 @@ from app.models.professional_availability import (  # noqa: E402, F401
     ProfessionalWeeklyAvailability,
 )
 from app.models.landing_page import LandingPage  # noqa: E402, F401
+from app.models.landing_page_submission_limit import (  # noqa: E402, F401
+    LandingPageSubmissionLimit,
+)

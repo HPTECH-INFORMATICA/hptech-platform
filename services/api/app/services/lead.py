@@ -21,7 +21,7 @@ class LeadService:
         db: Session,
         company_id: uuid.UUID,
         data: LeadCreate,
-        user_id: uuid.UUID,
+        user_id: uuid.UUID | None,
     ) -> Lead:
         lead = LeadRepository.create(db, company_id, data)
         LeadHistoryRepository.create(

@@ -4,7 +4,14 @@ from enum import StrEnum
 from typing import Annotated, Literal, Self
 from urllib.parse import urlsplit
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    EmailStr,
+    Field,
+    field_validator,
+    model_validator,
+)
 
 
 class LandingPageStatus(StrEnum):
@@ -346,3 +353,43 @@ class PublicLandingPageResponse(BaseModel):
     seo: LandingPageSeo
     published_at: datetime
     company: PublicLandingPageCompany
+
+
+class PublicLandingPageSubmission(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str = Field(min_length=1, max_length=150)
+    email: EmailStr | None = Field(default=None, max_length=150)
+    phone: str | None = Field(default=None, max_length=30)
+    privacy_consent: Literal[True]
+    website: str | None = Field(default=None, max_length=200)
+
+    @field_validator("name", mode="before")
+    @classmethod
+    def normalize_name(cls, value: object) -> object:
+        return _normalize_required_text(value)
+
+    @field_validator("email", "phone", "website", mode="before")
+    @classmethod
+    def normalize_optional_fields(cls, value: object) -> object:
+        return _normalize_optional_text(value)
+
+    @field_validator("email")
+    @classmethod
+    def normalize_email(cls, value: EmailStr | None) -> str | None:
+        return value.lower() if value is not None else None
+
+    @model_validator(mode="after")
+    def require_contact_channel(self) -> Self:
+        if self.website:
+            return self
+        if not self.email and not self.phone:
+            raise ValueError("Informe um e-mail ou telefone para contato.")
+        return self
+
+
+class PublicLandingPageSubmissionResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    accepted: Literal[True] = True
+    message: str = "Recebemos seus dados."

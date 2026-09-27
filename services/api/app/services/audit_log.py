@@ -74,6 +74,7 @@ SAFE_METADATA_KEYS: dict[str, frozenset[str]] = {
     "LANDING_PAGE_UNPUBLISHED": frozenset({"from", "to"}),
     "LANDING_PAGE_ARCHIVED": frozenset({"from", "to"}),
     "LANDING_PAGE_SOFT_DELETED": frozenset({"status"}),
+    "LANDING_PAGE_LEAD_CAPTURED": frozenset({"landing_page_id"}),
 }
 
 

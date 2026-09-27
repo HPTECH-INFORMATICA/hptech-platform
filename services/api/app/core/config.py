@@ -20,6 +20,16 @@ class Settings(BaseSettings):
 
     LOGIN_RATE_LIMIT_ATTEMPTS: int = Field(default=5, ge=1, le=100)
     LOGIN_RATE_LIMIT_WINDOW_SECONDS: int = Field(default=900, ge=60, le=86400)
+    LANDING_PAGE_SUBMISSION_RATE_LIMIT_ATTEMPTS: int = Field(
+        default=5,
+        ge=1,
+        le=100,
+    )
+    LANDING_PAGE_SUBMISSION_RATE_LIMIT_WINDOW_SECONDS: int = Field(
+        default=900,
+        ge=60,
+        le=86400,
+    )
 
     RESEND_API_KEY: SecretStr = SecretStr("")
     EMAIL_FROM: str = ""

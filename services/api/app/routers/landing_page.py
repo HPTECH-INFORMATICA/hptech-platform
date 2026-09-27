@@ -7,6 +7,7 @@ from fastapi import (
     HTTPException,
     Path,
     Query,
+    Request,
     Response,
     status,
 )
@@ -22,6 +23,8 @@ from app.schemas.landing_page import (
     LandingPageStatus,
     LandingPageUpdate,
     PublicLandingPageResponse,
+    PublicLandingPageSubmission,
+    PublicLandingPageSubmissionResponse,
 )
 from app.services.landing_page import (
     LandingPageConflictError,
@@ -29,6 +32,11 @@ from app.services.landing_page import (
     LandingPageLifecycleError,
     LandingPageNotFoundError,
     LandingPagePersistenceError,
+    LandingPageSubmissionUnavailableError,
+)
+from app.services.landing_page_submission_limit import (
+    LandingPageSubmissionRateLimitExceeded,
+    LandingPageSubmissionRateLimiter,
 )
 
 
@@ -222,3 +230,79 @@ def get_public_landing_page(
         "public, max-age=60, stale-while-revalidate=300"
     )
     return result
+
+
+@public_router.post(
+    "/{company_slug}/{landing_page_slug}/submissions",
+    response_model=PublicLandingPageSubmissionResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+)
+def submit_public_landing_page(
+    company_slug: Annotated[
+        str,
+        Path(
+            min_length=1,
+            max_length=100,
+            pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$",
+        ),
+    ],
+    landing_page_slug: Annotated[
+        str,
+        Path(
+            min_length=1,
+            max_length=120,
+            pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$",
+        ),
+    ],
+    data: PublicLandingPageSubmission,
+    request: Request,
+    db: Annotated[Session, Depends(get_db)],
+) -> PublicLandingPageSubmissionResponse:
+    client_host = request.client.host if request.client else "unknown"
+    submission_subject = str(data.email or data.phone or "honeypot")
+    try:
+        LandingPageSubmissionRateLimiter.ensure_allowed(
+            db,
+            company_slug,
+            landing_page_slug,
+            submission_subject,
+            client_host,
+        )
+    except LandingPageSubmissionRateLimitExceeded as error:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Muitas solicitações. Tente novamente mais tarde.",
+            headers={"Retry-After": str(error.retry_after)},
+        ) from error
+
+    LandingPageSubmissionRateLimiter.record_attempt(
+        db,
+        company_slug,
+        landing_page_slug,
+        submission_subject,
+        client_host,
+    )
+    try:
+        LandingPageDomain.public_submit(
+            db,
+            company_slug,
+            landing_page_slug,
+            data,
+        )
+    except LandingPageNotFoundError as error:
+        db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Landing page não encontrada.",
+        ) from error
+    except LandingPageSubmissionUnavailableError as error:
+        db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Formulário indisponível para esta landing page.",
+        ) from error
+    except Exception:
+        db.rollback()
+        raise
+    db.commit()
+    return PublicLandingPageSubmissionResponse()

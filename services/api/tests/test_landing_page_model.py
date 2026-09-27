@@ -3,10 +3,24 @@ from sqlalchemy import CheckConstraint, Index, UniqueConstraint, inspect
 from app.db import base as _models  # noqa: F401
 from app.models.company import Company
 from app.models.landing_page import LandingPage
+from app.models.landing_page_submission_limit import LandingPageSubmissionLimit
 
 
 def test_landing_page_is_registered_in_metadata() -> None:
     assert "landing_pages" in LandingPage.metadata.tables
+    assert (
+        "landing_page_submission_limits"
+        in LandingPageSubmissionLimit.metadata.tables
+    )
+
+
+def test_submission_limit_has_hashed_primary_key() -> None:
+    table = LandingPageSubmissionLimit.__table__
+
+    assert tuple(table.primary_key.columns.keys()) == ("key_hash",)
+    assert table.c.key_hash.type.length == 64
+    assert table.c.attempts.nullable is False
+    assert table.c.window_started_at.nullable is False
 
 
 def test_landing_page_has_tenant_identity_and_cascade() -> None:

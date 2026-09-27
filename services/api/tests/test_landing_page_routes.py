@@ -21,6 +21,7 @@ from app.schemas.landing_page import (
     LandingPageCreate,
     LandingPageListResponse,
     PublicLandingPageResponse,
+    PublicLandingPageSubmission,
     LandingPageUpdate,
 )
 from app.services.audit_log import sanitize_audit_metadata
@@ -29,7 +30,13 @@ from app.services.landing_page import (
     LandingPageDomain,
     LandingPageLifecycleError,
     LandingPageNotFoundError,
+    LandingPageSubmissionUnavailableError,
 )
+from app.services.landing_page_submission_limit import (
+    LandingPageSubmissionRateLimitExceeded,
+    LandingPageSubmissionRateLimiter,
+)
+from app.services.lead import LeadService
 
 
 pytestmark = pytest.mark.anyio
@@ -109,6 +116,7 @@ def test_openapi_exposes_authenticated_landing_page_contract() -> None:
         "/api/v1/landing-pages/{landing_page_id}/unpublish",
         "/api/v1/landing-pages/{landing_page_id}/archive",
         "/api/v1/public/landing-pages/{company_slug}/{landing_page_slug}",
+        "/api/v1/public/landing-pages/{company_slug}/{landing_page_slug}/submissions",
     }
 
 
@@ -169,6 +177,102 @@ async def test_public_route_hides_unavailable_pages(
 
     assert response.status_code == 404
     assert response.json() == {"detail": "Landing page não encontrada."}
+
+
+async def test_public_submission_accepts_valid_contact_without_authentication(
+    client: AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    db = MagicMock()
+    app.dependency_overrides[get_db] = lambda: db
+    ensure_allowed = MagicMock()
+    record_attempt = MagicMock()
+    public_submit = MagicMock(return_value=True)
+    monkeypatch.setattr(
+        LandingPageSubmissionRateLimiter,
+        "ensure_allowed",
+        ensure_allowed,
+    )
+    monkeypatch.setattr(
+        LandingPageSubmissionRateLimiter,
+        "record_attempt",
+        record_attempt,
+    )
+    monkeypatch.setattr(LandingPageDomain, "public_submit", public_submit)
+
+    response = await client.post(
+        "/api/v1/public/landing-pages/empresa-exemplo/pagina-exemplo/submissions",
+        json={
+            "name": "Pessoa Exemplo",
+            "email": "PESSOA@EXAMPLE.COM",
+            "privacy_consent": True,
+        },
+    )
+
+    assert response.status_code == 202
+    assert response.json() == {
+        "accepted": True,
+        "message": "Recebemos seus dados.",
+    }
+    ensure_allowed.assert_called_once()
+    record_attempt.assert_called_once()
+    submitted = public_submit.call_args.args[3]
+    assert submitted.email == "pessoa@example.com"
+    db.commit.assert_called_once_with()
+
+
+async def test_public_submission_requires_consent_and_contact_channel(
+    client: AsyncClient,
+) -> None:
+    endpoint = (
+        "/api/v1/public/landing-pages/empresa-exemplo/"
+        "pagina-exemplo/submissions"
+    )
+
+    missing_consent = await client.post(
+        endpoint,
+        json={"name": "Pessoa Exemplo", "email": "pessoa@example.com"},
+    )
+    missing_contact = await client.post(
+        endpoint,
+        json={"name": "Pessoa Exemplo", "privacy_consent": True},
+    )
+
+    assert missing_consent.status_code == 422
+    assert missing_contact.status_code == 422
+
+
+async def test_public_submission_returns_retry_after_when_limited(
+    client: AsyncClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    record_attempt = MagicMock()
+    public_submit = MagicMock()
+    monkeypatch.setattr(
+        LandingPageSubmissionRateLimiter,
+        "ensure_allowed",
+        MagicMock(side_effect=LandingPageSubmissionRateLimitExceeded(73)),
+    )
+    monkeypatch.setattr(
+        LandingPageSubmissionRateLimiter,
+        "record_attempt",
+        record_attempt,
+    )
+    monkeypatch.setattr(LandingPageDomain, "public_submit", public_submit)
+
+    response = await client.post(
+        "/api/v1/public/landing-pages/empresa-exemplo/pagina-exemplo/submissions",
+        json={
+            "name": "Pessoa Exemplo",
+            "phone": "+5511999999999",
+            "privacy_consent": True,
+        },
+    )
+
+    assert response.status_code == 429
+    assert response.headers["retry-after"] == "73"
+    record_attempt.assert_not_called()
+    public_submit.assert_not_called()
 
 
 async def test_routes_require_authentication(client: AsyncClient) -> None:
@@ -365,6 +469,129 @@ def test_public_detail_returns_only_public_contract(
     assert result.slug == landing_page.slug
     assert "id" not in result.model_dump()
     assert "company_id" not in result.model_dump()
+
+
+def test_public_submission_derives_tenant_and_audits_without_pii(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    identity = make_identity()
+    landing_page = make_landing_page(
+        identity,
+        status="PUBLISHED",
+        published_at=datetime.now(timezone.utc),
+        content={
+            "version": 1,
+            "blocks": [{"id": str(uuid4()), "type": "CONTACT"}],
+        },
+    )
+    monkeypatch.setattr(
+        LandingPageRepository,
+        "get_published_by_public_slug",
+        MagicMock(return_value=(landing_page, identity.company)),
+    )
+    lead_id = uuid4()
+    create_lead = MagicMock(return_value=MagicMock(id=lead_id))
+    audit = MagicMock()
+    monkeypatch.setattr(LeadService, "create", create_lead)
+    monkeypatch.setattr(AuditLogRepository, "add", audit)
+    submission = PublicLandingPageSubmission(
+        name="Pessoa Exemplo",
+        email="pessoa@example.com",
+        privacy_consent=True,
+    )
+
+    created = LandingPageDomain.public_submit(
+        MagicMock(),
+        identity.company.slug,
+        landing_page.slug,
+        submission,
+    )
+
+    assert created is True
+    assert create_lead.call_args.args[1] == identity.company.id
+    assert create_lead.call_args.args[3] is None
+    lead_data = create_lead.call_args.args[2]
+    assert lead_data.source == "Landing Page"
+    assert lead_data.email == "pessoa@example.com"
+    assert audit.call_args.kwargs == {
+        "company_id": identity.company.id,
+        "actor_user_id": None,
+        "target_type": "LEAD",
+        "target_id": lead_id,
+        "action": "LANDING_PAGE_LEAD_CAPTURED",
+        "details": {"landing_page_id": str(landing_page.id)},
+    }
+    assert sanitize_audit_metadata(
+        "LANDING_PAGE_LEAD_CAPTURED",
+        {
+            "landing_page_id": str(landing_page.id),
+            "email": "pessoa@example.com",
+        },
+    ) == {"landing_page_id": str(landing_page.id)}
+
+
+def test_public_submission_honeypot_does_not_create_lead(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    identity = make_identity()
+    landing_page = make_landing_page(
+        identity,
+        status="PUBLISHED",
+        published_at=datetime.now(timezone.utc),
+        content={
+            "version": 1,
+            "blocks": [{"id": str(uuid4()), "type": "CONTACT"}],
+        },
+    )
+    monkeypatch.setattr(
+        LandingPageRepository,
+        "get_published_by_public_slug",
+        MagicMock(return_value=(landing_page, identity.company)),
+    )
+    create_lead = MagicMock()
+    monkeypatch.setattr(LeadService, "create", create_lead)
+
+    created = LandingPageDomain.public_submit(
+        MagicMock(),
+        identity.company.slug,
+        landing_page.slug,
+        PublicLandingPageSubmission(
+            name="Bot Example",
+            privacy_consent=True,
+            website="https://spam.example",
+        ),
+    )
+
+    assert created is False
+    create_lead.assert_not_called()
+
+
+def test_public_submission_requires_contact_block(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    identity = make_identity()
+    landing_page = make_landing_page(
+        identity,
+        status="PUBLISHED",
+        published_at=datetime.now(timezone.utc),
+    )
+    monkeypatch.setattr(
+        LandingPageRepository,
+        "get_published_by_public_slug",
+        MagicMock(return_value=(landing_page, identity.company)),
+    )
+
+    with pytest.raises(LandingPageSubmissionUnavailableError):
+        LandingPageDomain.public_submit(
+            MagicMock(),
+            identity.company.slug,
+            landing_page.slug,
+            PublicLandingPageSubmission(
+                name="Pessoa Exemplo",
+                phone="+5511999999999",
+                privacy_consent=True,
+            ),
+        )
 
 
 def test_public_repository_query_enforces_publication_and_company_state() -> None:

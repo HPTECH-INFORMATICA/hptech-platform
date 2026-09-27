@@ -9,6 +9,7 @@ from app.schemas.landing_page import (
     LandingPageStatus,
     LandingPageTemplate,
     LandingPageUpdate,
+    PublicLandingPageSubmission,
 )
 
 
@@ -167,3 +168,37 @@ def test_seo_rejects_insecure_canonical_url() -> None:
             slug="pagina",
             seo={"canonical_url": "http://example.com/pagina"},
         )
+
+
+def test_public_submission_requires_consent_and_contact_channel() -> None:
+    submission = PublicLandingPageSubmission(
+        name="  Pessoa Exemplo  ",
+        email="PESSOA@EXAMPLE.COM",
+        privacy_consent=True,
+    )
+
+    assert submission.name == "Pessoa Exemplo"
+    assert submission.email == "pessoa@example.com"
+
+    with pytest.raises(ValidationError):
+        PublicLandingPageSubmission(
+            name="Pessoa Exemplo",
+            email="pessoa@example.com",
+            privacy_consent=False,
+        )
+
+    with pytest.raises(ValidationError, match="e-mail ou telefone"):
+        PublicLandingPageSubmission(
+            name="Pessoa Exemplo",
+            privacy_consent=True,
+        )
+
+
+def test_public_submission_honeypot_keeps_generic_validation_shape() -> None:
+    submission = PublicLandingPageSubmission(
+        name="Robô",
+        privacy_consent=True,
+        website="https://spam.example",
+    )
+
+    assert submission.website == "https://spam.example"
