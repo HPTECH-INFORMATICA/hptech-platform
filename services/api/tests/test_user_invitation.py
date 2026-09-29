@@ -61,10 +61,10 @@ def test_resend_adapter_builds_expected_safe_payload(monkeypatch: pytest.MonkeyP
     assert captured["json"] == {
         "from": "HPTECH <test@example.com>",
         "to": ["invite@example.com"],
-        "subject": "Convite para acessar a HPTECH Platform",
+        "subject": "Convite para acessar o HPTECH Clinic",
         "html": (
             "<p>Olá, Pessoa Teste.</p>"
-            "<p>Você recebeu um convite para acessar a HPTECH Platform.</p>"
+            "<p>Você recebeu um convite para acessar o ambiente da sua clínica no HPTECH Clinic.</p>"
             '<p><a href="https://example.com/aceitar-convite?token=secret">Aceitar convite</a></p>'
             "<p>O convite é válido por aproximadamente 24 horas.</p>"
             "<p>Se você não reconhece este convite, ignore esta mensagem.</p>"

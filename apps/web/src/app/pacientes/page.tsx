@@ -21,6 +21,7 @@ export default async function PatientsRoute() {
   return (
     <AppShell
       title="Pacientes"
+      clinicName={user.company.name}
       permissions={user.permissions}
       userArea={<SessionUser user={user} />}
     >

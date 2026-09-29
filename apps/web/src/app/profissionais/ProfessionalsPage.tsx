@@ -45,7 +45,7 @@ import {
 } from "@/services/professional-service";
 
 const PAGE_SIZE = 10;
-const CANDIDATE_PAGE_SIZE = 10;
+const CANDIDATE_PAGE_SIZE = 100;
 const statusOptions = [
   { value: "", label: "Todos" },
   { value: "true", label: "Ativos" },
@@ -122,11 +122,7 @@ export default function ProfessionalsPage({ currentUser }: { currentUser: Curren
   const [statusTarget, setStatusTarget] = useState<ProfessionalData | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ProfessionalData | null>(null);
 
-  const [candidateSearch, setCandidateSearch] = useState("");
-  const [debouncedCandidateSearch, setDebouncedCandidateSearch] = useState("");
-  const [candidatePage, setCandidatePage] = useState(1);
   const [candidateItems, setCandidateItems] = useState<ProfessionalUserCandidate[]>([]);
-  const [candidateTotal, setCandidateTotal] = useState(0);
   const [candidateLoading, setCandidateLoading] = useState(false);
   const [candidateError, setCandidateError] = useState<string | null>(null);
   const [candidateReload, setCandidateReload] = useState(0);
@@ -174,21 +170,12 @@ export default function ProfessionalsPage({ currentUser }: { currentUser: Curren
   }, [debouncedSearch, page, reload, statusFilter]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      setDebouncedCandidateSearch(candidateSearch.trim());
-      setCandidatePage(1);
-    }, 300);
-    return () => window.clearTimeout(timer);
-  }, [candidateSearch]);
-
-  useEffect(() => {
     if (!editorOpen) return;
     let active = true;
     const params = new URLSearchParams({
-      page: String(candidatePage),
+      page: "1",
       page_size: String(CANDIDATE_PAGE_SIZE),
     });
-    if (debouncedCandidateSearch) params.set("search", debouncedCandidateSearch);
     if (editing) params.set("professional_id", editing.id);
 
     const loadCandidates = async () => {
@@ -198,7 +185,6 @@ export default function ProfessionalsPage({ currentUser }: { currentUser: Curren
         const result = await listProfessionalUserCandidates(params);
         if (!active) return;
         setCandidateItems(result.items);
-        setCandidateTotal(result.total);
         const selected = result.items.find((item) => item.id === draft.userId);
         if (selected) setSelectedCandidate(selected);
       } catch (reason) {
@@ -211,7 +197,7 @@ export default function ProfessionalsPage({ currentUser }: { currentUser: Curren
     return () => {
       active = false;
     };
-  }, [candidatePage, candidateReload, debouncedCandidateSearch, draft.userId, editing, editorOpen]);
+  }, [candidateReload, draft.userId, editing, editorOpen]);
 
   const currentPayload = payloadFromDraft(draft);
   const initialPayload = useMemo(
@@ -223,10 +209,6 @@ export default function ProfessionalsPage({ currentUser }: { currentUser: Curren
     : Boolean(currentPayload.display_name || currentPayload.user_id);
   const valid = currentPayload.display_name.length > 0;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
-  const candidateTotalPages = Math.max(
-    1,
-    Math.ceil(candidateTotal / CANDIDATE_PAGE_SIZE),
-  );
   const candidatePool =
     selectedCandidate && !candidateItems.some((item) => item.id === selectedCandidate.id)
       ? [selectedCandidate, ...candidateItems]
@@ -251,11 +233,7 @@ export default function ProfessionalsPage({ currentUser }: { currentUser: Curren
   ];
 
   function resetCandidateState() {
-    setCandidateSearch("");
-    setDebouncedCandidateSearch("");
-    setCandidatePage(1);
     setCandidateItems([]);
-    setCandidateTotal(0);
     setCandidateError(null);
     setCandidateReload(0);
     setSelectedCandidate(null);
@@ -522,18 +500,21 @@ export default function ProfessionalsPage({ currentUser }: { currentUser: Curren
               }
               maxLength={150}
             />
-            <SearchBox
-              label="Buscar conta para vínculo"
-              value={candidateSearch}
-              onChange={(event) => setCandidateSearch(event.target.value)}
-              onClear={() => setCandidateSearch("")}
-              clearLabel="Limpar busca de contas"
-              placeholder="Nome ou email"
-              loading={candidateLoading}
-              description="A busca inclui somente contas elegíveis desta empresa."
-            />
             <Select
               label="Conta de acesso (opcional)"
+              description={
+                <>
+                  Somente contas ativas da clínica e ainda sem outro profissional
+                  vinculado aparecem aqui. Crie ou convide a conta em{" "}
+                  <Link
+                    href="/configuracoes?tab=usuarios"
+                    className="font-semibold text-hp-primary hover:underline"
+                  >
+                    Configurações › Usuários
+                  </Link>{" "}
+                  antes de fazer o vínculo.
+                </>
+              }
               options={candidateOptions}
               value={draft.userId}
               disabled={candidateLoading && candidateItems.length === 0}
@@ -558,14 +539,6 @@ export default function ProfessionalsPage({ currentUser }: { currentUser: Curren
                     Tentar novamente
                   </Button>
                 }
-              />
-            ) : null}
-            {candidateTotalPages > 1 ? (
-              <Pagination
-                page={candidatePage}
-                totalPages={candidateTotalPages}
-                onPageChange={setCandidatePage}
-                disabled={candidateLoading}
               />
             ) : null}
             {formError ? <Alert variant="danger" description={formError} /> : null}

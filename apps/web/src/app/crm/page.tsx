@@ -19,6 +19,7 @@ export default async function CRMPage() {
   return (
     <AppShell
       title="CRM"
+      clinicName={user.company.name}
       permissions={user.permissions}
       userArea={<SessionUser user={user} />}
     >

@@ -10,6 +10,7 @@ export default async function ProfessionalsRoute() {
   return (
     <AppShell
       title="Profissionais"
+      clinicName={user.company.name}
       permissions={user.permissions}
       userArea={<SessionUser user={user} />}
     >

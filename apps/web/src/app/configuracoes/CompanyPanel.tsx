@@ -220,9 +220,9 @@ export default function CompanyPanel({
 
   return (
     <Section
-      title="Empresa"
-      description="Consulte e mantenha os dados cadastrais da empresa autenticada."
-      actions={!editing && canUpdate ? <Button variant="outline" onClick={beginEdit}>Editar empresa</Button> : undefined}
+      title="Dados da clínica"
+      description="Consulte e mantenha os dados cadastrais da clínica ativa."
+      actions={!editing && canUpdate ? <Button variant="outline" onClick={beginEdit}>Editar clínica</Button> : undefined}
     >
       {error ? <Alert variant="danger" description={error} /> : null}
       {success ? <Alert variant="success" live="polite" description={success} /> : null}

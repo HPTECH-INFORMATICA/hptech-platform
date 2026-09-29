@@ -10,6 +10,7 @@ export default async function LandingPagesRoute() {
   return (
     <AppShell
       title="Landing Pages"
+      clinicName={user.company.name}
       permissions={user.permissions}
       userArea={<SessionUser user={user} />}
     >

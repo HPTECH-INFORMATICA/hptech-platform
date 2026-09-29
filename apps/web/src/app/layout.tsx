@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
 import ToastProvider from "@/components/ui/ToastProvider";
+import { PRODUCT_DESCRIPTION, PRODUCT_NAME } from "@/config/product";
 
 import "./globals.css";
 
@@ -16,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "HPTECH Clinic",
-  description: "Plataforma de gestão para clínicas",
+  title: PRODUCT_NAME,
+  description: PRODUCT_DESCRIPTION,
 };
 
 export const viewport: Viewport = {

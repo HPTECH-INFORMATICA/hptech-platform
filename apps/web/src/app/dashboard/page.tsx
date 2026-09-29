@@ -9,6 +9,7 @@ export default async function DashboardPage() {
   return (
     <AppShell
       title="Dashboard"
+      clinicName={user.company.name}
       permissions={user.permissions}
       userArea={<SessionUser user={user} />}
     >

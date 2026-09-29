@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import { hasPermission, type CurrentUser } from "@/auth/types";
@@ -334,9 +335,17 @@ export default function ProfessionalAvailabilityPage({
     <div className="min-w-0 space-y-8">
       <PageHeader
         title={`Disponibilidade de ${professional.display_name}`}
-        description={`Horários no fuso ${currentUser.company.timezone}. Datas e horários são civis da empresa.`}
+        description={`Horários no fuso ${currentUser.company.timezone}. Datas e horários são civis da clínica.`}
         breadcrumb={<Breadcrumb items={[{ label: "Profissionais", href: "/profissionais" }]} currentLabel="Disponibilidade" />}
         metadata={<><Badge variant={professional.is_active ? "success" : "neutral"}>{professional.is_active ? "Ativo" : "Inativo"}</Badge><span>{canUpdate ? "Gerenciamento habilitado" : "Somente leitura"}</span></>}
+        actions={
+          <Link
+            href="/profissionais"
+            className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-md)] border border-hp-primary px-4 text-sm font-semibold text-hp-primary transition-colors hover:bg-hp-primary-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hp-focus"
+          >
+            Voltar para profissionais
+          </Link>
+        }
       />
 
       {!professional.is_active ? (

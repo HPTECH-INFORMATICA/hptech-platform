@@ -6,9 +6,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Navigation from "./Navigation";
 import TopBar from "./TopBar";
 import type { CurrentPermission } from "@/auth/types";
+import { PRODUCT_NAME } from "@/config/product";
 
 type AppShellProps = {
   title: string;
+  clinicName: string;
   children: ReactNode;
   actions?: ReactNode;
   userArea?: ReactNode;
@@ -18,6 +20,7 @@ type AppShellProps = {
 
 export default function AppShell({
   title,
+  clinicName,
   children,
   actions,
   userArea,
@@ -65,7 +68,15 @@ export default function AppShell({
       </a>
 
       <aside className="sticky top-0 hidden h-dvh border-r border-hp-border bg-hp-surface p-6 lg:block">
-        <div className="mb-8 text-xl font-bold text-hp-foreground">HPTECH</div>
+        <div className="mb-8 min-w-0">
+          <p className="text-xl font-bold text-hp-foreground">{PRODUCT_NAME}</p>
+          <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-hp-subtle">
+            Ambiente da clínica
+          </p>
+          <p className="mt-1 truncate text-sm font-semibold text-hp-primary" title={clinicName}>
+            {clinicName}
+          </p>
+        </div>
         <Navigation permissions={permissions} />
       </aside>
 
@@ -105,7 +116,12 @@ export default function AppShell({
             className="relative h-dvh w-[min(var(--layout-sidebar-expanded),calc(100vw-3rem))] overflow-y-auto border-r border-hp-border bg-hp-surface p-6 shadow-[var(--shadow-lg)]"
           >
             <div className="mb-8 flex items-center justify-between gap-4">
-              <div className="text-xl font-bold text-hp-foreground">HPTECH</div>
+              <div className="min-w-0">
+                <p className="text-xl font-bold text-hp-foreground">{PRODUCT_NAME}</p>
+                <p className="mt-1 max-w-48 truncate text-sm font-semibold text-hp-primary" title={clinicName}>
+                  {clinicName}
+                </p>
+              </div>
               <button
                 ref={closeButtonRef}
                 type="button"

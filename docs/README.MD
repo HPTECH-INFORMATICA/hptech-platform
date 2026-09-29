@@ -1,72 +1,56 @@
-# HPTECH Platform
+# HPTECH Platform — Documentação
 
-## Visão Geral
+## Definição atual
 
-A HPTECH Platform é uma plataforma SaaS multiempresa desenvolvida para gestão de clínicas e empresas de serviços.
+A **HPTECH Platform** é o portfólio SaaS da HPTECH Informática. Cada produto
+possui domínio e aplicação próprios, enquanto o **HPTECH Control Plane** fornece
+o controle interno de organizações, assinaturas, entitlements, provisionamento
+e suporte.
 
-Inicialmente o foco será clínicas de estética e tricologia, porém toda a arquitetura será preparada para atender outros segmentos.
+O sistema de gestão usado pelas clínicas contratantes chama-se **HPTECH Clinic**.
+Ele não é o painel interno da HPTECH.
 
----
+## Documentos normativos
 
-# Objetivos
+Leia nesta ordem:
 
-- Multiempresa (Multi-Tenant)
-- Escalável
-- Modular
-- API First
-- Cloud Native
-- Segurança
-- Alta Performance
+1. [`PRD/HPTECH_PLATFORM_PORTFOLIO.md`](PRD/HPTECH_PLATFORM_PORTFOLIO.md) —
+   portfólio, vocabulário, superfícies e governança;
+2. [`ADR/ADR-001-PORTFOLIO-CONTROL-PLANE-DATA-PLANES.md`](ADR/ADR-001-PORTFOLIO-CONTROL-PLANE-DATA-PLANES.md)
+   — decisão de separação arquitetural;
+3. [`PRD/HPTECH_CLINIC.md`](PRD/HPTECH_CLINIC.md) — produto para as clínicas;
+4. [`PRD/HPTECH_CONTROL_PLANE.md`](PRD/HPTECH_CONTROL_PLANE.md) — operação
+   interna do portfólio;
+5. [`Roadmap/HPTECH_CLINIC_RECOVERY.md`](Roadmap/HPTECH_CLINIC_RECOVERY.md) —
+   ordem de execução, gates e definição de pronto.
 
----
+Contratos de domínio em execução:
 
-# Stack
+- [`modules/professionals.md`](modules/professionals.md) — cadastro operacional,
+  credenciais, unidades, serviços, documentos, remuneração e conta de acesso.
 
-## Frontend
+## Referências anteriores
 
-- Next.js
-- React
-- TypeScript
-- Tailwind CSS
+- [`HPTECH_PLATFORM_V2.md`](HPTECH_PLATFORM_V2.md) permanece como documento de
+  origem da visão clínica e das garantias transversais;
+- [`ARCHITECTURE.md`](ARCHITECTURE.md), [`DATABASE.md`](DATABASE.md),
+  [`API.md`](API.md) e documentos em [`modules/`](modules/) detalham a
+  implementação existente;
+- em caso de ambiguidade sobre plataforma versus produto, os documentos
+  normativos listados acima possuem precedência;
+- marcações antigas de módulo "concluído" descrevem entregas técnicas e não
+  disponibilidade comercial.
 
-## Backend
+## Stack atual do HPTECH Clinic
 
-- FastAPI
+- Next.js, React, TypeScript e Tailwind CSS;
+- FastAPI;
+- PostgreSQL;
+- Vercel e Render.
 
-## Banco
+## Estado comercial
 
-- PostgreSQL
+O HPTECH Clinic está em **Alpha interna**. A venda depende dos gates definidos
+no roadmap de recuperação.
 
-## Infra
-
-- Vercel
-- Render
-- Neon
-
----
-
-# Módulos
-
-- Dashboard
-- CRM
-- Agenda
-- Financeiro
-- Landing Pages
-- Inteligência Artificial
-- Marketplace
-- Configurações
-
----
-
-# Organização
-
-apps/
-services/
-packages/
-docs/
-infra/
-tests/
-
----
-
-Desenvolvido por HPTECH Informática. 29/07/2026 21:36h
+Desenvolvido por HPTECH Informática.

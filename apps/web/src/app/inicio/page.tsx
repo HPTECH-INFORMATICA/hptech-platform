@@ -30,13 +30,15 @@ export default async function StartPage() {
   return (
     <AppShell
       title="Início"
+      clinicName={user.company.name}
       permissions={user.permissions}
       userArea={<SessionUser user={user} />}
     >
       <div className="space-y-8">
         <PageHeader
-          title="HPTECH Platform"
-          description={`Bem-vindo, ${user.name}. Selecione no menu uma área disponível para continuar.`}
+          title={user.company.name}
+          description={`Bem-vindo, ${user.name}. Você está no HPTECH Clinic, ambiente de gestão da sua clínica.`}
+          metadata="Selecione uma área disponível para continuar."
         />
 
         {availableModules.length > 0 ? (

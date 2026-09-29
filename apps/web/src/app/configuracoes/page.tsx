@@ -38,6 +38,7 @@ export default async function ConfiguracoesPage({
   return (
     <AppShell
       title="Configurações"
+      clinicName={user.company.name}
       permissions={user.permissions}
       userArea={<SessionUser user={user} />}
     >

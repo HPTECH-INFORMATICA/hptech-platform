@@ -16,6 +16,7 @@ export default async function ProfessionalAvailabilityRoute({
   return (
     <AppShell
       title="Disponibilidade profissional"
+      clinicName={user.company.name}
       permissions={user.permissions}
       userArea={<SessionUser user={user} />}
     >

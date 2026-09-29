@@ -12,6 +12,17 @@ type SessionUserProps = {
   user: CurrentUser;
 };
 
+const roleLabels: Record<string, string> = {
+  OWNER: "Proprietário",
+  ADMIN: "Administrador",
+  MANAGER: "Gerente",
+  PROFESSIONAL: "Profissional",
+  RECEPTIONIST: "Recepção",
+  SALES: "Comercial",
+  FINANCIAL: "Financeiro",
+  VIEWER: "Consulta",
+};
+
 export default function SessionUser({ user }: SessionUserProps) {
   const router = useRouter();
   const [loggingOut, setLoggingOut] = useState(false);
@@ -43,7 +54,7 @@ export default function SessionUser({ user }: SessionUserProps) {
           {user.name}
         </p>
         <p className="max-w-40 truncate text-xs text-hp-muted">
-          {user.company.name}
+          {roleLabels[user.role] ?? user.role} · {user.company.name}
         </p>
       </div>
       <Link

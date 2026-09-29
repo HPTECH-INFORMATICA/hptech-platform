@@ -21,6 +21,7 @@ export default async function FinanceiroPage() {
   return (
     <AppShell
       title="Financeiro"
+      clinicName={user.company.name}
       permissions={user.permissions}
       userArea={<SessionUser user={user} />}
     >

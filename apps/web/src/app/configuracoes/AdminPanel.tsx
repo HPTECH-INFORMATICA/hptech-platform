@@ -75,16 +75,16 @@ export default function AdminPanel({ user, activeTab }: AdminPanelProps) {
   return (
     <div className="min-w-0 space-y-8">
       <PageHeader
-        title="Painel Administrativo"
-        description="Consulte a identidade administrativa e os dados atuais da empresa em um único painel."
+        title="Configurações da clínica"
+        description="Gerencie a identidade, a equipe e os acessos da clínica ativa."
         metadata={<Badge variant="primary">{roleLabel}</Badge>}
       />
 
       <Tabs value={activeTab} onValueChange={changeTab}>
         <div className="max-w-full overflow-x-auto pb-1">
-          <TabsList aria-label="Seções do Painel Administrativo">
+          <TabsList aria-label="Seções das configurações da clínica">
             <TabsTrigger value="visao-geral" disabled={hasPendingChanges}>Visão geral</TabsTrigger>
-            <TabsTrigger value="empresa" disabled={accessControlDirty}>Empresa</TabsTrigger>
+            <TabsTrigger value="empresa" disabled={accessControlDirty}>Clínica</TabsTrigger>
             {canViewUsers ? (
               <TabsTrigger value="usuarios" disabled={hasPendingChanges}>Usuários</TabsTrigger>
             ) : null}
@@ -122,7 +122,7 @@ export default function AdminPanel({ user, activeTab }: AdminPanelProps) {
 
               <Card variant="subtle">
                 <h3 className="text-lg font-semibold text-hp-foreground">
-                  Empresa autenticada
+                  Clínica ativa
                 </h3>
                 <dl className="mt-4 grid min-w-0 gap-4 sm:grid-cols-2">
                   <DefinitionItem label="Nome" value={user.company.name} />

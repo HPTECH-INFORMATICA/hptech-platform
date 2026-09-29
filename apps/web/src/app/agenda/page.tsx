@@ -21,6 +21,7 @@ export default async function AgendaRoute() {
   return (
     <AppShell
       title="Agenda"
+      clinicName={user.company.name}
       permissions={user.permissions}
       userArea={<SessionUser user={user} />}
     >

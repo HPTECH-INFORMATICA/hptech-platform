@@ -33,10 +33,10 @@ class ResendInvitationNotifier:
         payload = {
             "from": settings.EMAIL_FROM,
             "to": [message.recipient],
-            "subject": "Convite para acessar a HPTECH Platform",
+            "subject": "Convite para acessar o HPTECH Clinic",
             "html": (
                 f"<p>Olá, {safe_name}.</p>"
-                "<p>Você recebeu um convite para acessar a HPTECH Platform.</p>"
+                "<p>Você recebeu um convite para acessar o ambiente da sua clínica no HPTECH Clinic.</p>"
                 f'<p><a href="{safe_url}">Aceitar convite</a></p>'
                 f"<p>O convite é válido por aproximadamente {message.expires_in_hours} horas.</p>"
                 "<p>Se você não reconhece este convite, ignore esta mensagem.</p>"
@@ -80,7 +80,7 @@ class ResendPasswordResetNotifier:
                 json={
                     "from": settings.EMAIL_FROM,
                     "to": [message.recipient],
-                    "subject": "Redefinição de senha da HPTECH Platform",
+                    "subject": "Redefinição de senha do HPTECH Clinic",
                     "html": (
                         f"<p>Olá, {safe_name}.</p>"
                         "<p>Recebemos uma solicitação para redefinir sua senha.</p>"
