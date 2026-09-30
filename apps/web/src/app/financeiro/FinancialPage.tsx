@@ -426,10 +426,10 @@ export default function FinancialPage({ currentUser, initialDate }: FinancialPag
 
             <div className="space-y-3 md:hidden">{items.map((item) => (
               <Card key={item.id} padding="sm" status={item.status === "PAID" ? "success" : item.status === "CANCELED" ? "neutral" : "warning"}>
-                <div className="space-y-3">
+                <div className="flex h-full min-w-0 flex-col gap-3">
                   <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h3 className="font-semibold text-hp-foreground">{item.description}</h3><p className="text-sm text-hp-muted">{item.category ?? "Sem categoria"}</p></div><StatusBadge item={item} /></div>
                   <dl className="grid grid-cols-2 gap-3 text-sm"><div><dt className="text-hp-muted">Tipo</dt><dd>{typeLabel(item.transaction_type)}</dd></div><div><dt className="text-hp-muted">Vencimento</dt><dd>{formatDate(item.due_date)}</dd></div><div className="col-span-2"><dt className="text-hp-muted">Valor</dt><dd className="font-semibold">{formatMoney(item.amount)}</dd></div></dl>
-                  {hasActions ? transactionActions(item) : null}
+                  {hasActions ? <div className="mt-auto pt-1">{transactionActions(item)}</div> : null}
                 </div>
               </Card>
             ))}</div>

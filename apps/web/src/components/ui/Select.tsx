@@ -82,12 +82,6 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select(
         )}
       </label>
 
-      {description && (
-        <p id={descriptionId} className="text-sm text-hp-muted">
-          {description}
-        </p>
-      )}
-
       <select
         ref={ref}
         {...props}
@@ -115,6 +109,12 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select(
           </option>
         ))}
       </select>
+
+      {description && (
+        <p id={descriptionId} className="text-sm leading-[var(--line-height-compact)] text-hp-muted">
+          {description}
+        </p>
+      )}
 
       {error && (
         <p id={errorId} role="alert" className="text-sm text-hp-danger">

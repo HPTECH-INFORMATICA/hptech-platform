@@ -432,7 +432,7 @@ export default function PatientsPage({ currentUser, maxBirthDate }: PatientsPage
               const primaryContact = contact(patient);
               return (
                 <Card key={patient.id} variant="outlined" padding="sm">
-                  <div className="min-w-0 space-y-4">
+                  <div className="flex h-full min-w-0 flex-col gap-4">
                     <div className="flex min-w-0 items-start justify-between gap-3">
                       <h2 className="min-w-0 break-words font-semibold text-hp-foreground">
                         {patient.name}
@@ -449,7 +449,7 @@ export default function PatientsPage({ currentUser, maxBirthDate }: PatientsPage
                         <dd>{formatBirthDate(patient.birth_date)}</dd>
                       </div>
                     </dl>
-                    {actions(patient)}
+                    <div className="mt-auto pt-1">{actions(patient)}</div>
                   </div>
                 </Card>
               );

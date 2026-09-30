@@ -501,7 +501,7 @@ function DatePickerInner(
         initialFocusRef={calendarInitialFocusRef}
       >
         {mode === "single" ? (
-          <div className="flex min-w-0 items-end gap-[var(--date-picker-control-gap)]">
+          <div className="flex min-w-0 items-start gap-[var(--date-picker-control-gap)]">
             <Input
               id={baseId}
               label={label}
@@ -525,7 +525,7 @@ function DatePickerInner(
               type="button"
               disabled={disabled || readOnly}
               aria-label="Abrir calendário"
-              className={triggerClasses}
+              className={`${triggerClasses} mt-[calc(var(--space-2)+var(--font-size-text-sm)*var(--line-height-compact))]`}
             >
               <span aria-hidden="true">▦</span>
             </PopoverTrigger>

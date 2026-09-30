@@ -160,7 +160,10 @@ Regras globais:
 
 **Estados:** vazio, preenchido, focus, disabled, read-only, validando, válido e erro.
 
-**Regras:** label sempre visível; placeholder não substitui label; erro próximo ao campo; dados preservados em falha.
+**Regras:** label sempre visível; placeholder não substitui label; controle vem
+imediatamente após o label; ajuda e erro aparecem abaixo do controle; textos
+auxiliares opcionais não podem deslocar o controle em relação ao campo vizinho;
+dados são preservados em falha.
 
 **Acessibilidade:** associação entre label, ajuda e erro; autocomplete adequado; teclado coerente no mobile.
 

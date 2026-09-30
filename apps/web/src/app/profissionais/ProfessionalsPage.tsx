@@ -535,7 +535,7 @@ export default function ProfessionalsPage({
           <div className="grid min-w-0 gap-4 md:hidden">
             {items.map((professional) => (
               <Card key={professional.id} variant="outlined" padding="sm">
-                <div className="space-y-4">
+                <div className="flex h-full min-w-0 flex-col gap-4">
                   <div className="flex min-w-0 items-start justify-between gap-3">
                     <h2 className="min-w-0 break-words font-semibold text-hp-foreground">
                       {professional.display_name}
@@ -552,7 +552,7 @@ export default function ProfessionalsPage({
                   <p className="text-sm text-hp-muted">
                     {professional.user_id ? "Conta vinculada" : "Sem conta vinculada"}
                   </p>
-                  {actions(professional)}
+                  <div className="mt-auto pt-1">{actions(professional)}</div>
                 </div>
               </Card>
             ))}
@@ -569,7 +569,7 @@ export default function ProfessionalsPage({
           if (!open) closeEditor();
         }}
       >
-        <DialogContent className="max-w-4xl overflow-y-auto">
+        <DialogContent size="xl" className="overflow-hidden">
           <DialogHeader>
             <DialogTitle>{editing ? "Editar profissional" : "Novo profissional"}</DialogTitle>
             <DialogDescription>
@@ -578,8 +578,8 @@ export default function ProfessionalsPage({
                 : "Cadastre um profissional, com ou sem conta de acesso vinculada."}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-6">
-            <section className="space-y-4" aria-labelledby="professional-identification">
+          <div className="min-h-0 space-y-6 overflow-y-auto pr-2">
+            <section className="space-y-4 rounded-[var(--radius-lg)] border border-hp-border bg-hp-surface-subtle p-4" aria-labelledby="professional-identification">
               <h3 id="professional-identification" className="font-semibold text-hp-foreground">
                 Identificação
               </h3>
@@ -624,7 +624,7 @@ export default function ProfessionalsPage({
               </div>
             </section>
 
-            <section className="space-y-4" aria-labelledby="professional-contact">
+            <section className="space-y-4 rounded-[var(--radius-lg)] border border-hp-border bg-hp-surface-subtle p-4" aria-labelledby="professional-contact">
               <h3 id="professional-contact" className="font-semibold text-hp-foreground">
                 Contato
               </h3>
@@ -653,7 +653,7 @@ export default function ProfessionalsPage({
               </div>
             </section>
 
-            <section className="space-y-4" aria-labelledby="professional-occupation">
+            <section className="space-y-4 rounded-[var(--radius-lg)] border border-hp-border bg-hp-surface-subtle p-4" aria-labelledby="professional-occupation">
               <h3 id="professional-occupation" className="font-semibold text-hp-foreground">
                 Atuação profissional
               </h3>
@@ -684,7 +684,7 @@ export default function ProfessionalsPage({
               />
             </section>
 
-            <section className="space-y-4" aria-labelledby="professional-access">
+            <section className="space-y-4 rounded-[var(--radius-lg)] border border-hp-border bg-hp-surface-subtle p-4" aria-labelledby="professional-access">
               <h3 id="professional-access" className="font-semibold text-hp-foreground">
                 Acesso ao sistema
               </h3>

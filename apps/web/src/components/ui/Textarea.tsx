@@ -130,12 +130,6 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           )}
         </label>
 
-        {description && (
-          <p id={descriptionId} className="text-sm text-hp-muted">
-            {description}
-          </p>
-        )}
-
         <textarea
           ref={ref}
           {...props}
@@ -151,6 +145,12 @@ const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           aria-invalid={hasError ? true : ariaInvalid}
           className={textareaClasses}
         />
+
+        {description && (
+          <p id={descriptionId} className="text-sm leading-[var(--line-height-compact)] text-hp-muted">
+            {description}
+          </p>
+        )}
 
         {counterIsVisible && (
           <p id={counterId} className="text-right text-sm text-hp-muted">

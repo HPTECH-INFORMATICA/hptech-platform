@@ -59,7 +59,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(function Card(
 ) {
   const isAriaDisabled = ariaDisabled === true || ariaDisabled === "true";
   const classes = [
-    "rounded-[var(--radius-lg)] border text-hp-foreground",
+    "flex h-full min-w-0 flex-col rounded-[var(--radius-lg)] border text-hp-foreground",
     variantClasses[variant],
     paddingClasses[padding],
     status ? `border-l-4 ${statusClasses[status]}` : "",

@@ -48,7 +48,15 @@ export type DialogContentProps = Omit<
   "children" | "open"
 > & {
   children: ReactNode;
+  size?: "sm" | "md" | "lg" | "xl";
 };
+
+const dialogSizeClasses = {
+  sm: "max-w-md",
+  md: "max-w-[var(--modal-width-md)]",
+  lg: "max-w-3xl",
+  xl: "max-w-5xl",
+} as const;
 
 export type DialogCloseProps = Omit<
   ButtonHTMLAttributes<HTMLButtonElement>,
@@ -678,6 +686,7 @@ export const DialogContent = forwardRef<
   {
     children,
     className,
+    size = "md",
     id,
     onClose,
     onCancel,
@@ -1214,12 +1223,13 @@ export const DialogContent = forwardRef<
   const classes = useMemo(
     () =>
       [
-        "m-auto max-h-[var(--modal-max-height)] w-[calc(100%-var(--space-8))] max-w-[var(--modal-width-md)] flex-col gap-[var(--modal-gap)] rounded-[var(--modal-radius)] border border-[var(--modal-border)] bg-[var(--modal-background)] p-[var(--modal-padding)] text-hp-foreground shadow-[var(--modal-shadow)] open:flex open:z-[var(--z-modal)]",
+        "m-auto max-h-[var(--modal-max-height)] w-[calc(100%-var(--space-8))] flex-col gap-[var(--modal-gap)] rounded-[var(--modal-radius)] border border-[var(--modal-border)] bg-[var(--modal-background)] p-[var(--modal-padding)] text-hp-foreground shadow-[var(--modal-shadow)] open:flex open:z-[var(--z-modal)]",
+        dialogSizeClasses[size],
         className,
       ]
         .filter(Boolean)
         .join(" "),
-    [className],
+    [className, size],
   );
 
   if (!mounted) {

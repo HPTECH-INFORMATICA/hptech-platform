@@ -81,12 +81,6 @@ const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         )}
       </label>
 
-      {description && (
-        <p id={descriptionId} className="text-sm text-hp-muted">
-          {description}
-        </p>
-      )}
-
       <div className={controlClasses}>
         {prefix && (
           <span
@@ -118,6 +112,12 @@ const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           </span>
         )}
       </div>
+
+      {description && (
+        <p id={descriptionId} className="text-sm leading-[var(--line-height-compact)] text-hp-muted">
+          {description}
+        </p>
+      )}
 
       {error && (
         <p id={errorId} role="alert" className="text-sm text-hp-danger">

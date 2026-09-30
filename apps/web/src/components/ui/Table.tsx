@@ -149,7 +149,7 @@ TableHead.displayName = "TableHead";
 
 export const TableCell = forwardRef<HTMLTableCellElement, TableCellProps>(
   function TableCell({ className, ...props }, ref) {
-    const classes = ["align-middle", className].filter(Boolean).join(" ");
+    const classes = ["align-top", className].filter(Boolean).join(" ");
 
     return <td ref={ref} {...props} className={classes} />;
   },

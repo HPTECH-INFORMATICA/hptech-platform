@@ -318,7 +318,7 @@ export default function UsersPanel({ currentUser }: { currentUser: CurrentUser }
             </div>
             <div className="grid gap-3 md:hidden">
               {users.map((user) => (
-                <Card key={user.id} variant="outlined">
+                <Card key={user.id} variant="outlined" className="justify-between">
                   <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h3 className="break-words font-semibold">{user.name}</h3><p className="break-all text-sm text-hp-muted">{user.email}</p></div><StatusBadge active={user.is_active} /></div>
                   <p className="mt-3 text-sm">{roleLabels[user.role]}</p>
                   {hasActions && <div className="mt-4">{actions(user)}</div>}

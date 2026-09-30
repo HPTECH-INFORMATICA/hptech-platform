@@ -98,12 +98,6 @@ const SearchBox = forwardRef<HTMLInputElement, SearchBoxProps>(
           {label}
         </label>
 
-        {description && (
-          <p id={descriptionId} className="text-sm text-hp-muted">
-            {description}
-          </p>
-        )}
-
         <div className={controlClasses}>
           {searchIcon && (
             <span
@@ -151,6 +145,12 @@ const SearchBox = forwardRef<HTMLInputElement, SearchBoxProps>(
             </button>
           )}
         </div>
+
+        {description && (
+          <p id={descriptionId} className="text-sm leading-[var(--line-height-compact)] text-hp-muted">
+            {description}
+          </p>
+        )}
 
         {error && (
           <p id={errorId} role="alert" className="text-sm text-hp-danger">

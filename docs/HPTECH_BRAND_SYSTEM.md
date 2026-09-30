@@ -574,6 +574,8 @@ Cards representam agrupamento, estado ou interação; não são contêineres uni
 - não aninhar cards repetidamente;
 - usar divisores quando o agrupamento já estiver claro;
 - manter densidade consistente dentro da mesma página;
+- cards da mesma linha ocupam a altura da célula de grid e mantêm ações no
+  rodapé quando o conteúdo possui tamanho variável;
 - estados críticos combinam cor, ícone e texto.
 
 ---
@@ -587,7 +589,9 @@ Formulários devem reduzir erro, dúvida e retrabalho.
 - título e finalidade;
 - campos agrupados por contexto;
 - label sempre visível;
-- ajuda antes do erro quando necessária;
+- controle imediatamente abaixo do label;
+- ajuda abaixo do controle e antes do erro quando necessária;
+- a presença de ajuda em um campo não desloca o controle vizinho;
 - validação próxima ao campo;
 - ações no final do fluxo ou em posição sticky quando justificado.
 
@@ -623,6 +627,7 @@ Tabelas devem favorecer comparação e ação.
 - linhas com altura confortável ou compacta padronizada;
 - divisores sutis;
 - alinhamento consistente por tipo de dado;
+- células com conteúdo de alturas diferentes alinham pelo topo;
 - valores numéricos alinhados à direita;
 - ações secundárias agrupadas;
 - hover apenas como reforço, nunca como requisito.
