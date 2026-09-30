@@ -2,7 +2,7 @@
 
 ## Estado
 
-**IN_PROGRESS — primeiro incremento implementado e em publicação.** Este documento
+**VERIFYING — primeiro incremento publicado em produção.** Este documento
 substitui o cadastro mínimo anterior como referência funcional e técnica. O modelo
 agora possui identificação, contatos, profissão, categoria, observações, status e
 conta opcional. Conselhos, endereços, especialidades, unidades, serviços,
@@ -18,7 +18,9 @@ documentos e remuneração permanecem nos incrementos seguintes.
 - interface responsiva separa identificação, contato, atuação e acesso;
 - conta de acesso continua opcional e independente do cadastro profissional;
 - 666 testes da API, lint direcionado e build de produção do frontend aprovados;
-- migration aplicada e confirmada no banco de produção.
+- migration aplicada e confirmada no banco de produção;
+- API e frontend publicados no commit `8de8177`, com readiness, contrato
+  OpenAPI, páginas públicas, proteção de sessão e logs pós-deploy validados.
 
 Este marco não fecha C2. A conclusão depende de todas as entidades, permissões,
 auditoria, integrações com agenda e critérios de aceite definidos abaixo.
