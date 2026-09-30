@@ -2,9 +2,26 @@
 
 ## Estado
 
-**Discovery/Design pronto para revisão e implementação incremental.** Este documento
-substitui o cadastro mínimo atual como referência funcional e técnica. O modelo
-publicado hoje possui somente nome de exibição, status e conta opcional.
+**IN_PROGRESS — primeiro incremento implementado e em publicação.** Este documento
+substitui o cadastro mínimo anterior como referência funcional e técnica. O modelo
+agora possui identificação, contatos, profissão, categoria, observações, status e
+conta opcional. Conselhos, endereços, especialidades, unidades, serviços,
+documentos e remuneração permanecem nos incrementos seguintes.
+
+### Evidência do primeiro incremento — 29/09/2026
+
+- migration reversível adiciona os campos sem invalidar registros existentes;
+- `full_name` foi retroalimentado a partir de `display_name` e passou a ser
+  obrigatório;
+- CPF é normalizado, validado e único por clínica entre registros não excluídos;
+- busca cobre nome, nome social, CPF, email e profissão;
+- interface responsiva separa identificação, contato, atuação e acesso;
+- conta de acesso continua opcional e independente do cadastro profissional;
+- 666 testes da API, lint direcionado e build de produção do frontend aprovados;
+- migration aplicada e confirmada no banco de produção.
+
+Este marco não fecha C2. A conclusão depende de todas as entidades, permissões,
+auditoria, integrações com agenda e critérios de aceite definidos abaixo.
 
 ## Objetivo
 

@@ -19,6 +19,16 @@ class ProfessionalRepository:
         professional = Professional(
             company_id=company_id,
             display_name=data.display_name,
+            full_name=data.full_name or data.display_name,
+            social_name=data.social_name,
+            cpf=data.cpf,
+            birth_date=data.birth_date,
+            email=str(data.email) if data.email is not None else None,
+            phone=data.phone,
+            whatsapp=data.whatsapp,
+            profession=data.profession,
+            category=data.category,
+            administrative_notes=data.administrative_notes,
             user_id=data.user_id,
             is_active=True,
         )
@@ -58,7 +68,16 @@ class ProfessionalRepository:
             Professional.deleted_at.is_(None),
         ]
         if search and (term := search.strip()):
-            filters.append(Professional.display_name.icontains(term, autoescape=True))
+            filters.append(
+                or_(
+                    Professional.display_name.icontains(term, autoescape=True),
+                    Professional.full_name.icontains(term, autoescape=True),
+                    Professional.social_name.icontains(term, autoescape=True),
+                    Professional.email.icontains(term, autoescape=True),
+                    Professional.cpf.icontains(term, autoescape=True),
+                    Professional.profession.icontains(term, autoescape=True),
+                )
+            )
         if is_active is not None:
             filters.append(Professional.is_active.is_(is_active))
 

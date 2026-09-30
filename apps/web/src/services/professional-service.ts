@@ -1,6 +1,16 @@
 export type ProfessionalData = {
   id: string;
   display_name: string;
+  full_name: string;
+  social_name: string | null;
+  cpf: string | null;
+  birth_date: string | null;
+  email: string | null;
+  phone: string | null;
+  whatsapp: string | null;
+  profession: string | null;
+  category: string | null;
+  administrative_notes: string | null;
   user_id: string | null;
   is_active: boolean;
   created_at: string;
@@ -16,6 +26,16 @@ export type ProfessionalList = {
 
 export type ProfessionalInput = {
   display_name: string;
+  full_name: string;
+  social_name: string | null;
+  cpf: string | null;
+  birth_date: string | null;
+  email: string | null;
+  phone: string | null;
+  whatsapp: string | null;
+  profession: string | null;
+  category: string | null;
+  administrative_notes: string | null;
   user_id: string | null;
 };
 

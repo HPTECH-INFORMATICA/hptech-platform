@@ -161,6 +161,45 @@ updated_at
 
 ---
 
+## Professionals
+
+Representa o profissional operacional e assistencial da clínica, independente
+de possuir conta de acesso.
+
+Campos publicados no primeiro incremento C2:
+
+```text
+id
+company_id
+user_id
+display_name
+full_name
+social_name
+cpf
+birth_date
+email
+phone
+whatsapp
+profession
+category
+administrative_notes
+is_active
+deleted_at
+created_at
+updated_at
+```
+
+`user_id` é opcional: profissional e identidade de autenticação são entidades
+distintas. `full_name` é obrigatório. CPF é persistido somente com 11 dígitos,
+validado na API e único por `company_id` entre profissionais não excluídos.
+Consultas e vínculos sempre respeitam o tenant autenticado.
+
+Conselhos, especialidades, endereços, unidades, serviços, documentos e regras
+de remuneração serão tabelas associativas ou entidades próprias nos próximos
+incrementos, conforme o contrato em `docs/modules/professionals.md`.
+
+---
+
 ## Appointments
 
 Representa um agendamento clínico tenant-aware. Horários são persistidos como

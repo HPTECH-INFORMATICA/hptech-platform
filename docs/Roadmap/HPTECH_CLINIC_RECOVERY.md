@@ -410,10 +410,9 @@ sem listar quais resultados e critérios foram comprovados.
 | --- | --- | --- | --- |
 | A1 — identidade do produto | Em validação | Interface e metadados identificam **HPTECH Clinic**, exibem a clínica ativa e separam o produto da marca HPTECH Platform. Lint e build de produção aprovados. | Validação visual em produção e revisão das comunicações restantes. |
 | A2 — correções críticas | Em andamento | Disponibilidade ganhou retorno explícito. O cadastro de profissionais passou a ter um único campo de conta de acesso, com orientação e atalho para gestão de usuários. Os 48 testes de rotas de profissionais, lint e build foram aprovados. | Revisão visual completa, testes frontend e tratamento dos demais desalinhamentos relatados. |
-| C2 — profissional | Discovery/Design iniciado | Fluxo atual, permissões, elegibilidade de conta e problema do vínculo foram inspecionados. | Aprovar o modelo cadastral completo e seus critérios de aceite antes da expansão do backend. |
+| C2 — profissional | Em andamento | Contrato de domínio aprovado e primeiro incremento implementado: identificação, CPF validado por clínica, nascimento, contatos, profissão, categoria, observações e conta opcional. Migration reversível aplicada; 666 testes da API, lint e build aprovados. | Publicar e validar o fluxo; implementar conselhos, endereços, especialidades, unidades, serviços, documentos, remuneração, estados completos, auditoria e integração com agenda. |
 | Documentação de produto | Concluída para esta fase | PRDs do portfólio, HPTECH Clinic e Control Plane; ADR de arquitetura; roadmap de recuperação. | Manter os documentos atualizados a cada gate. |
 
-Próxima execução: concluir o desenho C2 do cadastro de profissional e, após
-aprovação do contrato de dados, implementar os campos pessoais, profissionais,
-endereço, documentos, unidades, especialidades e regras de acesso sem misturar
-o cadastro operacional com a identidade de login.
+Próxima execução: publicar e validar o primeiro incremento C2. Depois, avançar
+por migrations pequenas para conselhos e especialidades, endereços, unidades e
+serviços, mantendo o cadastro operacional separado da identidade de login.

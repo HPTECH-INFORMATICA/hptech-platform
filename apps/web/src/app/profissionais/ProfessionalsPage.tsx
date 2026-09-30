@@ -17,6 +17,7 @@ import Dialog, {
   DialogTitle,
 } from "@/components/ui/Dialog";
 import EmptyState from "@/components/ui/EmptyState";
+import DatePicker from "@/components/ui/DatePicker";
 import Input from "@/components/ui/Input";
 import PageHeader from "@/components/ui/PageHeader";
 import Pagination from "@/components/ui/Pagination";
@@ -30,6 +31,7 @@ import Table, {
   TableHeader,
   TableRow,
 } from "@/components/ui/Table";
+import Textarea from "@/components/ui/Textarea";
 import useToast from "@/hooks/useToast";
 import {
   createProfessional,
@@ -54,18 +56,55 @@ const statusOptions = [
 
 type FormDraft = {
   displayName: string;
+  fullName: string;
+  socialName: string;
+  cpf: string;
+  birthDate: string;
+  email: string;
+  phone: string;
+  whatsapp: string;
+  profession: string;
+  category: string;
+  administrativeNotes: string;
   userId: string;
 };
 
-const emptyDraft: FormDraft = { displayName: "", userId: "" };
+const emptyDraft: FormDraft = {
+  displayName: "",
+  fullName: "",
+  socialName: "",
+  cpf: "",
+  birthDate: "",
+  email: "",
+  phone: "",
+  whatsapp: "",
+  profession: "",
+  category: "",
+  administrativeNotes: "",
+  userId: "",
+};
 
 function normalizeName(value: string): string {
   return value.trim().replace(/\s+/g, " ");
 }
 
+function optionalValue(value: string): string | null {
+  return value.trim() || null;
+}
+
 function payloadFromDraft(draft: FormDraft): ProfessionalInput {
   return {
     display_name: normalizeName(draft.displayName),
+    full_name: normalizeName(draft.fullName),
+    social_name: optionalValue(draft.socialName),
+    cpf: optionalValue(draft.cpf),
+    birth_date: optionalValue(draft.birthDate),
+    email: optionalValue(draft.email)?.toLowerCase() ?? null,
+    phone: optionalValue(draft.phone),
+    whatsapp: optionalValue(draft.whatsapp),
+    profession: optionalValue(draft.profession),
+    category: optionalValue(draft.category),
+    administrative_notes: optionalValue(draft.administrativeNotes),
     user_id: draft.userId || null,
   };
 }
@@ -73,6 +112,16 @@ function payloadFromDraft(draft: FormDraft): ProfessionalInput {
 function draftFromProfessional(professional: ProfessionalData): FormDraft {
   return {
     displayName: professional.display_name,
+    fullName: professional.full_name,
+    socialName: professional.social_name ?? "",
+    cpf: professional.cpf ?? "",
+    birthDate: professional.birth_date ?? "",
+    email: professional.email ?? "",
+    phone: professional.phone ?? "",
+    whatsapp: professional.whatsapp ?? "",
+    profession: professional.profession ?? "",
+    category: professional.category ?? "",
+    administrativeNotes: professional.administrative_notes ?? "",
     userId: professional.user_id ?? "",
   };
 }
@@ -102,7 +151,15 @@ function StatusBadge({ active }: { active: boolean }) {
   );
 }
 
-export default function ProfessionalsPage({ currentUser }: { currentUser: CurrentUser }) {
+type ProfessionalsPageProps = {
+  currentUser: CurrentUser;
+  maxBirthDate: string;
+};
+
+export default function ProfessionalsPage({
+  currentUser,
+  maxBirthDate,
+}: ProfessionalsPageProps) {
   const { toast } = useToast();
   const [items, setItems] = useState<ProfessionalData[]>([]);
   const [total, setTotal] = useState(0);
@@ -206,8 +263,11 @@ export default function ProfessionalsPage({ currentUser }: { currentUser: Curren
   );
   const dirty = editing
     ? JSON.stringify(currentPayload) !== JSON.stringify(initialPayload)
-    : Boolean(currentPayload.display_name || currentPayload.user_id);
-  const valid = currentPayload.display_name.length > 0;
+    : Boolean(currentPayload.display_name || currentPayload.full_name);
+  const valid =
+    currentPayload.display_name.length > 0 &&
+    currentPayload.full_name.length > 0 &&
+    (!currentPayload.birth_date || currentPayload.birth_date <= maxBirthDate);
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const candidatePool =
     selectedCandidate && !candidateItems.some((item) => item.id === selectedCandidate.id)
@@ -237,6 +297,10 @@ export default function ProfessionalsPage({ currentUser }: { currentUser: Curren
     setCandidateError(null);
     setCandidateReload(0);
     setSelectedCandidate(null);
+  }
+
+  function updateDraft(field: keyof FormDraft, value: string) {
+    setDraft((current) => ({ ...current, [field]: value }));
   }
 
   function openCreate() {
@@ -374,7 +438,7 @@ export default function ProfessionalsPage({ currentUser }: { currentUser: Curren
           onChange={(event) => setSearch(event.target.value)}
           onClear={() => setSearch("")}
           clearLabel="Limpar busca"
-          placeholder="Nome de exibição"
+          placeholder="Nome, CPF, email ou profissão"
           loading={loading}
         />
         <Select
@@ -429,6 +493,8 @@ export default function ProfessionalsPage({ currentUser }: { currentUser: Curren
               <TableHeader>
                 <TableRow>
                   <TableHead>Nome</TableHead>
+                  <TableHead>Profissão / categoria</TableHead>
+                  <TableHead>Contato</TableHead>
                   <TableHead>Conta de acesso</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Ações</TableHead>
@@ -438,7 +504,22 @@ export default function ProfessionalsPage({ currentUser }: { currentUser: Curren
                 {items.map((professional) => (
                   <TableRow key={professional.id}>
                     <TableCell>
-                      <span className="font-semibold">{professional.display_name}</span>
+                      <div>
+                        <p className="font-semibold">{professional.display_name}</p>
+                        <p className="text-sm text-hp-muted">{professional.full_name}</p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <p>{professional.profession ?? "Não informada"}</p>
+                      {professional.category ? (
+                        <p className="text-sm text-hp-muted">{professional.category}</p>
+                      ) : null}
+                    </TableCell>
+                    <TableCell>
+                      <p>{professional.whatsapp ?? professional.phone ?? "Não informado"}</p>
+                      {professional.email ? (
+                        <p className="text-sm text-hp-muted">{professional.email}</p>
+                      ) : null}
                     </TableCell>
                     <TableCell>
                       {professional.user_id ? "Vinculado" : "Sem conta vinculada"}
@@ -462,6 +543,13 @@ export default function ProfessionalsPage({ currentUser }: { currentUser: Curren
                     <StatusBadge active={professional.is_active} />
                   </div>
                   <p className="text-sm text-hp-muted">
+                    {professional.profession ?? "Profissão não informada"}
+                    {professional.category ? ` · ${professional.category}` : ""}
+                  </p>
+                  <p className="text-sm text-hp-muted">
+                    {professional.whatsapp ?? professional.phone ?? professional.email ?? "Contato não informado"}
+                  </p>
+                  <p className="text-sm text-hp-muted">
                     {professional.user_id ? "Conta vinculada" : "Sem conta vinculada"}
                   </p>
                   {actions(professional)}
@@ -481,7 +569,7 @@ export default function ProfessionalsPage({ currentUser }: { currentUser: Curren
           if (!open) closeEditor();
         }}
       >
-        <DialogContent>
+        <DialogContent className="max-w-4xl overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editing ? "Editar profissional" : "Novo profissional"}</DialogTitle>
             <DialogDescription>
@@ -490,16 +578,116 @@ export default function ProfessionalsPage({ currentUser }: { currentUser: Curren
                 : "Cadastre um profissional, com ou sem conta de acesso vinculada."}
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <Input
-              label="Nome de exibição"
-              required
-              value={draft.displayName}
-              onChange={(event) =>
-                setDraft((current) => ({ ...current, displayName: event.target.value }))
-              }
-              maxLength={150}
-            />
+          <div className="space-y-6">
+            <section className="space-y-4" aria-labelledby="professional-identification">
+              <h3 id="professional-identification" className="font-semibold text-hp-foreground">
+                Identificação
+              </h3>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Input
+                  label="Nome completo"
+                  required
+                  value={draft.fullName}
+                  onChange={(event) => updateDraft("fullName", event.target.value)}
+                  maxLength={150}
+                />
+                <Input
+                  label="Nome de exibição"
+                  required
+                  description="Nome usado na agenda e nas telas operacionais."
+                  value={draft.displayName}
+                  onChange={(event) => updateDraft("displayName", event.target.value)}
+                  maxLength={150}
+                />
+                <Input
+                  label="Nome social"
+                  value={draft.socialName}
+                  onChange={(event) => updateDraft("socialName", event.target.value)}
+                  maxLength={150}
+                />
+                <Input
+                  label="CPF"
+                  inputMode="numeric"
+                  placeholder="000.000.000-00"
+                  description="O CPF será validado e armazenado somente com dígitos."
+                  value={draft.cpf}
+                  onChange={(event) => updateDraft("cpf", event.target.value)}
+                  maxLength={14}
+                />
+                <DatePicker
+                  mode="single"
+                  label="Data de nascimento"
+                  value={draft.birthDate}
+                  maxDate={maxBirthDate}
+                  onValueChange={(value) => updateDraft("birthDate", value ?? "")}
+                />
+              </div>
+            </section>
+
+            <section className="space-y-4" aria-labelledby="professional-contact">
+              <h3 id="professional-contact" className="font-semibold text-hp-foreground">
+                Contato
+              </h3>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Input
+                  label="Email"
+                  type="email"
+                  value={draft.email}
+                  onChange={(event) => updateDraft("email", event.target.value)}
+                  maxLength={150}
+                />
+                <Input
+                  label="Telefone"
+                  inputMode="tel"
+                  value={draft.phone}
+                  onChange={(event) => updateDraft("phone", event.target.value)}
+                  maxLength={30}
+                />
+                <Input
+                  label="WhatsApp"
+                  inputMode="tel"
+                  value={draft.whatsapp}
+                  onChange={(event) => updateDraft("whatsapp", event.target.value)}
+                  maxLength={30}
+                />
+              </div>
+            </section>
+
+            <section className="space-y-4" aria-labelledby="professional-occupation">
+              <h3 id="professional-occupation" className="font-semibold text-hp-foreground">
+                Atuação profissional
+              </h3>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <Input
+                  label="Profissão"
+                  placeholder="Ex.: Biomédica"
+                  value={draft.profession}
+                  onChange={(event) => updateDraft("profession", event.target.value)}
+                  maxLength={100}
+                />
+                <Input
+                  label="Categoria"
+                  placeholder="Ex.: Estética avançada"
+                  value={draft.category}
+                  onChange={(event) => updateDraft("category", event.target.value)}
+                  maxLength={100}
+                />
+              </div>
+              <Textarea
+                label="Observações administrativas"
+                description="Uso interno da clínica. Não faz parte do prontuário do paciente."
+                value={draft.administrativeNotes}
+                onChange={(event) => updateDraft("administrativeNotes", event.target.value)}
+                maxLength={2000}
+                showCount
+                rows={3}
+              />
+            </section>
+
+            <section className="space-y-4" aria-labelledby="professional-access">
+              <h3 id="professional-access" className="font-semibold text-hp-foreground">
+                Acesso ao sistema
+              </h3>
             <Select
               label="Conta de acesso (opcional)"
               description={
@@ -541,6 +729,7 @@ export default function ProfessionalsPage({ currentUser }: { currentUser: Curren
                 }
               />
             ) : null}
+            </section>
             {formError ? <Alert variant="danger" description={formError} /> : null}
           </div>
           <DialogFooter>

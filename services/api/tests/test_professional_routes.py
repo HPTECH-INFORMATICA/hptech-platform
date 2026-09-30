@@ -1,6 +1,6 @@
 from collections.abc import AsyncIterator
 from dataclasses import replace
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from unittest.mock import MagicMock
 from uuid import uuid4
 
@@ -92,6 +92,16 @@ def make_professional(
         "company_id": identity.company.id,
         "user_id": None,
         "display_name": "Profissional Exemplo",
+        "full_name": "Profissional Exemplo",
+        "social_name": None,
+        "cpf": None,
+        "birth_date": None,
+        "email": None,
+        "phone": None,
+        "whatsapp": None,
+        "profession": None,
+        "category": None,
+        "administrative_notes": None,
         "is_active": True,
         "created_at": now,
         "updated_at": now,
@@ -290,7 +300,7 @@ async def test_viewer_can_list_but_cannot_create(
         "updated_at",
         "deleted_at",
         "role",
-        "email",
+        "password_hash",
     ],
 )
 async def test_create_rejects_mass_assignment(
@@ -306,16 +316,41 @@ async def test_create_rejects_mass_assignment(
 
 
 def test_schemas_normalize_and_validate_contract() -> None:
-    assert ProfessionalCreate(
-        display_name="  Profissional   Exemplo  "
-    ).display_name == "Profissional Exemplo"
+    created = ProfessionalCreate(
+        display_name="  Dra.   Marina  ",
+        full_name="  Marina   de Souza  ",
+        social_name="  Marina   Souza ",
+        cpf="529.982.247-25",
+        email="  MARINA@example.com ",
+        phone="  (11) 99999-0000  ",
+        profession="  Médica   Dermatologista ",
+        administrative_notes="  Observação interna.  ",
+    )
+    assert created.display_name == "Dra. Marina"
+    assert created.full_name == "Marina de Souza"
+    assert created.social_name == "Marina Souza"
+    assert created.cpf == "52998224725"
+    assert str(created.email) == "marina@example.com"
+    assert created.phone == "(11) 99999-0000"
+    assert created.profession == "Médica Dermatologista"
+    assert created.administrative_notes == "Observação interna."
     for value in ("", "   ", "\t\n"):
         with pytest.raises(ValidationError):
             ProfessionalCreate(display_name=value)
+    for cpf in ("111.111.111-11", "123.456.789-00", "abc"):
+        with pytest.raises(ValidationError):
+            ProfessionalCreate(display_name="Profissional", cpf=cpf)
+    with pytest.raises(ValidationError):
+        ProfessionalCreate(
+            display_name="Profissional",
+            birth_date=date.today() + timedelta(days=1),
+        )
     with pytest.raises(ValidationError):
         ProfessionalUpdate()
     with pytest.raises(ValidationError):
         ProfessionalUpdate(display_name=None)
+    with pytest.raises(ValidationError):
+        ProfessionalUpdate(full_name=None)
     assert ProfessionalUpdate(user_id=None).user_id is None
 
 
@@ -530,7 +565,7 @@ def test_cross_tenant_and_soft_deleted_are_not_found(
         ProfessionalDomain.soft_delete(MagicMock(), tenant_b, professional.id)
 
 
-def test_repository_queries_are_tenant_scoped_and_search_name_only() -> None:
+def test_repository_queries_are_tenant_scoped_and_search_profile() -> None:
     db = MagicMock()
     db.scalar.return_value = 0
     db.execute.return_value.scalars.return_value.all.return_value = []
@@ -546,6 +581,10 @@ def test_repository_queries_are_tenant_scoped_and_search_name_only() -> None:
     assert all("professionals.company_id" in value for value in statements)
     assert all("professionals.deleted_at IS NULL" in value for value in statements)
     assert all("professionals.display_name" in value for value in statements)
+    assert all("professionals.full_name" in value for value in statements)
+    assert all("professionals.email" in value for value in statements)
+    assert all("professionals.cpf" in value for value in statements)
+    assert all("professionals.profession" in value for value in statements)
     assert all("users.email" not in value for value in statements)
 
 

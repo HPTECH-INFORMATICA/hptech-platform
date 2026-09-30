@@ -1,10 +1,15 @@
 import uuid
+from datetime import date
 
 from sqlalchemy import (
     Boolean,
+    CheckConstraint,
+    Date,
     ForeignKey,
     ForeignKeyConstraint,
+    Index,
     String,
+    Text,
     UniqueConstraint,
     text,
 )
@@ -34,6 +39,17 @@ class Professional(UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin, Base):
             name="fk_professionals_company_user",
             ondelete="RESTRICT",
         ),
+        CheckConstraint(
+            "cpf IS NULL OR cpf ~ '^[0-9]{11}$'",
+            name="ck_professionals_cpf_digits",
+        ),
+        Index(
+            "uq_professionals_company_cpf_active",
+            "company_id",
+            "cpf",
+            unique=True,
+            postgresql_where=text("deleted_at IS NULL AND cpf IS NOT NULL"),
+        ),
     )
 
     company_id: Mapped[uuid.UUID] = mapped_column(
@@ -48,6 +64,16 @@ class Professional(UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin, Base):
         index=True,
     )
     display_name: Mapped[str] = mapped_column(String(150), nullable=False)
+    full_name: Mapped[str] = mapped_column(String(150), nullable=False)
+    social_name: Mapped[str | None] = mapped_column(String(150), nullable=True)
+    cpf: Mapped[str | None] = mapped_column(String(11), nullable=True)
+    birth_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+    email: Mapped[str | None] = mapped_column(String(150), nullable=True)
+    phone: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    whatsapp: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    profession: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    category: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    administrative_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_active: Mapped[bool] = mapped_column(
         Boolean,
         nullable=False,
