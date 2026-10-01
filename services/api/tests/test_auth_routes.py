@@ -300,7 +300,7 @@ async def test_auth_me_returns_current_identity_without_sensitive_data(
             },
             {
                 "module": "APPOINTMENTS",
-                "actions": ["CREATE", "UPDATE", "VIEW"],
+                "actions": ["CREATE", "DELETE", "UPDATE", "VIEW"],
             },
             {
                 "module": "FINANCIAL",
@@ -393,7 +393,7 @@ async def test_auth_me_returns_permissions_from_current_database_role(
         {"module": "PROFESSIONALS", "actions": professional_actions[role]}
     )
     appointment_actions = {
-        UserRole.OWNER: ["CREATE", "UPDATE", "VIEW"],
+        UserRole.OWNER: ["CREATE", "DELETE", "UPDATE", "VIEW"],
         UserRole.MANAGER: ["CREATE", "UPDATE", "VIEW"],
         UserRole.VIEWER: ["VIEW"],
     }

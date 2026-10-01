@@ -25,14 +25,14 @@ def test_openapi_exposes_only_the_frozen_semantic_contract() -> None:
         "/api/v1/appointments/{appointment_id}/cancel",
         "/api/v1/appointments/{appointment_id}/no-show",
     }
-    assert "delete" not in app.openapi()["paths"]["/api/v1/appointments/{appointment_id}"]
+    assert "delete" in app.openapi()["paths"]["/api/v1/appointments/{appointment_id}"]
 
 
 @pytest.mark.parametrize(
     ("role", "actions"),
     [
-        (UserRole.OWNER, {"VIEW", "CREATE", "UPDATE"}),
-        (UserRole.ADMIN, {"VIEW", "CREATE", "UPDATE"}),
+        (UserRole.OWNER, {"VIEW", "CREATE", "UPDATE", "DELETE"}),
+        (UserRole.ADMIN, {"VIEW", "CREATE", "UPDATE", "DELETE"}),
         (UserRole.MANAGER, {"VIEW", "CREATE", "UPDATE"}),
         (UserRole.RECEPTIONIST, {"VIEW", "CREATE", "UPDATE"}),
         (UserRole.PROFESSIONAL, {"VIEW", "UPDATE"}),

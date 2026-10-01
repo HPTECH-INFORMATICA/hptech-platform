@@ -117,6 +117,19 @@ class AppointmentReschedule(BaseModel):
     )
 
 
+class AppointmentDelete(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    reason: str = Field(min_length=3, max_length=80)
+
+    @field_validator("reason", mode="before")
+    @classmethod
+    def normalize_reason(cls, value: object) -> object:
+        if isinstance(value, str):
+            return value.strip()
+        return value
+
+
 class AppointmentResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True, extra="forbid")
 

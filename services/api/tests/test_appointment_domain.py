@@ -10,6 +10,7 @@ from app.repositories.financial import FinancialRepository
 from app.core.identity import UserRole
 from app.schemas.appointment import (
     AppointmentCreate,
+    AppointmentDelete,
     AppointmentStatus,
     AppointmentUpdate,
 )
@@ -229,3 +230,40 @@ def test_notes_only_update_does_not_revalidate_historical_references(
 
     assert result.notes == "Depois"
     references.assert_not_called()
+
+
+def test_master_can_correct_notes_in_terminal_status(monkeypatch) -> None:
+    current_identity = identity()
+    appointment = SimpleNamespace(id=uuid4(), status="COMPLETED", notes="Antes")
+    monkeypatch.setattr(AppointmentRepository, "get_by_id", MagicMock(return_value=appointment))
+    monkeypatch.setattr(AuditLogRepository, "add", MagicMock())
+
+    result = AppointmentDomain.update(
+        MagicMock(), current_identity, appointment.id, AppointmentUpdate(notes="Correção"),
+    )
+
+    assert result.notes == "Correção"
+
+
+def test_master_soft_delete_preserves_record_and_audits_reason(monkeypatch) -> None:
+    current_identity = identity()
+    appointment = SimpleNamespace(id=uuid4(), status="COMPLETED", deleted_at=None)
+    monkeypatch.setattr(AppointmentRepository, "get_by_id", MagicMock(return_value=appointment))
+    audit = MagicMock()
+    monkeypatch.setattr(AuditLogRepository, "add", audit)
+    db = MagicMock()
+
+    AppointmentDomain.soft_delete(
+        db,
+        current_identity,
+        appointment.id,
+        AppointmentDelete(reason="Erro de lançamento"),
+    )
+
+    assert appointment.deleted_at is not None
+    assert audit.call_args.kwargs["action"] == "APPOINTMENT_SOFT_DELETED"
+    assert audit.call_args.kwargs["details"] == {
+        "status": "COMPLETED",
+        "reason": "Erro de lançamento",
+    }
+    db.commit.assert_called_once_with()

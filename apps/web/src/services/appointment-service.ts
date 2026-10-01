@@ -169,3 +169,20 @@ export function transitionAppointment(id: string, action: AppointmentAction) {
     { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" },
   );
 }
+
+export async function deleteAppointment(id: string, reason: string): Promise<void> {
+  const response = await fetch(`/api/appointments/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+    headers: { Accept: "application/json", "Content-Type": "application/json" },
+    body: JSON.stringify({ reason }),
+  });
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as
+      | { detail?: string; error?: string }
+      | null;
+    throw new AppointmentApiError(
+      response.status,
+      body?.detail ?? body?.error ?? "Não foi possível remover o agendamento.",
+    );
+  }
+}

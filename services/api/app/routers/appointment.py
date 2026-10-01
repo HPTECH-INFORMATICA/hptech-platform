@@ -10,6 +10,7 @@ from app.db.session import get_db
 from app.dependencies.auth import require_permission
 from app.schemas.appointment import (
     AppointmentCreate,
+    AppointmentDelete,
     AppointmentListResponse,
     AppointmentResponse,
     AppointmentReschedule,
@@ -32,6 +33,7 @@ router = APIRouter(prefix="/appointments", tags=["Appointments"])
 require_view = require_permission(PermissionModule.APPOINTMENTS, PermissionAction.VIEW)
 require_create = require_permission(PermissionModule.APPOINTMENTS, PermissionAction.CREATE)
 require_update = require_permission(PermissionModule.APPOINTMENTS, PermissionAction.UPDATE)
+require_delete = require_permission(PermissionModule.APPOINTMENTS, PermissionAction.DELETE)
 
 
 def translate_appointment_error(error: Exception) -> None:
@@ -113,6 +115,19 @@ def update_appointment(
     except Exception as error:
         translate_appointment_error(error)
         raise AssertionError("unreachable")
+
+
+@router.delete("/{appointment_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_appointment(
+    appointment_id: uuid.UUID,
+    data: AppointmentDelete,
+    identity: Annotated[AuthenticatedIdentity, Depends(require_delete)],
+    db: Annotated[Session, Depends(get_db)],
+) -> None:
+    try:
+        AppointmentDomain.soft_delete(db, identity, appointment_id, data)
+    except Exception as error:
+        translate_appointment_error(error)
 
 
 @router.post("/{appointment_id}/reschedule", response_model=AppointmentResponse)

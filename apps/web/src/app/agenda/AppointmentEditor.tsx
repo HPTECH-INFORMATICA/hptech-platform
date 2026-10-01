@@ -30,7 +30,7 @@ import type { PatientData } from "@/services/patient-service";
 import type { ProfessionalData } from "@/services/professional-service";
 import type { ServiceData } from "@/services/service-service";
 
-export type AppointmentEditorMode = "create" | "edit" | "reschedule";
+export type AppointmentEditorMode = "create" | "edit" | "reschedule" | "correct";
 
 type AppointmentEditorProps = {
   mode: AppointmentEditorMode;
@@ -102,7 +102,9 @@ export default function AppointmentEditor({
     professionals.length > 0 &&
     services.length > 0;
   const formValid =
-    mode === "reschedule"
+    mode === "correct"
+      ? Boolean(appointment)
+      : mode === "reschedule"
       ? Boolean(localDateTime && offset !== null && durationNumber > 0)
       : mode === "create"
         ? Boolean(
@@ -147,6 +149,10 @@ export default function AppointmentEditor({
           },
           duration_minutes: durationNumber,
         });
+      } else if (mode === "correct" && appointment) {
+        saved = await updateAppointment(appointment.id, {
+          notes: notes.trim() || null,
+        });
       } else if (appointment) {
         saved = await updateAppointment(appointment.id, {
           patient_id: patientId,
@@ -171,7 +177,9 @@ export default function AppointmentEditor({
       ? "Novo agendamento"
       : mode === "reschedule"
         ? "Reagendar atendimento"
-        : "Editar agendamento";
+        : mode === "correct"
+          ? "Corrigir observações"
+          : "Editar agendamento";
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
@@ -184,11 +192,11 @@ export default function AppointmentEditor({
         </DialogHeader>
 
         <div className="space-y-4">
-          {referencesError && mode !== "reschedule" ? (
+          {referencesError && mode !== "reschedule" && mode !== "correct" ? (
             <Alert variant="danger" description={referencesError} />
           ) : null}
 
-          {mode !== "reschedule" ? (
+          {mode !== "reschedule" && mode !== "correct" ? (
             <>
               <Select
                 label="Paciente"
@@ -267,7 +275,7 @@ export default function AppointmentEditor({
             />
           ) : null}
 
-          {mode !== "create" ? (
+          {mode !== "create" && mode !== "correct" ? (
             <Input
               label="Duração"
               type="number"

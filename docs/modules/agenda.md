@@ -75,8 +75,13 @@ IN_PROGRESS -> COMPLETED
 ```
 
 `COMPLETED`, `CANCELED` e `NO_SHOW` são estados terminais. Agendamentos em
-andamento permitem somente alteração de observações; estados terminais são
-imutáveis.
+andamento permitem somente alteração de observações. Em estados terminais,
+usuários `OWNER` e `ADMIN` podem corrigir apenas observações, preservando a
+auditoria e os snapshots clínicos e financeiros.
+
+A remoção disponível ao usuário master é sempre lógica, exige motivo e aceita
+qualquer status. Ela retira o item da agenda operacional sem apagar o registro,
+a auditoria ou lançamentos financeiros vinculados.
 
 ## API
 
@@ -85,6 +90,7 @@ GET    /api/v1/appointments
 POST   /api/v1/appointments
 GET    /api/v1/appointments/{appointment_id}
 PATCH  /api/v1/appointments/{appointment_id}
+DELETE /api/v1/appointments/{appointment_id}
 POST   /api/v1/appointments/{appointment_id}/reschedule
 POST   /api/v1/appointments/{appointment_id}/confirm
 POST   /api/v1/appointments/{appointment_id}/start
@@ -101,6 +107,7 @@ por profissional, paciente, serviço e status, com paginação limitada.
 - `VIEW`: lista e consulta detalhes;
 - `CREATE`: cria agendamentos;
 - `UPDATE`: edita, reagenda e executa transições.
+- `DELETE`: remoção lógica com motivo, exclusiva de `OWNER` e `ADMIN`.
 
 O `company_id` nunca é aceito do cliente. Ele é obtido da sessão autenticada.
 Usuários profissionais enxergam somente a própria agenda clínica. Recursos de

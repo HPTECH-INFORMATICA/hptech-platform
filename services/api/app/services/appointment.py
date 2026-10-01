@@ -23,6 +23,7 @@ from app.repositories.service import ServiceRepository
 from app.schemas.appointment import (
     AppointmentCivilDateTime,
     AppointmentCreate,
+    AppointmentDelete,
     AppointmentListResponse,
     AppointmentResponse,
     AppointmentReschedule,
@@ -559,7 +560,12 @@ class AppointmentDomain:
         appointment = cls._appointment(db, identity, appointment_id, lock=True)
         status = AppointmentStatus(appointment.status)
         changes = data.model_dump(exclude_unset=True)
-        require_mutable_fields(status, changes)
+        is_master_note_correction = (
+            identity.role in {UserRole.OWNER, UserRole.ADMIN}
+            and set(changes) == {"notes"}
+        )
+        if not is_master_note_correction:
+            require_mutable_fields(status, changes)
 
         if set(changes) == {"notes"}:
             if appointment.notes == changes["notes"]:
@@ -647,3 +653,30 @@ class AppointmentDomain:
             {"fields": public_fields},
         )
         return cls._commit(db, appointment)
+
+    @classmethod
+    def soft_delete(
+        cls,
+        db: Session,
+        identity: AuthenticatedIdentity,
+        appointment_id: uuid.UUID,
+        data: AppointmentDelete,
+    ) -> None:
+        if identity.role not in {UserRole.OWNER, UserRole.ADMIN}:
+            raise AppointmentLifecycleError(
+                "Somente usuários master podem remover agendamentos."
+            )
+        appointment = cls._appointment(db, identity, appointment_id, lock=True)
+        appointment.deleted_at = datetime.now(UTC)
+        cls._audit(
+            db,
+            identity,
+            appointment,
+            "APPOINTMENT_SOFT_DELETED",
+            {"status": appointment.status, "reason": data.reason},
+        )
+        try:
+            db.commit()
+        except SQLAlchemyError as error:
+            db.rollback()
+            raise AppointmentPersistenceError from error

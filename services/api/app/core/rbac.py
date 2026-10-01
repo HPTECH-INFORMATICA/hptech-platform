@@ -131,6 +131,17 @@ APPOINTMENTS_WRITE = Permission(
         }
     ),
 )
+APPOINTMENTS_ALL = Permission(
+    PermissionModule.APPOINTMENTS,
+    frozenset(
+        {
+            PermissionAction.VIEW,
+            PermissionAction.CREATE,
+            PermissionAction.UPDATE,
+            PermissionAction.DELETE,
+        }
+    ),
+)
 APPOINTMENTS_VIEW_UPDATE = Permission(
     PermissionModule.APPOINTMENTS,
     frozenset({PermissionAction.VIEW, PermissionAction.UPDATE}),
@@ -210,7 +221,7 @@ ROLE_PERMISSIONS: dict[UserRole, tuple[Permission, ...]] = {
         SERVICE_CATEGORIES_ALL,
         PATIENTS_ALL,
         PROFESSIONALS_ALL,
-        APPOINTMENTS_WRITE,
+        APPOINTMENTS_ALL,
         FINANCIAL_ALL,
         LANDING_PAGES_ALL,
     ),
@@ -225,7 +236,7 @@ ROLE_PERMISSIONS: dict[UserRole, tuple[Permission, ...]] = {
         SERVICE_CATEGORIES_ALL,
         PATIENTS_ALL,
         PROFESSIONALS_ALL,
-        APPOINTMENTS_WRITE,
+        APPOINTMENTS_ALL,
         FINANCIAL_ALL,
         LANDING_PAGES_ALL,
     ),

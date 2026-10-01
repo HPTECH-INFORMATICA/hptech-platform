@@ -63,6 +63,7 @@ SAFE_METADATA_KEYS: dict[str, frozenset[str]] = {
     "APPOINTMENT_RESCHEDULED": frozenset({"duration_changed"}),
     "APPOINTMENT_STATUS_CHANGED": frozenset({"from", "to"}),
     "APPOINTMENT_CANCELED": frozenset({"from", "to"}),
+    "APPOINTMENT_SOFT_DELETED": frozenset({"status", "reason"}),
     "FINANCIAL_TRANSACTION_CREATED": frozenset({"type", "status"}),
     "FINANCIAL_TRANSACTION_UPDATED": frozenset({"fields"}),
     "FINANCIAL_TRANSACTION_PAID": frozenset({"from", "to"}),

@@ -31,7 +31,10 @@ test("BFF exposes only the official Appointment routes", () => {
       `/appointments/${id}/${action}`,
     );
   }
-  assert.equal(resolveAppointmentBackendTarget([id], "DELETE"), null);
+  assert.equal(
+    resolveAppointmentBackendTarget([id], "DELETE")?.path,
+    `/appointments/${id}`,
+  );
   assert.equal(resolveAppointmentBackendTarget([id, "unknown"], "POST"), null);
 });
 

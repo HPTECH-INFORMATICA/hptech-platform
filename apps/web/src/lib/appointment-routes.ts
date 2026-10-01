@@ -40,7 +40,7 @@ export function resolveAppointmentBackendTarget(
   }
   if (!UUID_PATTERN.test(path[0])) return null;
   const id = encodeURIComponent(path[0]);
-  if (path.length === 1 && ["GET", "PATCH"].includes(method)) {
+  if (path.length === 1 && ["GET", "PATCH", "DELETE"].includes(method)) {
     return { path: `/appointments/${id}`, queryKeys: null };
   }
   if (

@@ -21,6 +21,7 @@ import Select from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
 import useToast from "@/hooks/useToast";
 import {
+  deleteAppointment,
   listAppointments,
   transitionAppointment,
   type AppointmentAction,
@@ -77,6 +78,14 @@ const availableActions: Partial<
   ],
   IN_PROGRESS: [{ action: "complete", label: "Concluir" }],
 };
+
+const deletionReasonOptions = [
+  { value: "", label: "Selecione o motivo" },
+  { value: "Cadastro duplicado", label: "Cadastro duplicado" },
+  { value: "Erro de lançamento", label: "Erro de lançamento" },
+  { value: "Solicitação do paciente", label: "Solicitação do paciente" },
+  { value: "Cancelamento administrativo", label: "Cancelamento administrativo" },
+];
 
 function dateKeyInTimezone(value: Date, timezone: string): string {
   const parts = new Intl.DateTimeFormat("en-CA", {
@@ -273,9 +282,13 @@ export default function AgendaPage({
   const [editorKey, setEditorKey] = useState(0);
   const [actionBusy, setActionBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<AppointmentData | null>(null);
+  const [deleteReason, setDeleteReason] = useState("");
 
   const canCreate = hasPermission(currentUser, "APPOINTMENTS", "CREATE");
   const canUpdate = hasPermission(currentUser, "APPOINTMENTS", "UPDATE");
+  const canDelete = hasPermission(currentUser, "APPOINTMENTS", "DELETE");
+  const isMaster = currentUser.role === "OWNER" || currentUser.role === "ADMIN";
   const canReadReferences =
     hasPermission(currentUser, "PATIENTS", "VIEW") &&
     hasPermission(currentUser, "PROFESSIONALS", "VIEW") &&
@@ -421,6 +434,24 @@ export default function AgendaPage({
         current.map((item) => (item.id === updated.id ? updated : item)),
       );
       toast({ variant: "success", description: "Status atualizado com sucesso." });
+    } catch (reason) {
+      setActionError(errorMessage(reason));
+    } finally {
+      setActionBusy(false);
+    }
+  }
+
+  async function confirmDelete() {
+    if (!deleteTarget || !deleteReason) return;
+    setActionBusy(true);
+    setActionError(null);
+    try {
+      await deleteAppointment(deleteTarget.id, deleteReason);
+      setAppointments((current) => current.filter((item) => item.id !== deleteTarget.id));
+      setDeleteTarget(null);
+      setDeleteReason("");
+      setSelectedAppointment(null);
+      toast({ variant: "success", description: "Agendamento removido da agenda com registro de auditoria." });
     } catch (reason) {
       setActionError(errorMessage(reason));
     } finally {
@@ -684,6 +715,9 @@ export default function AgendaPage({
                 </Button>
               </>
             ) : null}
+            {canUpdate && isMaster && !selectedMutable ? (
+              <Button variant="outline" onClick={() => openEditor("correct")}>Corrigir observações</Button>
+            ) : null}
             {canUpdate
               ? selectedActions.map(({ action, label }) => (
                   <Button
@@ -697,10 +731,30 @@ export default function AgendaPage({
                   </Button>
                 ))
               : null}
+            {canDelete && selectedAppointment ? (
+              <Button variant="danger" onClick={() => { setDeleteReason(""); setDeleteTarget(selectedAppointment); setSelectedAppointment(null); }}>Remover</Button>
+            ) : null}
           </DialogFooter>
           </DialogContent>
         </Dialog>
       ) : null}
+
+      <Dialog open={deleteTarget !== null} onOpenChange={(open) => {
+        if (!open && !actionBusy) { setDeleteTarget(null); setDeleteReason(""); }
+      }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Remover agendamento da agenda?</DialogTitle>
+            <DialogDescription>Esta é uma remoção lógica exclusiva do usuário master. O histórico e os lançamentos financeiros vinculados serão preservados para auditoria.</DialogDescription>
+          </DialogHeader>
+          <Select label="Motivo da remoção" required value={deleteReason} options={deletionReasonOptions} onChange={(event) => setDeleteReason(event.target.value)} />
+          {actionError ? <Alert variant="danger" description={actionError} /> : null}
+          <DialogFooter>
+            <DialogClose className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-md)] px-4 font-semibold text-hp-foreground hover:bg-hp-surface-subtle">Voltar</DialogClose>
+            <Button variant="danger" loading={actionBusy} disabled={!deleteReason} onClick={() => void confirmDelete()}>Remover agendamento</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {editorMode ? (
         <AppointmentEditor
