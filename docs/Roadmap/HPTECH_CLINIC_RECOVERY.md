@@ -413,6 +413,16 @@ sem listar quais resultados e critérios foram comprovados.
 | C2 — profissional | Em validação | Primeiro incremento publicado no commit `8de8177`: identificação, CPF validado por clínica, nascimento, contatos, profissão, categoria, observações e conta opcional. Migration reversível aplicada; 666 testes da API, build, readiness, OpenAPI, proteção de sessão e logs pós-deploy aprovados. | Validar o formulário autenticado com a clínica; implementar conselhos, endereços, especialidades, unidades, serviços, documentos, remuneração, estados completos, auditoria e integração com agenda. |
 | Documentação de produto | Concluída para esta fase | PRDs do portfólio, HPTECH Clinic e Control Plane; ADR de arquitetura; roadmap de recuperação. | Manter os documentos atualizados a cada gate. |
 
+### 2026-09-30 — revisão visual e navegação
+
+| Item | Estado | Evidência | Pendência para concluir |
+| --- | --- | --- | --- |
+| A2 — shell e navegação | Em validação | Cabeçalho corrigido para permanecer fixo; menu lateral passou a representar módulos e submódulos, com ícones, estado ativo, expansão e recolhimento; área do usuário deixou de expor o papel “Proprietário”. | Validar em produção, incluir breadcrumb nos fluxos profundos e executar teste moderado com usuários. |
+| A2 — Início | Em validação | Áreas disponíveis agora são cards de ação inteiros, com ícone, descrição e affordance de navegação. | Validar hierarquia e conteúdo por perfil em produção. |
+| A2 — Serviços e Financeiro | Em validação | Colunas numéricas e de status receberam largura e comportamento de quebra controlados; múltiplos botões por linha foram substituídos por menu de ações. | Revisar as demais tabelas do produto e validar desktop/celular autenticados. |
+| F1 — Agenda operacional | Em andamento | Cards passaram a expor paciente, profissional, serviço, duração, preço e status no calendário semanal existente. | A visualização ainda não atende o gate F: faltam dia/mês, unidade, sala/local, pagamento, sessões, comunicação, prontuário e política master auditável. |
+| G — Financeiro completo | Não iniciado | A base atual mantém resumo e lançamentos simples; recebeu somente correção visual das ações e colunas. | Modelar e implementar plano de contas, categorias, centros de custo, contas bancárias, pagar/receber, documentos, compras, estoque, juros, multas, descontos, conciliação e auditoria. |
+
 Próxima execução: publicar e validar o primeiro incremento C2. Depois, avançar
 por migrations pequenas para conselhos e especialidades, endereços, unidades e
 serviços, mantendo o cadastro operacional separado da identidade de login.

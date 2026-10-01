@@ -5,22 +5,12 @@ import Link from "next/link";
 import { useState } from "react";
 
 import Button from "@/components/ui/Button";
+import Icon from "@/components/ui/Icon";
 
 import type { CurrentUser } from "./types";
 
 type SessionUserProps = {
   user: CurrentUser;
-};
-
-const roleLabels: Record<string, string> = {
-  OWNER: "Proprietário",
-  ADMIN: "Administrador",
-  MANAGER: "Gerente",
-  PROFESSIONAL: "Profissional",
-  RECEPTIONIST: "Recepção",
-  SALES: "Comercial",
-  FINANCIAL: "Financeiro",
-  VIEWER: "Consulta",
 };
 
 export default function SessionUser({ user }: SessionUserProps) {
@@ -48,19 +38,20 @@ export default function SessionUser({ user }: SessionUserProps) {
   }
 
   return (
-    <div className="flex min-w-0 items-center gap-2">
-      <div className="hidden min-w-0 text-right md:block">
-        <p className="max-w-40 truncate text-sm font-semibold text-hp-foreground">
+    <div className="flex min-w-0 items-center gap-2 border-l border-hp-border pl-3">
+      <div className="hidden min-w-0 text-right lg:block">
+        <p className="max-w-56 truncate text-sm font-semibold text-hp-foreground" title={user.name}>
           {user.name}
         </p>
-        <p className="max-w-40 truncate text-xs text-hp-muted">
-          {roleLabels[user.role] ?? user.role} · {user.company.name}
+        <p className="max-w-56 truncate text-xs text-hp-muted" title={user.email}>
+          {user.email}
         </p>
       </div>
       <Link
         href="/minha-conta"
-        className="inline-flex min-h-11 items-center rounded-[var(--radius-md)] px-3 text-sm font-semibold text-hp-foreground hover:bg-hp-surface-subtle"
+        className="inline-flex min-h-10 items-center gap-2 rounded-[var(--radius-md)] px-3 text-sm font-semibold text-hp-foreground hover:bg-hp-surface-subtle focus-visible:outline-2 focus-visible:outline-hp-focus"
       >
+        <Icon name="user" className="size-4" />
         Minha conta
       </Link>
       <Button

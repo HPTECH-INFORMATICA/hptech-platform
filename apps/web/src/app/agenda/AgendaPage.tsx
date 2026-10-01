@@ -38,6 +38,10 @@ import AppointmentEditor, { type AppointmentEditorMode } from "./AppointmentEdit
 
 const DAY_IN_MS = 86_400_000;
 const QUERY_PADDING_IN_MS = 14 * 60 * 60 * 1000;
+const currencyFormatter = new Intl.NumberFormat("pt-BR", {
+  style: "currency",
+  currency: "BRL",
+});
 
 const statusPresentation: Record<
   AppointmentStatus,
@@ -197,10 +201,14 @@ async function listActiveServices(): Promise<ServiceData[]> {
 
 function AppointmentCard({
   appointment,
+  patientName,
+  professionalName,
   timezone,
   onOpen,
 }: {
   appointment: AppointmentData;
+  patientName: string;
+  professionalName: string;
   timezone: string;
   onOpen: () => void;
 }) {
@@ -212,7 +220,7 @@ function AppointmentCard({
       className="block w-full rounded-[var(--radius-lg)] text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hp-focus"
       aria-label={`Abrir ${appointment.service_name_snapshot} às ${formatTime(appointment.starts_at, timezone)}`}
     >
-      <Card variant="subtle" padding="sm" interactive className="space-y-2">
+      <Card variant="subtle" padding="sm" interactive className="space-y-2 border-l-4 border-l-hp-primary">
       <div className="flex min-w-0 items-start justify-between gap-2">
         <p className="font-semibold text-hp-foreground">
           <time dateTime={appointment.starts_at}>
@@ -230,9 +238,11 @@ function AppointmentCard({
       <p className="break-words text-sm font-medium text-hp-foreground">
         {appointment.service_name_snapshot}
       </p>
-      <p className="text-xs text-hp-muted">
-        {appointment.service_duration_minutes_snapshot} min
-      </p>
+      <p className="truncate text-sm text-hp-foreground" title={patientName}>{patientName}</p>
+      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-hp-muted">
+        <span>{professionalName}</span>
+        <span>{appointment.service_duration_minutes_snapshot} min · {currencyFormatter.format(Number(appointment.service_price_snapshot))}</span>
+      </div>
       </Card>
     </button>
   );
@@ -352,6 +362,10 @@ export default function AgendaPage({
     }
     return result;
   }, [appointments, timezone]);
+  const patientById = useMemo(
+    () => new Map(patients.map((patient) => [patient.id, patient.name])),
+    [patients],
+  );
 
   function changeWeek(offset: number) {
     const nextWeek = addCivilDays(weekStart, offset * 7);
@@ -511,6 +525,8 @@ export default function AgendaPage({
                       <AppointmentCard
                         key={appointment.id}
                         appointment={appointment}
+                        patientName={patientById.get(appointment.patient_id) ?? "Paciente não disponível"}
+                        professionalName={professional.display_name}
                         timezone={timezone}
                         onOpen={() => {
                           setActionError(null);
@@ -561,6 +577,8 @@ export default function AgendaPage({
                               <AppointmentCard
                                 key={appointment.id}
                                 appointment={appointment}
+                                patientName={patientById.get(appointment.patient_id) ?? "Paciente não disponível"}
+                                professionalName={professional.display_name}
                                 timezone={timezone}
                                 onOpen={() => {
                                   setActionError(null);

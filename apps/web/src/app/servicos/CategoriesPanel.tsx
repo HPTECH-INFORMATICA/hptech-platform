@@ -8,6 +8,7 @@ import Badge from "@/components/ui/Badge";
 import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
 import Dialog, { DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/Dialog";
+import DropdownMenu, { DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/DropdownMenu";
 import EmptyState from "@/components/ui/EmptyState";
 import Input from "@/components/ui/Input";
 import Pagination from "@/components/ui/Pagination";
@@ -127,7 +128,16 @@ export default function CategoriesPanel({ currentUser }: { currentUser: CurrentU
     finally { setSaving(false); }
   }
 
-  const actions = (item: ServiceCategoryData) => hasActions ? <div className="flex flex-wrap items-center gap-2">{canUpdate ? <Button size="sm" variant="ghost" onClick={() => openEdit(item)}>Editar</Button> : null}{canUpdate ? <Button size="sm" variant="outline" onClick={() => setStatusTarget(item)}>{item.is_active ? "Desativar" : "Reativar"}</Button> : null}{canDelete ? <div className="space-y-1"><Button size="sm" variant="danger" disabled={item.has_services} aria-describedby={item.has_services ? `category-${item.id}-remove-help` : undefined} onClick={() => { if (!item.has_services) setDeleteTarget(item); }}>Remover</Button>{item.has_services ? <p id={`category-${item.id}-remove-help`} className="max-w-52 text-xs text-hp-muted">Esta categoria possui serviços vinculados e não pode ser removida.</p> : null}</div> : null}</div> : null;
+  const actions = (item: ServiceCategoryData) => hasActions ? <DropdownMenu>
+    <DropdownMenuTrigger aria-label={`Ações de ${item.name}`} className="inline-flex size-10 items-center justify-center rounded-[var(--radius-md)] text-xl font-bold text-hp-muted hover:bg-hp-surface-subtle hover:text-hp-foreground focus-visible:outline-2 focus-visible:outline-hp-focus">•••</DropdownMenuTrigger>
+    <DropdownMenuContent align="end">
+      {canUpdate ? <DropdownMenuItem onSelect={() => openEdit(item)}>Editar categoria</DropdownMenuItem> : null}
+      {canUpdate ? <DropdownMenuItem onSelect={() => setStatusTarget(item)}>{item.is_active ? "Desativar" : "Reativar"}</DropdownMenuItem> : null}
+      {canDelete && canUpdate ? <DropdownMenuSeparator /> : null}
+      {canDelete && item.has_services ? <DropdownMenuLabel>Remoção bloqueada: possui serviços</DropdownMenuLabel> : null}
+      {canDelete ? <DropdownMenuItem variant="danger" disabled={item.has_services} onSelect={() => setDeleteTarget(item)}>Remover categoria</DropdownMenuItem> : null}
+    </DropdownMenuContent>
+  </DropdownMenu> : null;
 
   return <div className="space-y-6">
     <div className="flex justify-end">{canCreate ? <Button onClick={openCreate}>Nova categoria</Button> : null}</div>
@@ -135,7 +145,7 @@ export default function CategoriesPanel({ currentUser }: { currentUser: CurrentU
     {error ? <Alert variant="danger" title="Não foi possível carregar as categorias" description={error} action={<Button size="sm" variant="outline" onClick={() => setReload((value) => value + 1)}>Tentar novamente</Button>} /> : null}
     {loading ? <div className="space-y-3" aria-label="Carregando categorias"><Skeleton height="3rem" /><Skeleton height="3rem" /></div> : !error && items.length === 0 ? <EmptyState title="Nenhuma categoria cadastrada" description="Nenhuma categoria corresponde à busca e aos filtros atuais." action={canCreate ? <Button onClick={openCreate}>Cadastrar primeira categoria</Button> : undefined} /> : !error ? <>
       <p className="text-sm text-hp-muted" aria-live="polite">{total} {total === 1 ? "categoria encontrada" : "categorias encontradas"}</p>
-      <div className="hidden md:block"><Table><TableHeader><TableRow><TableHead>Nome</TableHead><TableHead>Descrição</TableHead><TableHead>Status</TableHead>{hasActions ? <TableHead>Ações</TableHead> : null}</TableRow></TableHeader><TableBody>{items.map((item) => <TableRow key={item.id}><TableCell className="font-semibold">{item.name}</TableCell><TableCell>{item.description ?? "Sem descrição"}</TableCell><TableCell><Badge variant={item.is_active ? "success" : "neutral"}>{item.is_active ? "Ativa" : "Inativa"}</Badge></TableCell>{hasActions ? <TableCell>{actions(item)}</TableCell> : null}</TableRow>)}</TableBody></Table></div>
+      <div className="hidden md:block"><Table><TableHeader><TableRow><TableHead className="w-48">Nome</TableHead><TableHead>Descrição</TableHead><TableHead className="w-24">Status</TableHead>{hasActions ? <TableHead className="w-16 text-right"><span className="sr-only">Ações</span></TableHead> : null}</TableRow></TableHeader><TableBody>{items.map((item) => <TableRow key={item.id}><TableCell className="w-48 font-semibold">{item.name}</TableCell><TableCell>{item.description ?? "Sem descrição"}</TableCell><TableCell className="w-24"><Badge variant={item.is_active ? "success" : "neutral"}>{item.is_active ? "Ativa" : "Inativa"}</Badge></TableCell>{hasActions ? <TableCell className="w-16 text-right">{actions(item)}</TableCell> : null}</TableRow>)}</TableBody></Table></div>
       <div className="grid gap-4 md:hidden">{items.map((item) => <Card key={item.id} variant="outlined" padding="sm"><div className="flex h-full min-w-0 flex-col gap-3"><div className="flex justify-between gap-3"><h2 className="font-semibold">{item.name}</h2><Badge variant={item.is_active ? "success" : "neutral"}>{item.is_active ? "Ativa" : "Inativa"}</Badge></div><p className="text-sm text-hp-muted">{item.description ?? "Sem descrição"}</p><div className="mt-auto pt-1">{actions(item)}</div></div></Card>)}</div>
       {Math.ceil(total / PAGE_SIZE) > 1 ? <Pagination page={page} totalPages={Math.ceil(total / PAGE_SIZE)} onPageChange={setPage} /> : null}
     </> : null}

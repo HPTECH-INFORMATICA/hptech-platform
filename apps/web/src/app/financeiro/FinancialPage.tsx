@@ -15,6 +15,7 @@ import Dialog, {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/Dialog";
+import DropdownMenu, { DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/DropdownMenu";
 import EmptyState from "@/components/ui/EmptyState";
 import Input from "@/components/ui/Input";
 import PageHeader from "@/components/ui/PageHeader";
@@ -333,14 +334,16 @@ export default function FinancialPage({ currentUser, initialDate }: FinancialPag
   function transactionActions(item: FinancialTransactionData) {
     const pending = item.status === "PENDING";
     return (
-      <div className="flex flex-wrap gap-1">
-        {canUpdate && pending ? <>
-          <Button size="sm" variant="ghost" onClick={() => openEdit(item)}>Editar</Button>
-          <Button size="sm" variant="outline" onClick={() => { setPaidDate(initialDate); setPaymentMethod(""); setPayTarget(item); }}>Marcar pago</Button>
-          <Button size="sm" variant="ghost" onClick={() => setCancelTarget(item)}>Cancelar</Button>
-        </> : null}
-        {canDelete && item.status !== "PAID" ? <Button size="sm" variant="danger" onClick={() => setDeleteTarget(item)}>Remover</Button> : null}
-      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger aria-label={`Ações de ${item.description}`} className="inline-flex size-10 items-center justify-center rounded-[var(--radius-md)] text-xl font-bold text-hp-muted hover:bg-hp-surface-subtle hover:text-hp-foreground focus-visible:outline-2 focus-visible:outline-hp-focus">•••</DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          {canUpdate && pending ? <DropdownMenuItem onSelect={() => openEdit(item)}>Editar lançamento</DropdownMenuItem> : null}
+          {canUpdate && pending ? <DropdownMenuItem onSelect={() => { setPaidDate(initialDate); setPaymentMethod(""); setPayTarget(item); }}>Registrar pagamento</DropdownMenuItem> : null}
+          {canUpdate && pending ? <DropdownMenuItem onSelect={() => setCancelTarget(item)}>Cancelar lançamento</DropdownMenuItem> : null}
+          {canDelete && item.status !== "PAID" && canUpdate && pending ? <DropdownMenuSeparator /> : null}
+          {canDelete && item.status !== "PAID" ? <DropdownMenuItem variant="danger" onSelect={() => setDeleteTarget(item)}>Remover lançamento</DropdownMenuItem> : null}
+        </DropdownMenuContent>
+      </DropdownMenu>
     );
   }
 
@@ -410,15 +413,15 @@ export default function FinancialPage({ currentUser, initialDate }: FinancialPag
           <>
             <div className="hidden overflow-x-auto rounded-[var(--radius-lg)] border border-hp-border md:block">
               <Table>
-                <TableHeader><TableRow><TableHead>Descrição</TableHead><TableHead>Tipo</TableHead><TableHead>Vencimento</TableHead><TableHead>Status</TableHead><TableHead className="text-right">Valor</TableHead>{hasActions ? <TableHead>Ações</TableHead> : null}</TableRow></TableHeader>
+                <TableHeader><TableRow><TableHead>Descrição</TableHead><TableHead className="w-28">Tipo</TableHead><TableHead className="w-32 whitespace-nowrap">Vencimento</TableHead><TableHead className="w-24">Status</TableHead><TableHead className="w-40 whitespace-nowrap text-right">Valor</TableHead>{hasActions ? <TableHead className="w-16 text-right"><span className="sr-only">Ações</span></TableHead> : null}</TableRow></TableHeader>
                 <TableBody>{items.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell><div className="max-w-72"><p className="font-medium text-hp-foreground">{item.description}</p><p className="truncate text-xs text-hp-muted">{item.category ?? "Sem categoria"}</p></div></TableCell>
-                    <TableCell>{typeLabel(item.transaction_type)}</TableCell>
-                    <TableCell>{formatDate(item.due_date)}</TableCell>
-                    <TableCell><StatusBadge item={item} /></TableCell>
-                    <TableCell className={`text-right font-semibold ${item.transaction_type === "INCOME" ? "text-hp-success" : "text-hp-danger"}`}>{item.transaction_type === "INCOME" ? "+" : "−"} {formatMoney(item.amount)}</TableCell>
-                    {hasActions ? <TableCell>{transactionActions(item)}</TableCell> : null}
+                    <TableCell className="w-28">{typeLabel(item.transaction_type)}</TableCell>
+                    <TableCell className="w-32 whitespace-nowrap">{formatDate(item.due_date)}</TableCell>
+                    <TableCell className="w-24"><StatusBadge item={item} /></TableCell>
+                    <TableCell className={`w-40 whitespace-nowrap text-right font-semibold tabular-nums ${item.transaction_type === "INCOME" ? "text-hp-success" : "text-hp-danger"}`}>{item.transaction_type === "INCOME" ? "+" : "−"} {formatMoney(item.amount)}</TableCell>
+                    {hasActions ? <TableCell className="w-16 text-right">{transactionActions(item)}</TableCell> : null}
                   </TableRow>
                 ))}</TableBody>
               </Table>
