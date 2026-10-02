@@ -15,11 +15,19 @@ import Dialog, {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/Dialog";
+import DropdownMenu, {
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/DropdownMenu";
 import EmptyState from "@/components/ui/EmptyState";
 import PageHeader from "@/components/ui/PageHeader";
 import Select from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
 import useToast from "@/hooks/useToast";
+import { buildAppointmentSharing } from "@/lib/appointment-sharing";
+import { clinicUnitName, formatClinicAddress } from "@/lib/clinic-location";
 import {
   deleteAppointment,
   listAppointments,
@@ -212,12 +220,16 @@ function AppointmentCard({
   appointment,
   patientName,
   professionalName,
+  unitName,
+  clinicAddress,
   timezone,
   onOpen,
 }: {
   appointment: AppointmentData;
   patientName: string;
   professionalName: string;
+  unitName: string;
+  clinicAddress: string | null;
   timezone: string;
   onOpen: () => void;
 }) {
@@ -251,6 +263,12 @@ function AppointmentCard({
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-hp-muted">
         <span>{professionalName}</span>
         <span>{appointment.service_duration_minutes_snapshot} min · {currencyFormatter.format(Number(appointment.service_price_snapshot))}</span>
+      </div>
+      <div className="border-t border-hp-border pt-2 text-xs text-hp-muted">
+        <p className="font-medium text-hp-foreground">{unitName}</p>
+        <p className="mt-1 break-words">
+          {clinicAddress ?? "Endereço da unidade ainda não cadastrado"}
+        </p>
       </div>
       </Card>
     </button>
@@ -295,6 +313,8 @@ export default function AgendaPage({
     hasPermission(currentUser, "SERVICES", "VIEW");
   const canOpenCreate = canCreate && canReadReferences;
   const canEditAppointment = canUpdate && canReadReferences;
+  const unitName = clinicUnitName(currentUser.company);
+  const clinicAddress = formatClinicAddress(currentUser.company);
 
   const days = useMemo(
     () => Array.from({ length: 7 }, (_, index) => addCivilDays(weekStart, index)),
@@ -459,6 +479,10 @@ export default function AgendaPage({
     }
   }
 
+  function openExternal(url: string) {
+    globalThis.open(url, "_blank", "noopener,noreferrer");
+  }
+
   const weekLabel = `${formatCivilDate(days[0], { day: "2-digit", month: "short" })} – ${formatCivilDate(days[6], { day: "2-digit", month: "short", year: "numeric" })}`;
   const dayOptions = days.map((day) => ({
     value: day,
@@ -473,6 +497,22 @@ export default function AgendaPage({
         (professional) => professional.id === selectedAppointment.professional_id,
       )
     : null;
+  const selectedPatientPhone = selectedPatient?.whatsapp ?? selectedPatient?.phone ?? "";
+  const selectedSharing =
+    selectedAppointment && selectedPatient && selectedProfessional && clinicAddress
+      ? buildAppointmentSharing({
+          clinicName: currentUser.company.name,
+          unitName,
+          address: clinicAddress,
+          patientName: selectedPatient.name,
+          patientPhone: selectedPatientPhone,
+          professionalName: selectedProfessional.display_name,
+          serviceName: selectedAppointment.service_name_snapshot,
+          startsAt: selectedAppointment.starts_at,
+          endsAt: selectedAppointment.ends_at,
+          timezone,
+        })
+      : null;
   const selectedActions = selectedAppointment
     ? availableActions[selectedAppointment.status] ?? []
     : [];
@@ -517,6 +557,14 @@ export default function AgendaPage({
         />
       ) : null}
 
+      {!clinicAddress ? (
+        <Alert
+          variant="warning"
+          title="Endereço da unidade não cadastrado"
+          description="Cadastre o endereço principal em Configurações > Dados da clínica para habilitar confirmações completas, Maps e calendário."
+        />
+      ) : null}
+
       {loading ? (
         <div className="space-y-3" aria-label="Carregando agenda">
           <Skeleton height="4rem" />
@@ -558,6 +606,8 @@ export default function AgendaPage({
                         appointment={appointment}
                         patientName={patientById.get(appointment.patient_id) ?? "Paciente não disponível"}
                         professionalName={professional.display_name}
+                        unitName={unitName}
+                        clinicAddress={clinicAddress}
                         timezone={timezone}
                         onOpen={() => {
                           setActionError(null);
@@ -610,6 +660,8 @@ export default function AgendaPage({
                                 appointment={appointment}
                                 patientName={patientById.get(appointment.patient_id) ?? "Paciente não disponível"}
                                 professionalName={professional.display_name}
+                                unitName={unitName}
+                                clinicAddress={clinicAddress}
                                 timezone={timezone}
                                 onOpen={() => {
                                   setActionError(null);
@@ -688,6 +740,16 @@ export default function AgendaPage({
                     {selectedProfessional?.display_name ?? "Profissional não disponível"}
                   </dd>
                 </div>
+                <div>
+                  <dt className="font-medium text-hp-muted">Unidade</dt>
+                  <dd className="mt-1 text-hp-foreground">{unitName}</dd>
+                </div>
+                <div>
+                  <dt className="font-medium text-hp-muted">Endereço</dt>
+                  <dd className="mt-1 text-hp-foreground">
+                    {clinicAddress ?? "Não cadastrado"}
+                  </dd>
+                </div>
               </dl>
               {selectedAppointment.notes ? (
                 <div>
@@ -705,34 +767,80 @@ export default function AgendaPage({
             <DialogClose className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-md)] px-4 font-semibold text-hp-foreground hover:bg-hp-surface-subtle">
               Fechar
             </DialogClose>
-            {canEditAppointment && selectedMutable ? (
-              <>
-                <Button variant="outline" onClick={() => openEditor("edit")}>
-                  Editar
-                </Button>
-                <Button variant="outline" onClick={() => openEditor("reschedule")}>
-                  Reagendar
-                </Button>
-              </>
-            ) : null}
-            {canUpdate && isMaster && !selectedMutable ? (
-              <Button variant="outline" onClick={() => openEditor("correct")}>Corrigir observações</Button>
-            ) : null}
-            {canUpdate
-              ? selectedActions.map(({ action, label }) => (
-                  <Button
-                    key={action}
-                    variant={action === "cancel" ? "danger" : "primary"}
-                    loading={actionBusy}
-                    disabled={actionBusy}
-                    onClick={() => void runAction(action)}
+            {selectedAppointment ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  aria-label={`Ações de ${selectedAppointment.service_name_snapshot}`}
+                  disabled={actionBusy}
+                  className="inline-flex size-10 items-center justify-center rounded-[var(--radius-md)] text-xl font-bold text-hp-muted hover:bg-hp-surface-subtle hover:text-hp-foreground focus-visible:outline-2 focus-visible:outline-hp-focus disabled:pointer-events-none disabled:opacity-50"
+                >
+                  •••
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onSelect={() => {
+                      if (!clinicAddress) {
+                        setActionError("Cadastre o endereço da unidade antes de enviar a confirmação.");
+                      } else if (!selectedPatientPhone) {
+                        setActionError("Cadastre o WhatsApp ou telefone do paciente antes de enviar a confirmação.");
+                      } else if (selectedSharing) {
+                        openExternal(selectedSharing.whatsappUrl);
+                      }
+                    }}
                   >
-                    {label}
-                  </Button>
-                ))
-              : null}
-            {canDelete && selectedAppointment ? (
-              <Button variant="danger" onClick={() => { setDeleteReason(""); setDeleteTarget(selectedAppointment); setSelectedAppointment(null); }}>Remover</Button>
+                    Enviar confirmação pelo WhatsApp
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    disabled={!selectedSharing}
+                    onSelect={() => selectedSharing && openExternal(selectedSharing.calendarUrl)}
+                  >
+                    Adicionar à agenda
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    disabled={!selectedSharing}
+                    onSelect={() => selectedSharing && openExternal(selectedSharing.mapsUrl)}
+                  >
+                    Abrir endereço no Maps
+                  </DropdownMenuItem>
+                  {(canEditAppointment && selectedMutable) ||
+                  (canUpdate && isMaster && !selectedMutable) ||
+                  (canUpdate && selectedActions.length > 0) ||
+                  canDelete ? <DropdownMenuSeparator /> : null}
+                  {canEditAppointment && selectedMutable ? (
+                    <DropdownMenuItem onSelect={() => openEditor("edit")}>Editar agendamento</DropdownMenuItem>
+                  ) : null}
+                  {canEditAppointment && selectedMutable ? (
+                    <DropdownMenuItem onSelect={() => openEditor("reschedule")}>Reagendar</DropdownMenuItem>
+                  ) : null}
+                  {canUpdate && isMaster && !selectedMutable ? (
+                    <DropdownMenuItem onSelect={() => openEditor("correct")}>Corrigir observações</DropdownMenuItem>
+                  ) : null}
+                  {canUpdate
+                    ? selectedActions.map(({ action, label }) => (
+                        <DropdownMenuItem
+                          key={action}
+                          variant={action === "cancel" ? "danger" : undefined}
+                          onSelect={() => void runAction(action)}
+                        >
+                          {label}
+                        </DropdownMenuItem>
+                      ))
+                    : null}
+                  {canDelete ? <DropdownMenuSeparator /> : null}
+                  {canDelete ? (
+                    <DropdownMenuItem
+                      variant="danger"
+                      onSelect={() => {
+                        setDeleteReason("");
+                        setDeleteTarget(selectedAppointment);
+                        setSelectedAppointment(null);
+                      }}
+                    >
+                      Remover agendamento
+                    </DropdownMenuItem>
+                  ) : null}
+                </DropdownMenuContent>
+              </DropdownMenu>
             ) : null}
           </DialogFooter>
           </DialogContent>

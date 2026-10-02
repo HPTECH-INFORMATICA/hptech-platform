@@ -1,5 +1,23 @@
 # Módulo Agenda
 
+## Localização e confirmação
+
+Enquanto o domínio de múltiplas unidades não estiver concluído, cada clínica
+mantém uma unidade principal e um endereço estruturado em Configurações. Esses
+dados aparecem nos cards e no detalhe do agendamento.
+
+O menu de ações pode gerar uma confirmação manual pelo WhatsApp do paciente. A
+mensagem inclui clínica, unidade, endereço, data, horário, serviço, profissional,
+link para adicionar o compromisso ao Google Agenda e link de localização no
+Google Maps. Este incremento apenas abre o WhatsApp com a mensagem preenchida;
+envio oficial, templates, consentimento, fila, entrega e lembretes pertencem à
+etapa de automação de comunicação.
+
+Fotos de antes/durante/depois, evolução técnica, histórico clínico e documentos
+assináveis pertencem ao prontuário e não são armazenados no campo operacional
+`notes`. Essa etapa exige modelo próprio, autorização, auditoria, retenção e
+armazenamento seguro.
+
 ## Objetivo
 
 Organizar a operação clínica por empresa, paciente, profissional e serviço,

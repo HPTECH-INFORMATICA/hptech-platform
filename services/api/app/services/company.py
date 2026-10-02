@@ -46,6 +46,13 @@ class CompanyService:
             "document",
             "email",
             "phone",
+            "primary_unit_name",
+            "address_line",
+            "address_complement",
+            "address_district",
+            "address_city",
+            "address_state",
+            "address_postal_code",
             "timezone",
         ):
             if field in values and getattr(company, field) != values[field]:

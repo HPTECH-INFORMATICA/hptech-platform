@@ -5,6 +5,13 @@ export type CompanyData = {
   document: string | null;
   email: string | null;
   phone: string | null;
+  primary_unit_name: string | null;
+  address_line: string | null;
+  address_complement: string | null;
+  address_district: string | null;
+  address_city: string | null;
+  address_state: string | null;
+  address_postal_code: string | null;
   slug: string;
   status: string;
   timezone: string;
@@ -18,6 +25,13 @@ export type CompanyUpdateInput = {
   document: string | null;
   email: string | null;
   phone: string | null;
+  primary_unit_name: string | null;
+  address_line: string | null;
+  address_complement: string | null;
+  address_district: string | null;
+  address_city: string | null;
+  address_state: string | null;
+  address_postal_code: string | null;
   timezone: string;
 };
 
@@ -44,6 +58,13 @@ function parseCompany(value: unknown): CompanyData | null {
     !nullableString(value.document) ||
     !nullableString(value.email) ||
     !nullableString(value.phone) ||
+    !nullableString(value.primary_unit_name) ||
+    !nullableString(value.address_line) ||
+    !nullableString(value.address_complement) ||
+    !nullableString(value.address_district) ||
+    !nullableString(value.address_city) ||
+    !nullableString(value.address_state) ||
+    !nullableString(value.address_postal_code) ||
     typeof value.slug !== "string" ||
     typeof value.status !== "string" ||
     typeof value.timezone !== "string" ||

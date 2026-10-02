@@ -39,6 +39,10 @@ function isNonEmptyString(value: unknown): value is string {
   return typeof value === "string" && value.trim().length > 0;
 }
 
+function isNullableString(value: unknown): value is string | null {
+  return value === null || typeof value === "string";
+}
+
 function parsePermissions(value: unknown): CurrentPermission[] | null {
   if (!Array.isArray(value)) {
     return null;
@@ -75,6 +79,13 @@ function parseCurrentUser(value: unknown): CurrentUser | null {
 
   const { company } = value;
   const permissions = parsePermissions(value.permissions);
+  const primaryUnitName = company.primary_unit_name;
+  const addressLine = company.address_line;
+  const addressComplement = company.address_complement;
+  const addressDistrict = company.address_district;
+  const addressCity = company.address_city;
+  const addressState = company.address_state;
+  const addressPostalCode = company.address_postal_code;
 
   if (
     !isNonEmptyString(value.id) ||
@@ -87,6 +98,13 @@ function parseCurrentUser(value: unknown): CurrentUser | null {
     !isNonEmptyString(company.slug) ||
     !isNonEmptyString(company.status) ||
     !isNonEmptyString(company.timezone) ||
+    !isNullableString(primaryUnitName) ||
+    !isNullableString(addressLine) ||
+    !isNullableString(addressComplement) ||
+    !isNullableString(addressDistrict) ||
+    !isNullableString(addressCity) ||
+    !isNullableString(addressState) ||
+    !isNullableString(addressPostalCode) ||
     !permissions
   ) {
     return null;
@@ -104,6 +122,13 @@ function parseCurrentUser(value: unknown): CurrentUser | null {
       slug: company.slug,
       status: company.status,
       timezone: company.timezone,
+      primary_unit_name: primaryUnitName,
+      address_line: addressLine,
+      address_complement: addressComplement,
+      address_district: addressDistrict,
+      address_city: addressCity,
+      address_state: addressState,
+      address_postal_code: addressPostalCode,
     },
     permissions,
   };

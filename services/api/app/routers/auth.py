@@ -210,6 +210,13 @@ def get_me(
             slug=identity.company.slug,
             status=identity.company.status,
             timezone=identity.company.timezone,
+            primary_unit_name=identity.company.primary_unit_name,
+            address_line=identity.company.address_line,
+            address_complement=identity.company.address_complement,
+            address_district=identity.company.address_district,
+            address_city=identity.company.address_city,
+            address_state=identity.company.address_state,
+            address_postal_code=identity.company.address_postal_code,
         ),
         permissions=[
             CurrentPermissionResponse(

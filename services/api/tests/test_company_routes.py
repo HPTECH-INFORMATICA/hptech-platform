@@ -246,6 +246,13 @@ def test_company_update_normalizes_safe_fields() -> None:
         document="  DOC-123  ",
         email="  CONTATO@EXAMPLE.COM  ",
         phone="  (11) 96666-5555  ",
+        primary_unit_name="  Unidade Centro  ",
+        address_line="  Rua das Flores, 100  ",
+        address_complement="  Sala 12  ",
+        address_district="  Centro  ",
+        address_city="  Curitiba  ",
+        address_state="  PR  ",
+        address_postal_code="  80000-000  ",
         timezone="  America/Sao_Paulo  ",
     )
     assert data.model_dump() == {
@@ -254,6 +261,13 @@ def test_company_update_normalizes_safe_fields() -> None:
         "document": "DOC-123",
         "email": "contato@example.com",
         "phone": "(11) 96666-5555",
+        "primary_unit_name": "Unidade Centro",
+        "address_line": "Rua das Flores, 100",
+        "address_complement": "Sala 12",
+        "address_district": "Centro",
+        "address_city": "Curitiba",
+        "address_state": "PR",
+        "address_postal_code": "80000-000",
         "timezone": "America/Sao_Paulo",
     }
 

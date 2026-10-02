@@ -30,6 +30,13 @@ type Draft = {
   document: string;
   email: string;
   phone: string;
+  primary_unit_name: string;
+  address_line: string;
+  address_complement: string;
+  address_district: string;
+  address_city: string;
+  address_state: string;
+  address_postal_code: string;
   timezone: string;
 };
 
@@ -47,6 +54,13 @@ function toDraft(company: CompanyData): Draft {
     document: company.document ?? "",
     email: company.email ?? "",
     phone: company.phone ?? "",
+    primary_unit_name: company.primary_unit_name ?? "",
+    address_line: company.address_line ?? "",
+    address_complement: company.address_complement ?? "",
+    address_district: company.address_district ?? "",
+    address_city: company.address_city ?? "",
+    address_state: company.address_state ?? "",
+    address_postal_code: company.address_postal_code ?? "",
     timezone: company.timezone,
   };
 }
@@ -59,6 +73,13 @@ function toInput(draft: Draft): CompanyUpdateInput {
     document: optional(draft.document),
     email: optional(draft.email)?.toLowerCase() ?? null,
     phone: optional(draft.phone),
+    primary_unit_name: optional(draft.primary_unit_name),
+    address_line: optional(draft.address_line),
+    address_complement: optional(draft.address_complement),
+    address_district: optional(draft.address_district),
+    address_city: optional(draft.address_city),
+    address_state: optional(draft.address_state),
+    address_postal_code: optional(draft.address_postal_code),
     timezone: draft.timezone,
   };
 }
@@ -70,6 +91,13 @@ function companyInput(company: CompanyData): CompanyUpdateInput {
     document: company.document,
     email: company.email,
     phone: company.phone,
+    primary_unit_name: company.primary_unit_name,
+    address_line: company.address_line,
+    address_complement: company.address_complement,
+    address_district: company.address_district,
+    address_city: company.address_city,
+    address_state: company.address_state,
+    address_postal_code: company.address_postal_code,
     timezone: company.timezone,
   };
 }
@@ -236,6 +264,15 @@ export default function CompanyPanel({
               <Input label="Documento" description="Identificador cadastral da empresa." maxLength={30} value={draft.document} onChange={(event) => updateField("document", event.target.value)} />
               <Input label="Email" type="email" maxLength={150} value={draft.email} onChange={(event) => updateField("email", event.target.value)} />
               <Input label="Telefone" type="tel" maxLength={30} value={draft.phone} onChange={(event) => updateField("phone", event.target.value)} />
+              <Input label="Unidade principal" description="Nome exibido nas confirmações de agendamento." maxLength={150} value={draft.primary_unit_name} onChange={(event) => updateField("primary_unit_name", event.target.value)} />
+              <div className="md:col-span-2">
+                <Input label="Logradouro e número" description="Endereço principal utilizado na Agenda e nos links de localização." maxLength={240} value={draft.address_line} onChange={(event) => updateField("address_line", event.target.value)} />
+              </div>
+              <Input label="Complemento" maxLength={120} value={draft.address_complement} onChange={(event) => updateField("address_complement", event.target.value)} />
+              <Input label="Bairro" maxLength={120} value={draft.address_district} onChange={(event) => updateField("address_district", event.target.value)} />
+              <Input label="Cidade" maxLength={120} value={draft.address_city} onChange={(event) => updateField("address_city", event.target.value)} />
+              <Input label="Estado" maxLength={80} value={draft.address_state} onChange={(event) => updateField("address_state", event.target.value)} />
+              <Input label="CEP" maxLength={20} value={draft.address_postal_code} onChange={(event) => updateField("address_postal_code", event.target.value)} />
               <div className="md:col-span-2">
                 <SearchBox
                   label="Fuso horário"
@@ -271,6 +308,13 @@ export default function CompanyPanel({
             <DefinitionItem label="Documento" value={company.document ?? ""} />
             <DefinitionItem label="Email" value={company.email ?? ""} />
             <DefinitionItem label="Telefone" value={company.phone ?? ""} />
+            <DefinitionItem label="Unidade principal" value={company.primary_unit_name ?? company.name} />
+            <DefinitionItem label="Logradouro e número" value={company.address_line ?? ""} />
+            <DefinitionItem label="Complemento" value={company.address_complement ?? ""} />
+            <DefinitionItem label="Bairro" value={company.address_district ?? ""} />
+            <DefinitionItem label="Cidade" value={company.address_city ?? ""} />
+            <DefinitionItem label="Estado" value={company.address_state ?? ""} />
+            <DefinitionItem label="CEP" value={company.address_postal_code ?? ""} />
             <DefinitionItem label="Fuso horário" value={timezoneLabel(company.timezone)} />
             <DefinitionItem label="Slug" value={company.slug} />
             <DefinitionItem label="Status" value={statusLabels[company.status] ?? company.status} />

@@ -268,6 +268,13 @@ async def test_auth_me_returns_current_identity_without_sensitive_data(
             "slug": identity.company.slug,
             "status": "ACTIVE",
             "timezone": "America/Sao_Paulo",
+            "primary_unit_name": None,
+            "address_line": None,
+            "address_complement": None,
+            "address_district": None,
+            "address_city": None,
+            "address_state": None,
+            "address_postal_code": None,
         },
         "permissions": [
             {"module": "DASHBOARD", "actions": ["VIEW"]},

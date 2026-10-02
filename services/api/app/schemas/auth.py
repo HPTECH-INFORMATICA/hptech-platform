@@ -25,6 +25,13 @@ class CurrentCompanyResponse(BaseModel):
     slug: str
     status: CompanyStatus
     timezone: str
+    primary_unit_name: str | None
+    address_line: str | None
+    address_complement: str | None
+    address_district: str | None
+    address_city: str | None
+    address_state: str | None
+    address_postal_code: str | None
 
 
 class CurrentPermissionResponse(BaseModel):

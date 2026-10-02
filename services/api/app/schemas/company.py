@@ -24,6 +24,13 @@ class CompanyResponse(BaseModel):
     document: str | None
     email: EmailStr | None
     phone: str | None
+    primary_unit_name: str | None
+    address_line: str | None
+    address_complement: str | None
+    address_district: str | None
+    address_city: str | None
+    address_state: str | None
+    address_postal_code: str | None
     slug: str
     status: CompanyStatus
     timezone: str
@@ -39,6 +46,13 @@ class CompanyUpdate(BaseModel):
     document: str | None = Field(default=None, max_length=30)
     email: EmailStr | None = Field(default=None, max_length=150)
     phone: str | None = Field(default=None, max_length=30)
+    primary_unit_name: str | None = Field(default=None, max_length=150)
+    address_line: str | None = Field(default=None, max_length=240)
+    address_complement: str | None = Field(default=None, max_length=120)
+    address_district: str | None = Field(default=None, max_length=120)
+    address_city: str | None = Field(default=None, max_length=120)
+    address_state: str | None = Field(default=None, max_length=80)
+    address_postal_code: str | None = Field(default=None, max_length=20)
     timezone: str | None = Field(default=None, max_length=64)
 
     @field_validator("name", mode="before")
@@ -51,7 +65,19 @@ class CompanyUpdate(BaseModel):
             return normalized
         return value
 
-    @field_validator("legal_name", "document", "phone", mode="before")
+    @field_validator(
+        "legal_name",
+        "document",
+        "phone",
+        "primary_unit_name",
+        "address_line",
+        "address_complement",
+        "address_district",
+        "address_city",
+        "address_state",
+        "address_postal_code",
+        mode="before",
+    )
     @classmethod
     def normalize_optional_text(cls, value: object) -> object:
         if isinstance(value, str):

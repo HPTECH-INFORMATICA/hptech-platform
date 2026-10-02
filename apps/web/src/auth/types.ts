@@ -4,6 +4,13 @@ export type CurrentCompany = {
   slug: string;
   status: string;
   timezone: string;
+  primary_unit_name: string | null;
+  address_line: string | null;
+  address_complement: string | null;
+  address_district: string | null;
+  address_city: string | null;
+  address_state: string | null;
+  address_postal_code: string | null;
 };
 
 export const permissionModules = [

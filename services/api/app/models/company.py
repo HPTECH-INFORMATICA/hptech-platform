@@ -45,6 +45,41 @@ class Company(
         nullable=True,
     )
 
+    primary_unit_name: Mapped[str | None] = mapped_column(
+        String(150),
+        nullable=True,
+    )
+
+    address_line: Mapped[str | None] = mapped_column(
+        String(240),
+        nullable=True,
+    )
+
+    address_complement: Mapped[str | None] = mapped_column(
+        String(120),
+        nullable=True,
+    )
+
+    address_district: Mapped[str | None] = mapped_column(
+        String(120),
+        nullable=True,
+    )
+
+    address_city: Mapped[str | None] = mapped_column(
+        String(120),
+        nullable=True,
+    )
+
+    address_state: Mapped[str | None] = mapped_column(
+        String(80),
+        nullable=True,
+    )
+
+    address_postal_code: Mapped[str | None] = mapped_column(
+        String(20),
+        nullable=True,
+    )
+
     slug: Mapped[str] = mapped_column(
         String(100),
         unique=True,

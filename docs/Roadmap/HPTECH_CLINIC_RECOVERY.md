@@ -420,7 +420,7 @@ sem listar quais resultados e critérios foram comprovados.
 | A2 — shell e navegação | Em validação | Cabeçalho corrigido para permanecer fixo; menu lateral passou a representar módulos e submódulos, com ícones, estado ativo, expansão e recolhimento; área do usuário deixou de expor o papel “Proprietário”. | Validar em produção, incluir breadcrumb nos fluxos profundos e executar teste moderado com usuários. |
 | A2 — Início | Em validação | Áreas disponíveis agora são cards de ação inteiros, com ícone, descrição e affordance de navegação. | Validar hierarquia e conteúdo por perfil em produção. |
 | A2 — Serviços e Financeiro | Em validação | Colunas numéricas e de status receberam largura e comportamento de quebra controlados; múltiplos botões por linha foram substituídos por menu de ações. | Revisar as demais tabelas do produto e validar desktop/celular autenticados. |
-| F1 — Agenda operacional | Em andamento | Cards passaram a expor paciente, profissional, serviço, duração, preço e status no calendário semanal existente. | A visualização ainda não atende o gate F: faltam dia/mês, unidade, sala/local, pagamento, sessões, comunicação e prontuário. |
+| F1 — Agenda operacional | Em andamento | Cards expõem paciente, profissional, serviço, duração, preço, status, unidade principal e endereço. O detalhe gera confirmação por WhatsApp com links para Google Agenda e Maps. | A visualização ainda não atende o gate F: faltam dia/mês, múltiplas unidades e salas, pagamento, sessões, automação de comunicação e prontuário. |
 | G — Financeiro completo | Não iniciado | A base atual mantém resumo e lançamentos simples; recebeu somente correção visual das ações e colunas. | Modelar e implementar plano de contas, categorias, centros de custo, contas bancárias, pagar/receber, documentos, compras, estoque, juros, multas, descontos, conciliação e auditoria. |
 
 ### 2026-10-01 — controle master da Agenda
@@ -429,6 +429,14 @@ sem listar quais resultados e critérios foram comprovados.
 | --- | --- | --- | --- |
 | F1 — correção e remoção master | Em validação | `OWNER` e `ADMIN` receberam `APPOINTMENTS:DELETE`; a remoção lógica aceita qualquer status, exige motivo e registra auditoria. Estados terminais permitem somente correção de observações. Contratos BFF/API e 668 testes da API aprovados. | Publicar backend e frontend, validar com conta master e incluir uma tela de histórico/correções. |
 
-Próxima execução: publicar e validar o primeiro incremento C2. Depois, avançar
-por migrations pequenas para conselhos e especialidades, endereços, unidades e
-serviços, mantendo o cadastro operacional separado da identidade de login.
+### 2026-10-02 — localização e comunicação da Agenda
+
+| Item | Estado | Evidência | Pendência para concluir |
+| --- | --- | --- | --- |
+| C1/F1 — unidade principal | Em validação | Clínica ganhou unidade principal e endereço estruturado nas Configurações. Agenda exibe esses dados no card e no detalhe. Migração reversível, lint, build e 668 testes da API aprovados. | Evoluir para múltiplas unidades, salas e vínculo explícito por agendamento. |
+| F1/E2 — confirmação do agendamento | Em validação | Menu de ações foi padronizado com Serviços. A confirmação por WhatsApp inclui clínica, unidade, endereço, data, horário, serviço, profissional, Google Agenda e Maps. | Implementar provedor oficial, templates consentidos, fila, entrega, lembretes e histórico de comunicação. |
+| F2 — atendimento clínico | Planejado | Escopo preservado no PRD: fotos antes/durante/depois, evolução técnica, histórico e documentos assináveis. | Modelar prontuário, consentimento, armazenamento seguro, retenção, auditoria e assinatura antes da implementação. |
+
+Próxima execução: publicar e validar o incremento de localização/comunicação da
+Agenda. Depois, evoluir a Agenda para sessões e pagamento antes de iniciar o
+prontuário clínico, mantendo dados clínicos separados dos dados operacionais.
