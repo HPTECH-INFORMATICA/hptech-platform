@@ -5,7 +5,7 @@ from decimal import Decimal
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 
-from app.core.identity import AuthenticatedIdentity
+from app.core.identity import AuthenticatedIdentity, UserRole
 from app.models.transaction import Transaction
 from app.repositories.appointment import AppointmentRepository
 from app.repositories.audit_log import AuditLogRepository
@@ -264,9 +264,12 @@ class FinancialDomain:
         data: FinancialTransactionUpdate,
     ) -> Transaction:
         transaction = cls._transaction(db, identity, transaction_id, lock=True)
-        if transaction.status != TransactionStatus.PENDING.value:
+        if (
+            transaction.status != TransactionStatus.PENDING.value
+            and identity.role not in {UserRole.OWNER, UserRole.ADMIN}
+        ):
             raise FinancialLifecycleError(
-                "Somente lançamentos pendentes podem ser alterados."
+                "Somente usuários master podem alterar lançamentos concluídos."
             )
         changed: list[str] = []
         for field_name, value in data.model_dump(exclude_unset=True).items():
@@ -341,9 +344,12 @@ class FinancialDomain:
         transaction_id: uuid.UUID,
     ) -> None:
         transaction = cls._transaction(db, identity, transaction_id, lock=True)
-        if transaction.status == TransactionStatus.PAID.value:
+        if (
+            transaction.status != TransactionStatus.PENDING.value
+            and identity.role not in {UserRole.OWNER, UserRole.ADMIN}
+        ):
             raise FinancialLifecycleError(
-                "Lançamentos pagos não podem ser removidos."
+                "Somente usuários master podem remover lançamentos concluídos."
             )
         transaction.deleted_at = datetime.now(UTC)
         cls._audit(

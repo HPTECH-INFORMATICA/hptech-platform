@@ -28,9 +28,10 @@ Um lançamento possui tipo `INCOME` ou `EXPENSE` e nasce como `PENDING`.
 Enquanto pendente, pode ser editado, marcado como pago ou cancelado.
 
 Ao registrar pagamento, a API exige data e forma de pagamento e move o registro
-para `PAID`. Lançamentos pagos são imutáveis e não podem ser removidos.
-Cancelamentos preservam o registro no histórico. A remoção permitida é lógica,
-por `deleted_at`.
+para `PAID`. Lançamentos pagos e cancelados somente podem ser corrigidos ou
+removidos por `OWNER` e `ADMIN`. Toda correção registra os campos alterados e a
+remoção permanece lógica, por `deleted_at`, preservando o histórico de
+auditoria.
 
 O banco valida valor positivo, enums oficiais e coerência entre status e data
 de pagamento. Referências opcionais a lead e agendamento são tenant-safe.
@@ -68,8 +69,10 @@ considera somente pagamentos concluídos; o saldo projetado inclui pendências.
 
 - `VIEW`: consulta e lista lançamentos;
 - `CREATE`: cria lançamentos;
-- `UPDATE`: edita pendentes, registra pagamento e cancela;
-- `DELETE`: executa remoção lógica quando permitida pelo ciclo.
+- `UPDATE`: edita pendentes, registra pagamento e cancela; `OWNER` e `ADMIN`
+  também corrigem lançamentos concluídos;
+- `DELETE`: executa remoção lógica; em registros concluídos exige `OWNER` ou
+  `ADMIN`.
 
 `OWNER`, `ADMIN` e `FINANCIAL` possuem o conjunto completo. `MANAGER` pode
 consultar, criar e atualizar. `RECEPTIONIST` pode consultar e criar. Os demais
@@ -83,7 +86,7 @@ A rota `/financeiro` exige `FINANCIAL:VIEW`. A tela oferece:
 - indicadores de receitas, despesas, saldo realizado e saldo projetado;
 - paginação;
 - representação em tabela no desktop e cartões no mobile;
-- criação e edição de lançamentos pendentes;
+- criação e edição de pendentes, com correção master de concluídos;
 - registro de pagamento;
 - cancelamento e remoção lógica conforme permissão;
 - estados de carregamento, erro, vazio, sucesso e somente leitura.

@@ -372,7 +372,7 @@ def test_pay_transitions_pending_and_audits(monkeypatch: pytest.MonkeyPatch) -> 
     assert audit.call_args.kwargs["action"] == "FINANCIAL_TRANSACTION_PAID"
 
 
-def test_paid_transaction_is_immutable_and_not_deletable(
+def test_master_can_update_and_soft_delete_paid_transaction(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     identity = make_identity()
@@ -388,14 +388,48 @@ def test_paid_transaction_is_immutable_and_not_deletable(
         MagicMock(return_value=transaction),
     )
 
-    with pytest.raises(FinancialLifecycleError):
+    monkeypatch.setattr(AuditLogRepository, "add", MagicMock())
+    db = MagicMock()
+
+    updated = FinancialDomain.update(
+        db,
+        identity,
+        transaction.id,
+        FinancialTransactionUpdate(description="Alterado"),
+    )
+    FinancialDomain.soft_delete(db, identity, transaction.id)
+
+    assert updated.description == "Alterado"
+    assert transaction.deleted_at is not None
+    assert db.commit.call_count == 2
+
+
+@pytest.mark.parametrize("status", ["PAID", "CANCELED"])
+def test_non_master_cannot_change_or_remove_completed_transaction(
+    monkeypatch: pytest.MonkeyPatch,
+    status: str,
+) -> None:
+    identity = make_identity(UserRole.MANAGER)
+    transaction = make_transaction(
+        identity,
+        status=status,
+        paid_date=date(2026, 9, 29) if status == "PAID" else None,
+        payment_method="PIX" if status == "PAID" else None,
+    )
+    monkeypatch.setattr(
+        FinancialRepository,
+        "get_by_id",
+        MagicMock(return_value=transaction),
+    )
+
+    with pytest.raises(FinancialLifecycleError, match="master"):
         FinancialDomain.update(
             MagicMock(),
             identity,
             transaction.id,
             FinancialTransactionUpdate(description="Alterado"),
         )
-    with pytest.raises(FinancialLifecycleError):
+    with pytest.raises(FinancialLifecycleError, match="master"):
         FinancialDomain.soft_delete(MagicMock(), identity, transaction.id)
 
 

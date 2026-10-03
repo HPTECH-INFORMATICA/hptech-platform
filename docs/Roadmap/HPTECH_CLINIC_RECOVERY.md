@@ -442,6 +442,7 @@ sem listar quais resultados e critérios foram comprovados.
 | Item | Estado | Evidência | Pendência para concluir |
 | --- | --- | --- | --- |
 | A2 — ações em registros | Em validação | Pacientes, Profissionais, Disponibilidade, Serviços, Categorias, Agenda, Financeiro, Landing Pages, Usuários e Convites usam o mesmo `RowActionsMenu`, com coluna compacta, alinhamento à direita e ação destrutiva separada. Lint e build de 35 rotas aprovados. | Validar visualmente em produção nos modos desktop e mobile autenticados. |
+| G — correção master de lançamentos | Em validação | `OWNER` e `ADMIN` podem editar/salvar ou remover logicamente lançamentos em qualquer status. A API mantém bloqueio para perfis não master e auditoria das alterações. Testes financeiros `24/24`, API `670/670`, lint e build de 35 rotas aprovados. | Validar em produção com lançamentos pendente, pago e cancelado. |
 
 Próxima execução: publicar e validar o incremento de localização/comunicação da
 Agenda. Depois, evoluir a Agenda para sessões e pagamento antes de iniciar o

@@ -173,6 +173,7 @@ export default function FinancialPage({ currentUser, initialDate }: FinancialPag
   const canCreate = hasPermission(currentUser, "FINANCIAL", "CREATE");
   const canUpdate = hasPermission(currentUser, "FINANCIAL", "UPDATE");
   const canDelete = hasPermission(currentUser, "FINANCIAL", "DELETE");
+  const isMaster = currentUser.role === "OWNER" || currentUser.role === "ADMIN";
   const hasActions = canUpdate || canDelete;
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const filterError =
@@ -334,15 +335,17 @@ export default function FinancialPage({ currentUser, initialDate }: FinancialPag
 
   function transactionActions(item: FinancialTransactionData) {
     const pending = item.status === "PENDING";
-    const hasItemActions = (canUpdate && pending) || (canDelete && item.status !== "PAID");
+    const canEditItem = canUpdate && (pending || isMaster);
+    const canDeleteItem = canDelete && (pending || isMaster);
+    const hasItemActions = canEditItem || canDeleteItem;
     if (!hasItemActions) return null;
     return (
       <RowActionsMenu label={`Ações de ${item.description}`}>
-          {canUpdate && pending ? <DropdownMenuItem onSelect={() => openEdit(item)}>Editar lançamento</DropdownMenuItem> : null}
+          {canEditItem ? <DropdownMenuItem onSelect={() => openEdit(item)}>Editar lançamento</DropdownMenuItem> : null}
           {canUpdate && pending ? <DropdownMenuItem onSelect={() => { setPaidDate(initialDate); setPaymentMethod(""); setPayTarget(item); }}>Registrar pagamento</DropdownMenuItem> : null}
           {canUpdate && pending ? <DropdownMenuItem onSelect={() => setCancelTarget(item)}>Cancelar lançamento</DropdownMenuItem> : null}
-          {canDelete && item.status !== "PAID" && canUpdate && pending ? <DropdownMenuSeparator /> : null}
-          {canDelete && item.status !== "PAID" ? <DropdownMenuItem variant="danger" onSelect={() => setDeleteTarget(item)}>Remover lançamento</DropdownMenuItem> : null}
+          {canDeleteItem && canEditItem ? <DropdownMenuSeparator /> : null}
+          {canDeleteItem ? <DropdownMenuItem variant="danger" onSelect={() => setDeleteTarget(item)}>Remover lançamento</DropdownMenuItem> : null}
       </RowActionsMenu>
     );
   }
@@ -444,7 +447,7 @@ export default function FinancialPage({ currentUser, initialDate }: FinancialPag
 
       <Dialog open={editorOpen} onOpenChange={(open) => !open && !saving && setEditorOpen(false)}>
         <DialogContent><form onSubmit={(event) => void save(event)} className="space-y-5">
-          <DialogHeader><DialogTitle>{editing ? "Editar lançamento" : "Novo lançamento"}</DialogTitle><DialogDescription>{editing ? "Somente lançamentos pendentes podem ser alterados." : "Registre uma receita ou despesa da operação."}</DialogDescription></DialogHeader>
+          <DialogHeader><DialogTitle>{editing ? "Editar lançamento" : "Novo lançamento"}</DialogTitle><DialogDescription>{editing ? (editing.status === "PENDING" ? "Atualize os dados do lançamento pendente." : "Correção master de um lançamento concluído. A alteração será auditada.") : "Registre uma receita ou despesa da operação."}</DialogDescription></DialogHeader>
           <div className="grid gap-4 sm:grid-cols-2">
             <Select label="Tipo" required disabled={Boolean(editing)} value={draft.transactionType} options={typeOptions.slice(1)} onChange={(event) => setDraft((current) => ({ ...current, transactionType: event.target.value as FinancialTransactionType }))} />
             <Input label="Valor" required type="number" min="0.01" step="0.01" prefix="R$" value={draft.amount} onChange={(event) => setDraft((current) => ({ ...current, amount: event.target.value }))} />
@@ -471,7 +474,7 @@ export default function FinancialPage({ currentUser, initialDate }: FinancialPag
       </Dialog>
 
       <Dialog open={deleteTarget !== null} onOpenChange={(open) => !open && !acting && setDeleteTarget(null)}>
-        <DialogContent><DialogHeader><DialogTitle>Remover lançamento?</DialogTitle><DialogDescription>O lançamento sairá da operação normal, mas seu histórico será preservado.</DialogDescription></DialogHeader><DialogFooter><DialogClose className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-md)] px-4 font-semibold text-hp-foreground hover:bg-hp-surface-subtle">Voltar</DialogClose><Button variant="danger" loading={acting} onClick={() => void confirmDelete()}>Remover</Button></DialogFooter></DialogContent>
+        <DialogContent><DialogHeader><DialogTitle>Remover lançamento?</DialogTitle><DialogDescription>{deleteTarget?.status === "PAID" ? "Este lançamento já foi pago. Ele sairá dos totais ativos, mas a exclusão lógica e o histórico de auditoria serão preservados." : "O lançamento sairá da operação normal, mas seu histórico será preservado."}</DialogDescription></DialogHeader><DialogFooter><DialogClose className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-md)] px-4 font-semibold text-hp-foreground hover:bg-hp-surface-subtle">Voltar</DialogClose><Button variant="danger" loading={acting} onClick={() => void confirmDelete()}>Remover lançamento</Button></DialogFooter></DialogContent>
       </Dialog>
     </div>
   );
