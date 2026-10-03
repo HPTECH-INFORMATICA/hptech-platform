@@ -15,12 +15,13 @@ import Dialog, {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/Dialog";
-import DropdownMenu, { DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/DropdownMenu";
+import { DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/DropdownMenu";
 import EmptyState from "@/components/ui/EmptyState";
 import Input from "@/components/ui/Input";
 import PageHeader from "@/components/ui/PageHeader";
 import Pagination from "@/components/ui/Pagination";
 import SearchBox from "@/components/ui/SearchBox";
+import RowActionsMenu from "@/components/ui/RowActionsMenu";
 import Select from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
 import Tabs, { TabsContent, TabsList, TabsTrigger } from "@/components/ui/Tabs";
@@ -272,15 +273,12 @@ function ServicesCatalog({ currentUser }: { currentUser: CurrentUser }) {
   }
 
   const actions = (service: ServiceData) => hasActions ? (
-    <DropdownMenu>
-      <DropdownMenuTrigger aria-label={`Ações de ${service.name}`} className="inline-flex size-10 items-center justify-center rounded-[var(--radius-md)] text-xl font-bold text-hp-muted hover:bg-hp-surface-subtle hover:text-hp-foreground focus-visible:outline-2 focus-visible:outline-hp-focus">•••</DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+    <RowActionsMenu label={`Ações de ${service.name}`}>
         {canUpdate ? <DropdownMenuItem onSelect={() => openEdit(service)}>Editar serviço</DropdownMenuItem> : null}
         {canUpdate ? <DropdownMenuItem onSelect={() => setStatusTarget(service)}>{service.is_active ? "Desativar" : "Reativar"}</DropdownMenuItem> : null}
         {canDelete && canUpdate ? <DropdownMenuSeparator /> : null}
         {canDelete ? <DropdownMenuItem variant="danger" onSelect={() => setDeleteTarget(service)}>Remover serviço</DropdownMenuItem> : null}
-      </DropdownMenuContent>
-    </DropdownMenu>
+    </RowActionsMenu>
   ) : null;
 
   return (
@@ -309,7 +307,7 @@ function ServicesCatalog({ currentUser }: { currentUser: CurrentUser }) {
               <TableBody>{items.map((service) => <TableRow key={service.id}><TableCell><span className="font-semibold">{service.name}</span>{service.description ? <span className="mt-1 block text-sm text-hp-muted">{service.description}</span> : null}</TableCell><TableCell className="w-40">{service.category?.name ?? "Sem categoria"}</TableCell><TableCell className="w-24 whitespace-nowrap">{service.duration_minutes} min</TableCell><TableCell className="w-32 whitespace-nowrap tabular-nums">{formatPrice(service.price)}</TableCell><TableCell className="w-24"><StatusBadge active={service.is_active} /></TableCell>{hasActions ? <TableCell className="w-16 text-right">{actions(service)}</TableCell> : null}</TableRow>)}</TableBody>
             </Table>
           </div>
-          <div className="grid gap-4 md:hidden">{items.map((service) => <Card key={service.id} variant="outlined" padding="sm"><div className="flex h-full min-w-0 flex-col gap-3"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><h2 className="break-words font-semibold text-hp-foreground">{service.name}</h2>{service.description ? <p className="mt-1 break-words text-sm text-hp-muted">{service.description}</p> : null}</div><StatusBadge active={service.is_active} /></div><dl className="grid grid-cols-2 gap-3 text-sm"><div><dt className="text-hp-muted">Categoria</dt><dd>{service.category?.name ?? "Sem categoria"}</dd></div><div><dt className="text-hp-muted">Duração</dt><dd>{service.duration_minutes} min</dd></div><div><dt className="text-hp-muted">Preço</dt><dd>{formatPrice(service.price)}</dd></div></dl><div className="mt-auto pt-1">{actions(service)}</div></div></Card>)}</div>
+          <div className="grid gap-4 md:hidden">{items.map((service) => <Card key={service.id} variant="outlined" padding="sm"><div className="flex h-full min-w-0 flex-col gap-3"><div className="flex items-start justify-between gap-3"><div className="min-w-0"><h2 className="break-words font-semibold text-hp-foreground">{service.name}</h2>{service.description ? <p className="mt-1 break-words text-sm text-hp-muted">{service.description}</p> : null}</div><StatusBadge active={service.is_active} /></div><dl className="grid grid-cols-2 gap-3 text-sm"><div><dt className="text-hp-muted">Categoria</dt><dd>{service.category?.name ?? "Sem categoria"}</dd></div><div><dt className="text-hp-muted">Duração</dt><dd>{service.duration_minutes} min</dd></div><div><dt className="text-hp-muted">Preço</dt><dd>{formatPrice(service.price)}</dd></div></dl><div className="mt-auto flex justify-end pt-1">{actions(service)}</div></div></Card>)}</div>
           {totalPages > 1 ? <Pagination page={page} totalPages={totalPages} onPageChange={setPage} /> : null}
         </>
       ) : null}

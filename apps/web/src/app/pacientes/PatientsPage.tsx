@@ -17,10 +17,15 @@ import Dialog, {
   DialogTitle,
 } from "@/components/ui/Dialog";
 import EmptyState from "@/components/ui/EmptyState";
+import {
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/DropdownMenu";
 import Input from "@/components/ui/Input";
 import PageHeader from "@/components/ui/PageHeader";
 import Pagination from "@/components/ui/Pagination";
 import SearchBox from "@/components/ui/SearchBox";
+import RowActionsMenu from "@/components/ui/RowActionsMenu";
 import Select from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
 import Table, {
@@ -298,38 +303,30 @@ export default function PatientsPage({ currentUser, maxBirthDate }: PatientsPage
 
   function actions(patient: PatientData) {
     if (!hasActions) return null;
-    const explanationId = `patient-remove-${patient.id}`;
     return (
-      <div className="flex flex-wrap items-start gap-2">
+      <RowActionsMenu label={`Ações de ${patient.name}`}>
         {canUpdate ? (
-          <Button size="sm" variant="ghost" onClick={() => openEdit(patient)}>
-            Editar
-          </Button>
+          <DropdownMenuItem onSelect={() => openEdit(patient)}>
+            Editar paciente
+          </DropdownMenuItem>
         ) : null}
         {canUpdate ? (
-          <Button size="sm" variant="outline" onClick={() => setStatusTarget(patient)}>
+          <DropdownMenuItem onSelect={() => setStatusTarget(patient)}>
             {patient.is_active ? "Desativar" : "Reativar"}
-          </Button>
+          </DropdownMenuItem>
         ) : null}
+        {canDelete && canUpdate ? <DropdownMenuSeparator /> : null}
         {canDelete ? (
-          <div>
-            <Button
-              size="sm"
-              variant="danger"
-              disabled={patient.has_leads}
-              aria-describedby={patient.has_leads ? explanationId : undefined}
-              onClick={() => setDeleteTarget(patient)}
-            >
-              Remover
-            </Button>
-            {patient.has_leads ? (
-              <p id={explanationId} className="mt-1 max-w-56 text-xs text-hp-muted">
-                Este paciente possui leads vinculados e não pode ser removido.
-              </p>
-            ) : null}
-          </div>
+          <DropdownMenuItem
+            variant="danger"
+            disabled={patient.has_leads}
+            title={patient.has_leads ? "Este paciente possui leads vinculados e não pode ser removido." : undefined}
+            onSelect={() => setDeleteTarget(patient)}
+          >
+            {patient.has_leads ? "Remoção indisponível" : "Remover paciente"}
+          </DropdownMenuItem>
         ) : null}
-      </div>
+      </RowActionsMenu>
     );
   }
 
@@ -403,7 +400,7 @@ export default function PatientsPage({ currentUser, maxBirthDate }: PatientsPage
                   <TableHead>Contato</TableHead>
                   <TableHead>Nascimento</TableHead>
                   <TableHead>Status</TableHead>
-                  {hasActions ? <TableHead>Ações</TableHead> : null}
+                  {hasActions ? <TableHead className="w-16 text-right"><span className="sr-only">Ações</span></TableHead> : null}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -419,7 +416,7 @@ export default function PatientsPage({ currentUser, maxBirthDate }: PatientsPage
                       </TableCell>
                       <TableCell>{formatBirthDate(patient.birth_date)}</TableCell>
                       <TableCell><StatusBadge active={patient.is_active} /></TableCell>
-                      {hasActions ? <TableCell>{actions(patient)}</TableCell> : null}
+                      {hasActions ? <TableCell className="w-16 text-right">{actions(patient)}</TableCell> : null}
                     </TableRow>
                   );
                 })}
@@ -449,7 +446,7 @@ export default function PatientsPage({ currentUser, maxBirthDate }: PatientsPage
                         <dd>{formatBirthDate(patient.birth_date)}</dd>
                       </div>
                     </dl>
-                    <div className="mt-auto pt-1">{actions(patient)}</div>
+                    <div className="mt-auto flex justify-end pt-1">{actions(patient)}</div>
                   </div>
                 </Card>
               );

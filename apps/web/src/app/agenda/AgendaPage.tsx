@@ -15,14 +15,13 @@ import Dialog, {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/Dialog";
-import DropdownMenu, {
-  DropdownMenuContent,
+import {
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
 } from "@/components/ui/DropdownMenu";
 import EmptyState from "@/components/ui/EmptyState";
 import PageHeader from "@/components/ui/PageHeader";
+import RowActionsMenu from "@/components/ui/RowActionsMenu";
 import Select from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
 import useToast from "@/hooks/useToast";
@@ -768,15 +767,10 @@ export default function AgendaPage({
               Fechar
             </DialogClose>
             {selectedAppointment ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  aria-label={`Ações de ${selectedAppointment.service_name_snapshot}`}
-                  disabled={actionBusy}
-                  className="inline-flex size-10 items-center justify-center rounded-[var(--radius-md)] text-xl font-bold text-hp-muted hover:bg-hp-surface-subtle hover:text-hp-foreground focus-visible:outline-2 focus-visible:outline-hp-focus disabled:pointer-events-none disabled:opacity-50"
-                >
-                  •••
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+              <RowActionsMenu
+                label={`Ações de ${selectedAppointment.service_name_snapshot}`}
+                disabled={actionBusy}
+              >
                   <DropdownMenuItem
                     onSelect={() => {
                       if (!clinicAddress) {
@@ -839,8 +833,7 @@ export default function AgendaPage({
                       Remover agendamento
                     </DropdownMenuItem>
                   ) : null}
-                </DropdownMenuContent>
-              </DropdownMenu>
+              </RowActionsMenu>
             ) : null}
           </DialogFooter>
           </DialogContent>

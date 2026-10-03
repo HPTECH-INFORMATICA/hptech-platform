@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { hasPermission, type CurrentUser } from "@/auth/types";
 import Alert from "@/components/ui/Alert";
@@ -18,10 +19,15 @@ import Dialog, {
 } from "@/components/ui/Dialog";
 import EmptyState from "@/components/ui/EmptyState";
 import DatePicker from "@/components/ui/DatePicker";
+import {
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/DropdownMenu";
 import Input from "@/components/ui/Input";
 import PageHeader from "@/components/ui/PageHeader";
 import Pagination from "@/components/ui/Pagination";
 import SearchBox from "@/components/ui/SearchBox";
+import RowActionsMenu from "@/components/ui/RowActionsMenu";
 import Select from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
 import Table, {
@@ -160,6 +166,7 @@ export default function ProfessionalsPage({
   currentUser,
   maxBirthDate,
 }: ProfessionalsPageProps) {
+  const router = useRouter();
   const { toast } = useToast();
   const [items, setItems] = useState<ProfessionalData[]>([]);
   const [total, setTotal] = useState(0);
@@ -386,37 +393,38 @@ export default function ProfessionalsPage({
 
   function actions(professional: ProfessionalData) {
     return (
-      <div className="flex flex-wrap gap-2">
-        <Link
-          href={`/profissionais/${encodeURIComponent(professional.id)}/disponibilidade`}
-          className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-md)] px-3 text-sm font-semibold text-hp-primary outline-none transition-colors hover:bg-hp-primary-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hp-focus sm:min-h-9"
+      <RowActionsMenu label={`Ações de ${professional.display_name}`}>
+        <DropdownMenuItem
+          onSelect={() =>
+            router.push(
+              `/profissionais/${encodeURIComponent(professional.id)}/disponibilidade`,
+            )
+          }
         >
-          Disponibilidade
-        </Link>
+          Gerenciar disponibilidade
+        </DropdownMenuItem>
         {canUpdate ? (
-          <Button size="sm" variant="ghost" onClick={() => openEdit(professional)}>
-            Editar
-          </Button>
+          <DropdownMenuItem onSelect={() => openEdit(professional)}>
+            Editar profissional
+          </DropdownMenuItem>
         ) : null}
         {canUpdate ? (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => setStatusTarget(professional)}
+          <DropdownMenuItem
+            onSelect={() => setStatusTarget(professional)}
           >
             {professional.is_active ? "Inativar" : "Reativar"}
-          </Button>
+          </DropdownMenuItem>
         ) : null}
+        {canDelete ? <DropdownMenuSeparator /> : null}
         {canDelete ? (
-          <Button
-            size="sm"
+          <DropdownMenuItem
             variant="danger"
-            onClick={() => setDeleteTarget(professional)}
+            onSelect={() => setDeleteTarget(professional)}
           >
-            Remover
-          </Button>
+            Remover profissional
+          </DropdownMenuItem>
         ) : null}
-      </div>
+      </RowActionsMenu>
     );
   }
 
@@ -497,7 +505,9 @@ export default function ProfessionalsPage({
                   <TableHead>Contato</TableHead>
                   <TableHead>Conta de acesso</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Ações</TableHead>
+                  <TableHead className="w-16 text-right">
+                    <span className="sr-only">Ações</span>
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -525,7 +535,7 @@ export default function ProfessionalsPage({
                       {professional.user_id ? "Vinculado" : "Sem conta vinculada"}
                     </TableCell>
                     <TableCell><StatusBadge active={professional.is_active} /></TableCell>
-                    <TableCell>{actions(professional)}</TableCell>
+                    <TableCell className="w-16 text-right">{actions(professional)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -552,7 +562,7 @@ export default function ProfessionalsPage({
                   <p className="text-sm text-hp-muted">
                     {professional.user_id ? "Conta vinculada" : "Sem conta vinculada"}
                   </p>
-                  <div className="mt-auto pt-1">{actions(professional)}</div>
+                  <div className="mt-auto flex justify-end pt-1">{actions(professional)}</div>
                 </div>
               </Card>
             ))}

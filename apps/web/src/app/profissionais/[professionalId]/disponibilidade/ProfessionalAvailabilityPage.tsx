@@ -21,10 +21,15 @@ import Dialog, {
   DialogTitle,
 } from "@/components/ui/Dialog";
 import EmptyState from "@/components/ui/EmptyState";
+import {
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/DropdownMenu";
 import Input from "@/components/ui/Input";
 import PageHeader from "@/components/ui/PageHeader";
 import Pagination from "@/components/ui/Pagination";
 import Select from "@/components/ui/Select";
+import RowActionsMenu from "@/components/ui/RowActionsMenu";
 import Skeleton from "@/components/ui/Skeleton";
 import Table, {
   TableBody,
@@ -309,10 +314,15 @@ export default function ProfessionalAvailabilityPage({
   function exceptionActions(item: AvailabilityExceptionData) {
     if (!canUpdate || isPastCivilDate(item.local_date, today)) return null;
     return (
-      <div className="flex flex-wrap gap-2">
-        <Button size="sm" variant="ghost" onClick={() => openEditException(item)}>Editar</Button>
-        <Button size="sm" variant="danger" onClick={() => setDeleteTarget(item)}>Remover</Button>
-      </div>
+      <RowActionsMenu label={`Ações da exceção de ${formatDate(item.local_date)}`}>
+        <DropdownMenuItem onSelect={() => openEditException(item)}>
+          Editar exceção
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem variant="danger" onSelect={() => setDeleteTarget(item)}>
+          Remover exceção
+        </DropdownMenuItem>
+      </RowActionsMenu>
     );
   }
 
@@ -424,11 +434,11 @@ export default function ProfessionalAvailabilityPage({
               <p className="text-sm text-hp-muted" aria-live="polite">{exceptionTotal} {exceptionTotal === 1 ? "exceção encontrada" : "exceções encontradas"}</p>
               <div className="hidden md:block">
                 <Table>
-                  <TableHeader><TableRow><TableHead>Data</TableHead><TableHead>Tipo</TableHead><TableHead>Período</TableHead><TableHead>Estado</TableHead>{canUpdate ? <TableHead>Ações</TableHead> : null}</TableRow></TableHeader>
-                  <TableBody>{exceptions.map((item) => { const historical = isPastCivilDate(item.local_date, today); return <TableRow key={item.id}><TableCell>{formatDate(item.local_date)}</TableCell><TableCell><Badge variant={item.kind === "AVAILABLE" ? "success" : "warning"}>{item.kind === "AVAILABLE" ? "Disponível" : "Indisponível"}</Badge></TableCell><TableCell>{exceptionScope(item)}</TableCell><TableCell>{historical ? <Badge variant="neutral">Histórico</Badge> : <Badge variant="info">Futuro</Badge>}</TableCell>{canUpdate ? <TableCell>{exceptionActions(item)}</TableCell> : null}</TableRow>; })}</TableBody>
+                  <TableHeader><TableRow><TableHead>Data</TableHead><TableHead>Tipo</TableHead><TableHead>Período</TableHead><TableHead>Estado</TableHead>{canUpdate ? <TableHead className="w-16 text-right"><span className="sr-only">Ações</span></TableHead> : null}</TableRow></TableHeader>
+                  <TableBody>{exceptions.map((item) => { const historical = isPastCivilDate(item.local_date, today); return <TableRow key={item.id}><TableCell>{formatDate(item.local_date)}</TableCell><TableCell><Badge variant={item.kind === "AVAILABLE" ? "success" : "warning"}>{item.kind === "AVAILABLE" ? "Disponível" : "Indisponível"}</Badge></TableCell><TableCell>{exceptionScope(item)}</TableCell><TableCell>{historical ? <Badge variant="neutral">Histórico</Badge> : <Badge variant="info">Futuro</Badge>}</TableCell>{canUpdate ? <TableCell className="w-16 text-right">{exceptionActions(item)}</TableCell> : null}</TableRow>; })}</TableBody>
                 </Table>
               </div>
-              <div className="grid gap-4 md:hidden">{exceptions.map((item) => { const historical = isPastCivilDate(item.local_date, today); return <Card key={item.id} variant="outlined" padding="sm"><div className="space-y-3"><div className="flex flex-wrap items-center justify-between gap-2"><h3 className="font-semibold text-hp-foreground">{formatDate(item.local_date)}</h3><Badge variant={historical ? "neutral" : "info"}>{historical ? "Histórico" : "Futuro"}</Badge></div><div className="flex flex-wrap gap-2"><Badge variant={item.kind === "AVAILABLE" ? "success" : "warning"}>{item.kind === "AVAILABLE" ? "Disponível" : "Indisponível"}</Badge><span className="text-sm text-hp-muted">{exceptionScope(item)}</span></div>{exceptionActions(item)}</div></Card>; })}</div>
+              <div className="grid gap-4 md:hidden">{exceptions.map((item) => { const historical = isPastCivilDate(item.local_date, today); return <Card key={item.id} variant="outlined" padding="sm"><div className="space-y-3"><div className="flex flex-wrap items-center justify-between gap-2"><h3 className="font-semibold text-hp-foreground">{formatDate(item.local_date)}</h3><Badge variant={historical ? "neutral" : "info"}>{historical ? "Histórico" : "Futuro"}</Badge></div><div className="flex flex-wrap gap-2"><Badge variant={item.kind === "AVAILABLE" ? "success" : "warning"}>{item.kind === "AVAILABLE" ? "Disponível" : "Indisponível"}</Badge><span className="text-sm text-hp-muted">{exceptionScope(item)}</span></div><div className="flex justify-end">{exceptionActions(item)}</div></div></Card>; })}</div>
               {totalPages > 1 ? <Pagination page={exceptionPage} totalPages={totalPages} onPageChange={setExceptionPage} disabled={exceptionLoading} /> : null}
             </>
           ) : null}

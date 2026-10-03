@@ -445,6 +445,20 @@ dados são preservados em falha.
 
 **Acessibilidade:** estado expanded, relação com menu e retorno de foco.
 
+## 29.1 RowActionsMenu
+
+**Finalidade:** concentrar as ações de um registro em tabelas e cards sem
+alterar a largura das colunas conforme o conteúdo.
+
+**Regras:** usar um acionador de três pontos com alvo mínimo de `40px`, alinhado
+à direita; empregar verbos e o nome do objeto nos itens; separar ações
+destrutivas; manter a mesma ordem entre desktop e mobile; não exibir mensagens
+longas dentro da célula de ações. A coluna visual possui largura compacta e o
+cabeçalho "Ações" permanece disponível para leitores de tela.
+
+**Acessibilidade:** o acionador recebe nome contextual por registro, oferece
+navegação completa por teclado e devolve o foco após a seleção.
+
 ---
 
 # Dados

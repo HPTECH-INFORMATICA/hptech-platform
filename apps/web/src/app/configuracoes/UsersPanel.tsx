@@ -16,9 +16,14 @@ import Dialog, {
   DialogTitle,
 } from "@/components/ui/Dialog";
 import EmptyState from "@/components/ui/EmptyState";
+import {
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/DropdownMenu";
 import Input from "@/components/ui/Input";
 import Pagination from "@/components/ui/Pagination";
 import SearchBox from "@/components/ui/SearchBox";
+import RowActionsMenu from "@/components/ui/RowActionsMenu";
 import Section from "@/components/ui/Section";
 import Select from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
@@ -248,19 +253,24 @@ export default function UsersPanel({ currentUser }: { currentUser: CurrentUser }
   }
 
   const actions = (user: AdminUser) => (
-    <div className="flex flex-wrap gap-2">
+    <RowActionsMenu label={`Ações de ${user.name}`}>
       {(canUpdate || canManageRole) && (
-        <Button variant="outline" size="sm" onClick={() => openEditor(user)}>Editar</Button>
+        <DropdownMenuItem onSelect={() => openEditor(user)}>
+          Editar usuário
+        </DropdownMenuItem>
       )}
       {canBlock && (
-        <Button variant="ghost" size="sm" onClick={() => toggleStatus(user)}>
+        <DropdownMenuItem onSelect={() => void toggleStatus(user)}>
           {user.is_active ? "Bloquear" : "Reativar"}
-        </Button>
+        </DropdownMenuItem>
       )}
+      {canDelete && <DropdownMenuSeparator />}
       {canDelete && (
-        <Button variant="danger" size="sm" onClick={() => removeUser(user)}>Remover</Button>
+        <DropdownMenuItem variant="danger" onSelect={() => void removeUser(user)}>
+          Remover usuário
+        </DropdownMenuItem>
       )}
-    </div>
+    </RowActionsMenu>
   );
 
   return (
@@ -303,14 +313,14 @@ export default function UsersPanel({ currentUser }: { currentUser: CurrentUser }
             <p className="text-sm text-hp-muted" aria-live="polite">{resultLabel}</p>
             <div className="hidden overflow-x-auto rounded-[var(--radius-lg)] border border-hp-border md:block">
               <Table>
-                <TableHeader><TableRow><TableHead>Usuário</TableHead><TableHead>Papel</TableHead><TableHead>Estado</TableHead>{hasActions && <TableHead>Ações</TableHead>}</TableRow></TableHeader>
+                <TableHeader><TableRow><TableHead>Usuário</TableHead><TableHead>Papel</TableHead><TableHead>Estado</TableHead>{hasActions && <TableHead className="w-16 text-right"><span className="sr-only">Ações</span></TableHead>}</TableRow></TableHeader>
                 <TableBody>
                   {users.map((user) => (
                     <TableRow key={user.id}>
                       <TableCell><div className="font-medium text-hp-foreground">{user.name}</div><div className="text-sm text-hp-muted">{user.email}</div></TableCell>
                       <TableCell>{roleLabels[user.role]}</TableCell>
                       <TableCell><StatusBadge active={user.is_active} /></TableCell>
-                      {hasActions && <TableCell>{actions(user)}</TableCell>}
+                      {hasActions && <TableCell className="w-16 text-right">{actions(user)}</TableCell>}
                     </TableRow>
                   ))}
                 </TableBody>
@@ -321,7 +331,7 @@ export default function UsersPanel({ currentUser }: { currentUser: CurrentUser }
                 <Card key={user.id} variant="outlined" className="justify-between">
                   <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h3 className="break-words font-semibold">{user.name}</h3><p className="break-all text-sm text-hp-muted">{user.email}</p></div><StatusBadge active={user.is_active} /></div>
                   <p className="mt-3 text-sm">{roleLabels[user.role]}</p>
-                  {hasActions && <div className="mt-4">{actions(user)}</div>}
+                  {hasActions && <div className="mt-4 flex justify-end">{actions(user)}</div>}
                 </Card>
               ))}
             </div>
@@ -335,7 +345,16 @@ export default function UsersPanel({ currentUser }: { currentUser: CurrentUser }
                       <div><p className="font-medium">{invitation.name}</p><p className="text-sm text-hp-muted">{invitation.email} · {roleLabels[invitation.role]}</p></div>
                       <div className="flex items-center gap-2">
                         <Badge variant={invitation.state === "PENDING" ? "info" : invitation.state === "DELIVERY_FAILED" ? "danger" : "neutral"}>{invitation.state}</Badge>
-                        {["PENDING", "DELIVERY_FAILED"].includes(invitation.state) ? <Button variant="ghost" size="sm" onClick={() => revokeInvitation(invitation.id)}>Revogar</Button> : null}
+                        {["PENDING", "DELIVERY_FAILED"].includes(invitation.state) ? (
+                          <RowActionsMenu label={`Ações do convite de ${invitation.name}`}>
+                            <DropdownMenuItem
+                              variant="danger"
+                              onSelect={() => void revokeInvitation(invitation.id)}
+                            >
+                              Revogar convite
+                            </DropdownMenuItem>
+                          </RowActionsMenu>
+                        ) : null}
                       </div>
                     </div>
                   </Card>

@@ -437,6 +437,12 @@ sem listar quais resultados e critérios foram comprovados.
 | F1/E2 — confirmação do agendamento | Em validação | Menu de ações foi padronizado com Serviços. A confirmação por WhatsApp inclui clínica, unidade, endereço, data, horário, serviço, profissional, Google Agenda e Maps. | Implementar provedor oficial, templates consentidos, fila, entrega, lembretes e histórico de comunicação. |
 | F2 — atendimento clínico | Planejado | Escopo preservado no PRD: fotos antes/durante/depois, evolução técnica, histórico e documentos assináveis. | Modelar prontuário, consentimento, armazenamento seguro, retenção, auditoria e assinatura antes da implementação. |
 
+### 2026-10-03 — padronização transversal de ações
+
+| Item | Estado | Evidência | Pendência para concluir |
+| --- | --- | --- | --- |
+| A2 — ações em registros | Em validação | Pacientes, Profissionais, Disponibilidade, Serviços, Categorias, Agenda, Financeiro, Landing Pages, Usuários e Convites usam o mesmo `RowActionsMenu`, com coluna compacta, alinhamento à direita e ação destrutiva separada. Lint e build de 35 rotas aprovados. | Validar visualmente em produção nos modos desktop e mobile autenticados. |
+
 Próxima execução: publicar e validar o incremento de localização/comunicação da
 Agenda. Depois, evoluir a Agenda para sessões e pagamento antes de iniciar o
 prontuário clínico, mantendo dados clínicos separados dos dados operacionais.

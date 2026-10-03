@@ -15,12 +15,13 @@ import Dialog, {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/Dialog";
-import DropdownMenu, { DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/DropdownMenu";
+import { DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/DropdownMenu";
 import EmptyState from "@/components/ui/EmptyState";
 import Input from "@/components/ui/Input";
 import PageHeader from "@/components/ui/PageHeader";
 import Pagination from "@/components/ui/Pagination";
 import Section from "@/components/ui/Section";
+import RowActionsMenu from "@/components/ui/RowActionsMenu";
 import Select from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
 import Table, {
@@ -333,17 +334,16 @@ export default function FinancialPage({ currentUser, initialDate }: FinancialPag
 
   function transactionActions(item: FinancialTransactionData) {
     const pending = item.status === "PENDING";
+    const hasItemActions = (canUpdate && pending) || (canDelete && item.status !== "PAID");
+    if (!hasItemActions) return null;
     return (
-      <DropdownMenu>
-        <DropdownMenuTrigger aria-label={`Ações de ${item.description}`} className="inline-flex size-10 items-center justify-center rounded-[var(--radius-md)] text-xl font-bold text-hp-muted hover:bg-hp-surface-subtle hover:text-hp-foreground focus-visible:outline-2 focus-visible:outline-hp-focus">•••</DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+      <RowActionsMenu label={`Ações de ${item.description}`}>
           {canUpdate && pending ? <DropdownMenuItem onSelect={() => openEdit(item)}>Editar lançamento</DropdownMenuItem> : null}
           {canUpdate && pending ? <DropdownMenuItem onSelect={() => { setPaidDate(initialDate); setPaymentMethod(""); setPayTarget(item); }}>Registrar pagamento</DropdownMenuItem> : null}
           {canUpdate && pending ? <DropdownMenuItem onSelect={() => setCancelTarget(item)}>Cancelar lançamento</DropdownMenuItem> : null}
           {canDelete && item.status !== "PAID" && canUpdate && pending ? <DropdownMenuSeparator /> : null}
           {canDelete && item.status !== "PAID" ? <DropdownMenuItem variant="danger" onSelect={() => setDeleteTarget(item)}>Remover lançamento</DropdownMenuItem> : null}
-        </DropdownMenuContent>
-      </DropdownMenu>
+      </RowActionsMenu>
     );
   }
 
@@ -432,7 +432,7 @@ export default function FinancialPage({ currentUser, initialDate }: FinancialPag
                 <div className="flex h-full min-w-0 flex-col gap-3">
                   <div className="flex items-start justify-between gap-3"><div className="min-w-0"><h3 className="font-semibold text-hp-foreground">{item.description}</h3><p className="text-sm text-hp-muted">{item.category ?? "Sem categoria"}</p></div><StatusBadge item={item} /></div>
                   <dl className="grid grid-cols-2 gap-3 text-sm"><div><dt className="text-hp-muted">Tipo</dt><dd>{typeLabel(item.transaction_type)}</dd></div><div><dt className="text-hp-muted">Vencimento</dt><dd>{formatDate(item.due_date)}</dd></div><div className="col-span-2"><dt className="text-hp-muted">Valor</dt><dd className="font-semibold">{formatMoney(item.amount)}</dd></div></dl>
-                  {hasActions ? <div className="mt-auto pt-1">{transactionActions(item)}</div> : null}
+                  {hasActions ? <div className="mt-auto flex justify-end pt-1">{transactionActions(item)}</div> : null}
                 </div>
               </Card>
             ))}</div>

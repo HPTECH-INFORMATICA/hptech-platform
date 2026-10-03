@@ -16,9 +16,14 @@ import Dialog, {
   DialogTitle,
 } from "@/components/ui/Dialog";
 import EmptyState from "@/components/ui/EmptyState";
+import {
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/DropdownMenu";
 import PageHeader from "@/components/ui/PageHeader";
 import Pagination from "@/components/ui/Pagination";
 import Section from "@/components/ui/Section";
+import RowActionsMenu from "@/components/ui/RowActionsMenu";
 import Select from "@/components/ui/Select";
 import Skeleton from "@/components/ui/Skeleton";
 import useToast from "@/hooks/useToast";
@@ -347,51 +352,55 @@ export default function LandingPagesPage({ currentUser }: { currentUser: Current
                         <dd>{item.content.blocks.length}</dd>
                       </div>
                     </dl>
-                    <div className="mt-auto flex flex-wrap gap-2">
-                      {item.status === "PUBLISHED" ? (
-                        <a
-                          href={
-                            publicLandingPageFrontendPath(
-                              currentUser.company.slug,
-                              item.slug,
-                            ) ?? undefined
-                          }
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex min-h-11 items-center justify-center rounded-[var(--radius-md)] border border-hp-primary bg-transparent px-3 text-sm font-semibold text-hp-primary transition-colors hover:bg-hp-primary-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-hp-focus sm:min-h-9"
-                        >
-                          Abrir página
-                          <span className="sr-only"> (abre em nova aba)</span>
-                        </a>
-                      ) : null}
-                      {canUpdate && item.status === "DRAFT" ? (
-                        <Button size="sm" variant="outline" onClick={() => openEdit(item)}>
-                          Editar
-                        </Button>
-                      ) : null}
-                      {canUpdate && item.status === "DRAFT" ? (
-                        <Button
-                          size="sm"
-                          disabled={item.content.blocks.length === 0}
-                          onClick={() => setPendingAction({ type: "publish", item })}
-                        >
-                          Publicar
-                        </Button>
-                      ) : null}
-                      {canUpdate && item.status === "PUBLISHED" ? (
-                        <Button size="sm" variant="outline" onClick={() => setPendingAction({ type: "unpublish", item })}>
-                          Despublicar
-                        </Button>
-                      ) : null}
-                      {canUpdate && item.status === "DRAFT" ? (
-                        <Button size="sm" variant="ghost" onClick={() => setPendingAction({ type: "archive", item })}>
-                          Arquivar
-                        </Button>
-                      ) : null}
-                      {canDelete && item.status !== "PUBLISHED" ? (
-                        <Button size="sm" variant="danger" onClick={() => setPendingAction({ type: "delete", item })}>
-                          Remover
-                        </Button>
+                    <div className="mt-auto flex justify-end">
+                      {item.status === "PUBLISHED" || canUpdate || canDelete ? (
+                        <RowActionsMenu label={`Ações de ${item.name}`}>
+                          {item.status === "PUBLISHED" ? (
+                            <DropdownMenuItem
+                              onSelect={() => {
+                                const path = publicLandingPageFrontendPath(
+                                  currentUser.company.slug,
+                                  item.slug,
+                                );
+                                if (path) window.open(path, "_blank", "noopener,noreferrer");
+                              }}
+                            >
+                              Abrir página
+                            </DropdownMenuItem>
+                          ) : null}
+                          {canUpdate && item.status === "DRAFT" ? (
+                            <DropdownMenuItem onSelect={() => openEdit(item)}>
+                              Editar landing page
+                            </DropdownMenuItem>
+                          ) : null}
+                          {canUpdate && item.status === "DRAFT" ? (
+                            <DropdownMenuItem
+                              disabled={item.content.blocks.length === 0}
+                              onSelect={() => setPendingAction({ type: "publish", item })}
+                            >
+                              Publicar
+                            </DropdownMenuItem>
+                          ) : null}
+                          {canUpdate && item.status === "PUBLISHED" ? (
+                            <DropdownMenuItem onSelect={() => setPendingAction({ type: "unpublish", item })}>
+                              Despublicar
+                            </DropdownMenuItem>
+                          ) : null}
+                          {canUpdate && item.status === "DRAFT" ? (
+                            <DropdownMenuItem onSelect={() => setPendingAction({ type: "archive", item })}>
+                              Arquivar
+                            </DropdownMenuItem>
+                          ) : null}
+                          {canDelete && item.status !== "PUBLISHED" ? <DropdownMenuSeparator /> : null}
+                          {canDelete && item.status !== "PUBLISHED" ? (
+                            <DropdownMenuItem
+                              variant="danger"
+                              onSelect={() => setPendingAction({ type: "delete", item })}
+                            >
+                              Remover landing page
+                            </DropdownMenuItem>
+                          ) : null}
+                        </RowActionsMenu>
                       ) : null}
                     </div>
                   </article>
