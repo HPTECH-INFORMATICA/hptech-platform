@@ -1,0 +1,17 @@
+node_modules
+**/node_modules
+.turbo
+**/.turbo
+.next
+**/.next
+coverage
+**/coverage
+.venv
+**/.venv
+__pycache__
+**/__pycache__
+.git
+.env
+.env.*
+!.env.example
+*.log
