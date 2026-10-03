@@ -1,7 +1,7 @@
 import uuid
 
 from sqlalchemy import func, or_, select
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session, selectinload
 
 from app.models.service import Service
 from app.models.service_category import ServiceCategory
@@ -32,7 +32,7 @@ class ServiceRepository:
         *,
         for_update: bool = False,
     ) -> Service | None:
-        statement = select(Service).options(joinedload(Service.category)).where(
+        statement = select(Service).options(selectinload(Service.category)).where(
             Service.company_id == company_id,
             Service.id == service_id,
             Service.deleted_at.is_(None),
@@ -76,7 +76,7 @@ class ServiceRepository:
             select(func.count()).select_from(Service).where(*filters)
         ) or 0
         statement = (
-            select(Service).options(joinedload(Service.category))
+            select(Service).options(selectinload(Service.category))
             .where(*filters)
             .order_by(Service.name.asc(), Service.id.asc())
             .offset((page - 1) * page_size)

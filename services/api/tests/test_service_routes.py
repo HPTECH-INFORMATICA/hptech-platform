@@ -418,3 +418,20 @@ def test_repository_contract_excludes_deleted_services() -> None:
     statements = [str(call.args[0]) for call in [db.scalar.call_args, db.execute.call_args]]
     assert all("services.deleted_at IS NULL" in statement for statement in statements)
     assert all("services.company_id" in statement for statement in statements)
+
+
+def test_locked_service_query_does_not_join_nullable_category() -> None:
+    db = MagicMock()
+    db.execute.return_value.scalar_one_or_none.return_value = None
+
+    ServiceRepository.get_by_id(
+        db,
+        uuid4(),
+        uuid4(),
+        for_update=True,
+    )
+
+    statement = db.execute.call_args.args[0]
+    sql = str(statement.compile(compile_kwargs={"literal_binds": True}))
+    assert "FOR UPDATE" in sql
+    assert "JOIN service_categories" not in sql
