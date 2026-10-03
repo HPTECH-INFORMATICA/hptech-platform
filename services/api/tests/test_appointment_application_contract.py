@@ -173,6 +173,10 @@ def test_response_exposes_clinical_professional_as_professional_id() -> None:
         starts_at=now,
         ends_at=now,
         status="SCHEDULED",
+        financial_status="NOT_GENERATED",
+        financial_transaction_id=None,
+        financial_paid_date=None,
+        financial_payment_method=None,
         notes=None,
         created_at=now,
         updated_at=now,
@@ -181,4 +185,5 @@ def test_response_exposes_clinical_professional_as_professional_id() -> None:
     response = AppointmentResponse.model_validate(source)
 
     assert response.professional_id == clinical_professional_id
+    assert response.financial_status == "NOT_GENERATED"
     assert "clinical_professional_id" not in response.model_dump()

@@ -6,6 +6,13 @@ export type AppointmentStatus =
   | "CANCELED"
   | "NO_SHOW";
 
+export type AppointmentFinancialStatus =
+  | "NO_CHARGE"
+  | "NOT_GENERATED"
+  | "PENDING"
+  | "PAID"
+  | "CANCELED";
+
 export type AppointmentData = {
   id: string;
   patient_id: string;
@@ -18,6 +25,10 @@ export type AppointmentData = {
   starts_at: string;
   ends_at: string;
   status: AppointmentStatus;
+  financial_status: AppointmentFinancialStatus;
+  financial_transaction_id: string | null;
+  financial_paid_date: string | null;
+  financial_payment_method: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;

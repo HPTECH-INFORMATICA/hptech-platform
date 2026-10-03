@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import func, select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from sqlalchemy.sql.elements import ColumnElement
 
 from app.models.appointment import Appointment
@@ -40,9 +40,13 @@ class AppointmentRepository:
         *,
         for_update: bool = False,
     ) -> Appointment | None:
-        statement = select(Appointment).where(
-            *AppointmentRepository._operational_filters(company_id),
-            Appointment.id == appointment_id,
+        statement = (
+            select(Appointment)
+            .options(selectinload(Appointment.transactions))
+            .where(
+                *AppointmentRepository._operational_filters(company_id),
+                Appointment.id == appointment_id,
+            )
         )
         if for_update:
             statement = statement.with_for_update()
@@ -82,6 +86,7 @@ class AppointmentRepository:
         ) or 0
         statement = (
             select(Appointment)
+            .options(selectinload(Appointment.transactions))
             .where(*filters)
             .order_by(Appointment.starts_at.asc(), Appointment.id.asc())
             .offset((page - 1) * page_size)

@@ -113,6 +113,7 @@ def test_complete_creates_pending_receivable_in_same_transaction(monkeypatch) ->
         service_name_snapshot="Consulta inicial",
         service_price_snapshot=Decimal("150.00"),
         ends_at=datetime(2026, 9, 15, 15, 0, tzinfo=UTC),
+        transactions=[],
     )
     monkeypatch.setattr(
         AppointmentRepository,
@@ -152,6 +153,7 @@ def test_complete_creates_pending_receivable_in_same_transaction(monkeypatch) ->
     assert receivable.amount == Decimal("150.00")
     assert receivable.due_date.isoformat() == "2026-09-15"
     assert receivable.status == "PENDING"
+    assert appointment.transactions == [receivable]
     assert audit.call_count == 2
     assert [call.kwargs["action"] for call in audit.call_args_list] == [
         "FINANCIAL_TRANSACTION_CREATED",

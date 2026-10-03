@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
 from enum import StrEnum
 from typing import Self
@@ -26,6 +26,14 @@ class AppointmentStatus(StrEnum):
     COMPLETED = "COMPLETED"
     CANCELED = "CANCELED"
     NO_SHOW = "NO_SHOW"
+
+
+class AppointmentFinancialStatus(StrEnum):
+    NO_CHARGE = "NO_CHARGE"
+    NOT_GENERATED = "NOT_GENERATED"
+    PENDING = "PENDING"
+    PAID = "PAID"
+    CANCELED = "CANCELED"
 
 
 class AppointmentCivilDateTime(BaseModel):
@@ -149,6 +157,10 @@ class AppointmentResponse(BaseModel):
     starts_at: datetime
     ends_at: datetime
     status: AppointmentStatus
+    financial_status: AppointmentFinancialStatus
+    financial_transaction_id: uuid.UUID | None
+    financial_paid_date: date | None
+    financial_payment_method: str | None
     notes: str | None
     created_at: datetime
     updated_at: datetime

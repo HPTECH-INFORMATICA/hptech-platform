@@ -1,6 +1,7 @@
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
 from sqlalchemy import (
     CheckConstraint,
@@ -25,6 +26,9 @@ from app.db.mixins import (
     TimestampMixin,
     UUIDPrimaryKeyMixin,
 )
+
+if TYPE_CHECKING:
+    from app.models.transaction import Transaction
 
 
 class Appointment(
@@ -236,6 +240,40 @@ class Appointment(
             "Appointment.id == foreign(Transaction.appointment_id))"
         ),
     )
+
+    @property
+    def active_income_transaction(self) -> "Transaction | None":
+        return next(
+            (
+                transaction
+                for transaction in self.transactions
+                if transaction.deleted_at is None
+                and transaction.transaction_type == "INCOME"
+            ),
+            None,
+        )
+
+    @property
+    def financial_status(self) -> str:
+        if self.service_price_snapshot <= 0:
+            return "NO_CHARGE"
+        transaction = self.active_income_transaction
+        return transaction.status if transaction is not None else "NOT_GENERATED"
+
+    @property
+    def financial_transaction_id(self) -> uuid.UUID | None:
+        transaction = self.active_income_transaction
+        return transaction.id if transaction is not None else None
+
+    @property
+    def financial_paid_date(self) -> date | None:
+        transaction = self.active_income_transaction
+        return transaction.paid_date if transaction is not None else None
+
+    @property
+    def financial_payment_method(self) -> str | None:
+        transaction = self.active_income_transaction
+        return transaction.payment_method if transaction is not None else None
 
 
 Appointment.__table__.append_constraint(

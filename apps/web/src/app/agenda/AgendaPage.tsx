@@ -33,6 +33,7 @@ import {
   transitionAppointment,
   type AppointmentAction,
   type AppointmentData,
+  type AppointmentFinancialStatus,
   type AppointmentStatus,
 } from "@/services/appointment-service";
 import { listPatients, type PatientData } from "@/services/patient-service";
@@ -61,6 +62,26 @@ const statusPresentation: Record<
   COMPLETED: { label: "Concluído", variant: "success" },
   CANCELED: { label: "Cancelado", variant: "danger" },
   NO_SHOW: { label: "Não compareceu", variant: "neutral" },
+};
+
+const financialPresentation: Record<
+  AppointmentFinancialStatus,
+  { label: string; variant: BadgeProps["variant"] }
+> = {
+  NO_CHARGE: { label: "Sem cobrança", variant: "neutral" },
+  NOT_GENERATED: { label: "Cobrança não gerada", variant: "neutral" },
+  PENDING: { label: "Em aberto", variant: "warning" },
+  PAID: { label: "Pago", variant: "success" },
+  CANCELED: { label: "Cobrança cancelada", variant: "danger" },
+};
+
+const paymentMethodLabels: Record<string, string> = {
+  PIX: "Pix",
+  CASH: "Dinheiro",
+  CREDIT_CARD: "Cartão de crédito",
+  DEBIT_CARD: "Cartão de débito",
+  BANK_TRANSFER: "Transferência bancária",
+  OTHER: "Outro",
 };
 
 type AgendaPageProps = {
@@ -233,6 +254,9 @@ function AppointmentCard({
   onOpen: () => void;
 }) {
   const status = statusPresentation[appointment.status];
+  const financial =
+    financialPresentation[appointment.financial_status] ??
+    financialPresentation.NOT_GENERATED;
   return (
     <button
       type="button"
@@ -261,7 +285,18 @@ function AppointmentCard({
       <p className="truncate text-sm text-hp-foreground" title={patientName}>{patientName}</p>
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-hp-muted">
         <span>{professionalName}</span>
-        <span>{appointment.service_duration_minutes_snapshot} min · {currencyFormatter.format(Number(appointment.service_price_snapshot))}</span>
+        <span>
+          {appointment.service_duration_minutes_snapshot} min ·{" "}
+          {currencyFormatter.format(
+            Number(appointment.service_price_snapshot),
+          )}
+        </span>
+      </div>
+      <div className="flex items-center justify-between gap-2 border-t border-hp-border pt-2 text-xs text-hp-muted">
+        <span>Financeiro</span>
+        <Badge variant={financial.variant} size="sm">
+          {financial.label}
+        </Badge>
       </div>
       <div className="border-t border-hp-border pt-2 text-xs text-hp-muted">
         <p className="font-medium text-hp-foreground">{unitName}</p>
@@ -749,6 +784,42 @@ export default function AgendaPage({
                     {clinicAddress ?? "Não cadastrado"}
                   </dd>
                 </div>
+                <div>
+                  <dt className="font-medium text-hp-muted">Financeiro</dt>
+                  <dd className="mt-1">
+                    <Badge
+                      variant={
+                        (financialPresentation[
+                          selectedAppointment.financial_status
+                        ] ?? financialPresentation.NOT_GENERATED).variant
+                      }
+                      size="sm"
+                    >
+                      {
+                        (financialPresentation[
+                          selectedAppointment.financial_status
+                        ] ?? financialPresentation.NOT_GENERATED).label
+                      }
+                    </Badge>
+                  </dd>
+                </div>
+                {selectedAppointment.financial_paid_date ? (
+                  <div>
+                    <dt className="font-medium text-hp-muted">Pagamento</dt>
+                    <dd className="mt-1 text-hp-foreground">
+                      {new Intl.DateTimeFormat("pt-BR", {
+                        timeZone: "UTC",
+                      }).format(
+                        new Date(
+                          `${selectedAppointment.financial_paid_date}T12:00:00Z`,
+                        ),
+                      )}
+                      {selectedAppointment.financial_payment_method
+                        ? ` · ${paymentMethodLabels[selectedAppointment.financial_payment_method] ?? selectedAppointment.financial_payment_method}`
+                        : ""}
+                    </dd>
+                  </div>
+                ) : null}
               </dl>
               {selectedAppointment.notes ? (
                 <div>

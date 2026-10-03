@@ -1,3 +1,7 @@
+from datetime import UTC, date, datetime
+from decimal import Decimal
+from uuid import uuid4
+
 from sqlalchemy import CheckConstraint, inspect
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.dialects.postgresql import ExcludeConstraint
@@ -128,3 +132,38 @@ def test_appointment_overlap_exclusion_is_registered() -> None:
     assert "company_id WITH =" in table_sql
     assert "clinical_professional_id WITH =" in table_sql
     assert "tstzrange(starts_at, ends_at, '[)') WITH &&" in table_sql
+
+
+def test_appointment_exposes_financial_state_from_active_receivable() -> None:
+    appointment = Appointment(service_price_snapshot=Decimal("300.00"))
+    transaction = Transaction(
+        id=uuid4(),
+        transaction_type="INCOME",
+        status="PAID",
+        paid_date=date(2026, 10, 3),
+        payment_method="PIX",
+        deleted_at=None,
+    )
+    appointment.transactions = [transaction]
+
+    assert appointment.financial_status == "PAID"
+    assert appointment.financial_transaction_id == transaction.id
+    assert appointment.financial_paid_date == date(2026, 10, 3)
+    assert appointment.financial_payment_method == "PIX"
+
+
+def test_appointment_financial_state_distinguishes_free_and_not_generated() -> None:
+    free = Appointment(service_price_snapshot=Decimal("0.00"))
+    free.transactions = []
+    chargeable = Appointment(service_price_snapshot=Decimal("300.00"))
+    chargeable.transactions = [
+        Transaction(
+            transaction_type="INCOME",
+            status="PENDING",
+            deleted_at=datetime(2026, 10, 3, tzinfo=UTC),
+        )
+    ]
+
+    assert free.financial_status == "NO_CHARGE"
+    assert chargeable.financial_status == "NOT_GENERATED"
+    assert chargeable.financial_transaction_id is None

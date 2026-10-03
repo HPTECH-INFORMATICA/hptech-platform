@@ -82,6 +82,13 @@ nenhuma persiste. Serviços gratuitos não geram lançamento. Uma restrição
 parcial no PostgreSQL impede mais de uma receita ativa para o mesmo agendamento
 e empresa, inclusive sob concorrência.
 
+Os cards e o detalhe da Agenda consultam esse lançamento vinculado e exibem o
+estado financeiro real: `Sem cobrança`, `Cobrança não gerada`, `Em aberto`,
+`Pago` ou `Cobrança cancelada`. Quando pago, o detalhe também informa data e
+forma de pagamento. Lançamentos removidos logicamente não são apresentados como
+cobrança ativa. A Agenda não mantém uma cópia do pagamento: o módulo Financeiro
+continua sendo a fonte de verdade.
+
 ## Ciclo operacional
 
 Transições permitidas:
@@ -142,6 +149,7 @@ A rota `/agenda` exige `APPOINTMENTS:VIEW`. A tela oferece:
 - criação, edição e reagendamento conforme permissões;
 - comandos de confirmação, início, conclusão, cancelamento e ausência;
 - feedback de carregamento, vazio, erro e sucesso.
+- situação financeira no card e no detalhe de cada agendamento.
 
 As mutações passam pelo BFF same-origin e pela sessão HttpOnly existente.
 

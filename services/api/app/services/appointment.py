@@ -477,6 +477,8 @@ class AppointmentDomain:
                 notes=None,
             )
             FinancialRepository.add(db, transaction)
+            if hasattr(appointment, "transactions"):
+                appointment.transactions.append(transaction)
             AuditLogRepository.add(
                 db,
                 company_id=identity.company.id,
