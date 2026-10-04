@@ -48,6 +48,7 @@ async def apply_security_headers(request: Request, call_next):
             "/api/v1/lead-history",
             "/api/v1/audit-logs",
             "/api/v1/appointments",
+            "/api/v1/treatment-plans",
             "/api/v1/landing-pages",
         )
     ):

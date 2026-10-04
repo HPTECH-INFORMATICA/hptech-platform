@@ -103,3 +103,9 @@ class Service(
         "ServiceCategory",
         back_populates="services",
     )
+
+    treatment_plan_items = relationship(
+        "TreatmentPlanItem",
+        back_populates="service",
+        overlaps="items,plan",
+    )

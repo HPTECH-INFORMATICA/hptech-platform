@@ -145,6 +145,13 @@ class Company(
         passive_deletes=True,
     )
 
+    treatment_plans = relationship(
+        "TreatmentPlan",
+        back_populates="company",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+
     tags = relationship(
         "Tag",
         back_populates="company",

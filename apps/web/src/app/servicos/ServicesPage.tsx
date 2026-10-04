@@ -47,6 +47,7 @@ import {
 } from "@/services/service-service";
 
 import CategoriesPanel from "./CategoriesPanel";
+import PlansPanel from "./PlansPanel";
 
 const PAGE_SIZE = 10;
 const statusOptions = [
@@ -349,8 +350,9 @@ export default function ServicesPage({ currentUser }: { currentUser: CurrentUser
   return <div className="space-y-8">
     <PageHeader title="Serviços" description="Cadastro dos serviços oferecidos pela empresa." />
     {canViewCategories ? <Tabs defaultValue="services">
-      <TabsList><TabsTrigger value="services">Serviços</TabsTrigger><TabsTrigger value="categories">Categorias</TabsTrigger></TabsList>
+      <TabsList><TabsTrigger value="services">Serviços</TabsTrigger><TabsTrigger value="plans">Planos</TabsTrigger><TabsTrigger value="categories">Categorias</TabsTrigger></TabsList>
       <TabsContent value="services"><ServicesCatalog currentUser={currentUser} /></TabsContent>
+      <TabsContent value="plans"><PlansPanel currentUser={currentUser} /></TabsContent>
       <TabsContent value="categories"><CategoriesPanel currentUser={currentUser} /></TabsContent>
     </Tabs> : <ServicesCatalog currentUser={currentUser} />}
   </div>;

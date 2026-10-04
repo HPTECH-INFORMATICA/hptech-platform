@@ -25,3 +25,7 @@ from app.models.landing_page import LandingPage  # noqa: E402, F401
 from app.models.landing_page_submission_limit import (  # noqa: E402, F401
     LandingPageSubmissionLimit,
 )
+from app.models.treatment_plan import (  # noqa: E402, F401
+    TreatmentPlan,
+    TreatmentPlanItem,
+)
