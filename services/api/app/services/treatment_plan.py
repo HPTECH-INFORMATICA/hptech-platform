@@ -45,8 +45,13 @@ class TreatmentPlanDomain:
     def create(cls, db: Session, identity: AuthenticatedIdentity, data: TreatmentPlanCreate) -> TreatmentPlan:
         cls._validate_services(db, identity.company.id, data)
         plan = TreatmentPlan(company_id=identity.company.id, name=data.name, description=data.description, price=data.price, validity_days=data.validity_days, is_active=True, items=cls._items(identity.company.id, data))
-        db.add(plan); db.flush()
-        AuditLogRepository.add(db, company_id=identity.company.id, actor_user_id=identity.user.id, target_type="TREATMENT_PLAN", target_id=plan.id, action="TREATMENT_PLAN_CREATED", details={"state": "ACTIVE"})
+        try:
+            db.add(plan)
+            db.flush()
+            AuditLogRepository.add(db, company_id=identity.company.id, actor_user_id=identity.user.id, target_type="TREATMENT_PLAN", target_id=plan.id, action="TREATMENT_PLAN_CREATED", details={"state": "ACTIVE"})
+        except SQLAlchemyError as error:
+            db.rollback()
+            raise TreatmentPlanPersistenceError from error
         return cls._commit(db, plan)
 
     @classmethod
