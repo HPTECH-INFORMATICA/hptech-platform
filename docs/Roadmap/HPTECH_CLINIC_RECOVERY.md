@@ -448,8 +448,9 @@ sem listar quais resultados e critérios foram comprovados.
 
 | Item | Estado | Evidência | Pendência para concluir |
 | --- | --- | --- | --- |
-| D2 — planos e pacotes | Em andamento | Plano separado do serviço, com múltiplos procedimentos, quantidades pagas, cortesias, preço, validade, status e remoção lógica. A aba `Serviços > Planos`, API tenant-aware, migration reversível, build e 677 testes da API foram aprovados. | Implementar edição visual, venda/contrato do paciente, condição de pagamento e ledger imutável de reserva, consumo, cancelamento e estorno. |
+| D2 — planos e pacotes | Em andamento | Plano separado do serviço, com múltiplos procedimentos, quantidades pagas, cortesias, preço, validade, edição visual, status e remoção lógica. A aba `Serviços > Planos`, API tenant-aware, migration reversível, build e 677 testes da API foram aprovados. | Implementar venda/contrato do paciente, condição de pagamento e ledger imutável de reserva, consumo, cancelamento e estorno. |
 
-Próxima execução: publicar e validar o incremento de localização/comunicação da
-Agenda. Depois, evoluir a Agenda para sessões e pagamento antes de iniciar o
+Próxima execução: modelar a contratação do plano pelo paciente, preservando uma
+cópia comercial imutável do plano vendido, condições de pagamento e o ledger de
+sessões. Depois, integrar reserva e consumo à Agenda antes de iniciar o
 prontuário clínico, mantendo dados clínicos separados dos dados operacionais.

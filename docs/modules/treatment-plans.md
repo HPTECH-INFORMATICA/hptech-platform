@@ -10,8 +10,8 @@ impede quantidades inválidas, serviços duplicados no mesmo plano e vínculos
 entre empresas diferentes.
 
 A interface está disponível em `Serviços > Planos` e segue o mesmo padrão de
-ações do restante do produto. As permissões desta primeira fase reutilizam o
-módulo `SERVICES`.
+ações do restante do produto: editar e salvar, desativar ou reativar e remover
+logicamente. As permissões desta primeira fase reutilizam o módulo `SERVICES`.
 
 Este incremento ainda não representa uma venda. A próxima fase criará o
 contrato do paciente e o ledger imutável de reserva, consumo, cancelamento e
