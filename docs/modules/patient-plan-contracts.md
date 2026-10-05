@@ -20,6 +20,11 @@ seus eventos. O saldo é calculado pelos movimentos `CREDIT`, `RESERVE`,
 Nesta primeira entrega são gravados o contrato, o recebível e os créditos
 iniciais. Reserva e consumo pela Agenda serão implementados na etapa seguinte.
 
+Na tela de Pacientes, o menu de ações oferece `Planos contratados`. Usuários com
+permissão de atualização podem contratar um plano ativo como pago integralmente
+ou em aberto. A consulta exibe preço contratado, validade, situação financeira
+e saldo separado de sessões pagas e cortesias.
+
 ## API
 
 ```text

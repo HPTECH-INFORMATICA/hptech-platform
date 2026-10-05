@@ -36,6 +36,7 @@ import Table, {
   TableRow,
 } from "@/components/ui/Table";
 import useToast from "@/hooks/useToast";
+import PatientPlansDialog from "./PatientPlansDialog";
 import {
   createPatient,
   deletePatient,
@@ -165,11 +166,13 @@ export default function PatientsPage({ currentUser, maxBirthDate }: PatientsPage
   const [saving, setSaving] = useState(false);
   const [statusTarget, setStatusTarget] = useState<PatientData | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<PatientData | null>(null);
+  const [plansTarget, setPlansTarget] = useState<PatientData | null>(null);
 
+  const canView = hasPermission(currentUser, "PATIENTS", "VIEW");
   const canCreate = hasPermission(currentUser, "PATIENTS", "CREATE");
   const canUpdate = hasPermission(currentUser, "PATIENTS", "UPDATE");
   const canDelete = hasPermission(currentUser, "PATIENTS", "DELETE");
-  const hasActions = canUpdate || canDelete;
+  const hasActions = canView || canUpdate || canDelete;
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -305,6 +308,7 @@ export default function PatientsPage({ currentUser, maxBirthDate }: PatientsPage
     if (!hasActions) return null;
     return (
       <RowActionsMenu label={`Ações de ${patient.name}`}>
+        {canView ? <DropdownMenuItem onSelect={() => setPlansTarget(patient)}>Planos contratados</DropdownMenuItem> : null}
         {canUpdate ? (
           <DropdownMenuItem onSelect={() => openEdit(patient)}>
             Editar paciente
@@ -520,6 +524,7 @@ export default function PatientsPage({ currentUser, maxBirthDate }: PatientsPage
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <PatientPlansDialog key={plansTarget?.id ?? "no-patient"} patient={plansTarget} canContract={canUpdate && Boolean(plansTarget?.is_active)} onClose={() => setPlansTarget(null)} />
 
       <Dialog open={statusTarget !== null} onOpenChange={(open) => !open && setStatusTarget(null)}>
         <DialogContent>

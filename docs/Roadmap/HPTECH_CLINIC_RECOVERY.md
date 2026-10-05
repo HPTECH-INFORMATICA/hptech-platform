@@ -459,4 +459,4 @@ prontuário clínico, mantendo dados clínicos separados dos dados operacionais.
 
 | Item | Estado | Evidência | Pendência para concluir |
 | --- | --- | --- | --- |
-| D2 — contrato e ledger | Em andamento | Contrato tenant-safe com snapshots comerciais, recebível único e créditos iniciais separados entre sessões pagas e cortesias. Ledger protegido contra atualização e exclusão no PostgreSQL. | Aplicar migration, publicar a API, criar a interface no paciente e integrar reserva/consumo/estorno à Agenda. |
+| D2 — contrato e ledger | Em andamento | Contrato tenant-safe com snapshots comerciais, recebível único e créditos iniciais separados entre sessões pagas e cortesias. Ledger protegido contra atualização e exclusão no PostgreSQL. No paciente, `Planos contratados` permite contratar como pago integralmente ou em aberto e consultar saldo e validade. API publicada, lint limpo e build de 36 rotas aprovado. | Validar a contratação autenticada em produção e integrar reserva/consumo/estorno à Agenda. |
