@@ -9,12 +9,17 @@ from sqlalchemy.orm import Session
 from app.core.timezones import normalize_iana_timezone
 from app.core.identity import AuthenticatedIdentity, UserRole
 from app.models.appointment import Appointment
+from app.models.patient_plan_contract import (
+    PatientPlanContractItem,
+    SessionLedgerEntry,
+)
 from app.models.transaction import Transaction
 from app.repositories.appointment import AppointmentRepository
 from app.repositories.audit_log import AuditLogRepository
 from app.repositories.financial import FinancialRepository
 from app.repositories.lead import LeadRepository
 from app.repositories.patient import PatientRepository
+from app.repositories.patient_plan_contract import PatientPlanContractRepository
 from app.repositories.professional import ProfessionalRepository
 from app.repositories.professional_availability import (
     ProfessionalAvailabilityRepository,
@@ -182,6 +187,159 @@ def require_mutable_fields(
 
 
 class AppointmentDomain:
+    @staticmethod
+    def _available_sessions(item: PatientPlanContractItem, bucket: str) -> int:
+        additions = {"CREDIT", "RELEASE", "RESTORE"}
+        return sum(
+            entry.quantity if entry.event_type in additions else -entry.quantity
+            for entry in item.ledger_entries
+            if entry.bucket == bucket
+        )
+
+    @classmethod
+    def _plan_item(
+        cls,
+        db: Session,
+        identity: AuthenticatedIdentity,
+        item_id: uuid.UUID,
+        *,
+        patient_id: uuid.UUID,
+        service_id: uuid.UUID,
+        starts_at: datetime,
+    ) -> tuple[PatientPlanContractItem, str]:
+        item = PatientPlanContractRepository.get_item_by_id(
+            db,
+            identity.company.id,
+            item_id,
+            for_update=True,
+        )
+        if item is None:
+            raise AppointmentReferenceError("Item de plano não encontrado.")
+        contract = item.contract
+        appointment_date = starts_at.astimezone(
+            ZoneInfo(normalize_iana_timezone(identity.company.timezone))
+        ).date()
+        if contract.status != "ACTIVE":
+            raise AppointmentReferenceError("O contrato do plano não está ativo.")
+        if contract.patient_id != patient_id:
+            raise AppointmentReferenceError(
+                "O plano selecionado não pertence ao paciente."
+            )
+        if item.service_id != service_id:
+            raise AppointmentReferenceError(
+                "O serviço agendado não pertence ao item do plano."
+            )
+        if not contract.starts_on <= appointment_date <= contract.expires_on:
+            raise AppointmentReferenceError(
+                "A data do agendamento está fora da vigência do plano."
+            )
+        if cls._available_sessions(item, "PAID") > 0:
+            return item, "PAID"
+        if cls._available_sessions(item, "COURTESY") > 0:
+            return item, "COURTESY"
+        raise AppointmentLifecycleError(
+            "O paciente não possui sessões disponíveis neste plano."
+        )
+
+    @staticmethod
+    def _ledger_event(
+        db: Session,
+        identity: AuthenticatedIdentity,
+        appointment: Appointment,
+        item: PatientPlanContractItem,
+        event_type: str,
+        bucket: str,
+        reason: str,
+    ) -> SessionLedgerEntry:
+        entry = SessionLedgerEntry(
+            company_id=identity.company.id,
+            contract_id=item.contract_id,
+            contract_item_id=item.id,
+            appointment_id=appointment.id,
+            event_type=event_type,
+            bucket=bucket,
+            quantity=1,
+            actor_user_id=identity.user.id,
+            reason=reason,
+        )
+        db.add(entry)
+        return entry
+
+    @classmethod
+    def _settle_plan_session(
+        cls,
+        db: Session,
+        identity: AuthenticatedIdentity,
+        appointment: Appointment,
+        target: AppointmentStatus | None,
+    ) -> None:
+        item = getattr(appointment, "patient_plan_contract_item", None)
+        if item is None:
+            return
+        entries = list(getattr(appointment, "session_ledger_entries", []))
+        reservation = next(
+            (entry for entry in entries if entry.event_type == "RESERVE"),
+            None,
+        )
+        if reservation is None:
+            raise AppointmentLifecycleError(
+                "A reserva da sessão do plano não foi encontrada."
+            )
+        event_types = {entry.event_type for entry in entries}
+        if target is AppointmentStatus.COMPLETED:
+            if "CONSUME" in event_types:
+                return
+            if "RELEASE" not in event_types:
+                cls._ledger_event(
+                    db,
+                    identity,
+                    appointment,
+                    item,
+                    "RELEASE",
+                    reservation.bucket,
+                    "Liberação técnica da reserva para consumo",
+                )
+            cls._ledger_event(
+                db,
+                identity,
+                appointment,
+                item,
+                "CONSUME",
+                reservation.bucket,
+                "Sessão consumida no atendimento concluído",
+            )
+        elif target in {AppointmentStatus.CANCELED, AppointmentStatus.NO_SHOW}:
+            if "RELEASE" not in event_types and "CONSUME" not in event_types:
+                cls._ledger_event(
+                    db,
+                    identity,
+                    appointment,
+                    item,
+                    "RELEASE",
+                    reservation.bucket,
+                    "Sessão devolvida pelo encerramento do agendamento",
+                )
+        elif target is None and "CONSUME" in event_types and "RESTORE" not in event_types:
+            cls._ledger_event(
+                db,
+                identity,
+                appointment,
+                item,
+                "RESTORE",
+                reservation.bucket,
+                "Sessão restaurada pela exclusão auditada do atendimento",
+            )
+        elif target is None and "RELEASE" not in event_types:
+            cls._ledger_event(
+                db,
+                identity,
+                appointment,
+                item,
+                "RELEASE",
+                reservation.bucket,
+                "Sessão devolvida pela exclusão auditada do agendamento",
+            )
+
     @staticmethod
     def _own_professional_id(
         db: Session,
@@ -364,6 +522,17 @@ class AppointmentDomain:
             data.starts_at, identity.company.timezone
         )
         ends_at = starts_at + timedelta(minutes=service.duration_minutes)
+        plan_item = None
+        plan_bucket = None
+        if data.patient_plan_contract_item_id is not None:
+            plan_item, plan_bucket = cls._plan_item(
+                db,
+                identity,
+                data.patient_plan_contract_item_id,
+                patient_id=data.patient_id,
+                service_id=data.service_id,
+                starts_at=starts_at,
+            )
         cls._ensure_schedule(db, identity, professional, starts_at, ends_at)
         appointment = Appointment(
             company_id=identity.company.id,
@@ -371,6 +540,7 @@ class AppointmentDomain:
             clinical_professional_id=data.professional_id,
             professional_id=None,
             service_id=data.service_id,
+            patient_plan_contract_item_id=(plan_item.id if plan_item else None),
             lead_id=data.lead_id,
             service_name_snapshot=service.name,
             service_duration_minutes_snapshot=service.duration_minutes,
@@ -384,6 +554,16 @@ class AppointmentDomain:
         )
         try:
             AppointmentRepository.add(db, appointment)
+            if plan_item is not None and plan_bucket is not None:
+                cls._ledger_event(
+                    db,
+                    identity,
+                    appointment,
+                    plan_item,
+                    "RESERVE",
+                    plan_bucket,
+                    "Sessão reservada pelo agendamento",
+                )
             cls._audit(
                 db,
                 identity,
@@ -449,8 +629,11 @@ class AppointmentDomain:
         current = AppointmentStatus(appointment.status)
         require_status_transition(current, target)
 
+        cls._settle_plan_session(db, identity, appointment, target)
+
         if (
             target is AppointmentStatus.COMPLETED
+            and getattr(appointment, "patient_plan_contract_item_id", None) is None
             and appointment.service_price_snapshot > 0
             and FinancialRepository.get_active_income_by_appointment(
                 db,
@@ -522,6 +705,19 @@ class AppointmentDomain:
             data.starts_at,
             identity.company.timezone,
         )
+        plan_item = getattr(appointment, "patient_plan_contract_item", None)
+        if plan_item is not None:
+            appointment_date = starts_at.astimezone(
+                ZoneInfo(normalize_iana_timezone(identity.company.timezone))
+            ).date()
+            if not (
+                plan_item.contract.starts_on
+                <= appointment_date
+                <= plan_item.contract.expires_on
+            ):
+                raise AppointmentReferenceError(
+                    "A nova data está fora da vigência do plano."
+                )
         ends_at = starts_at + timedelta(minutes=duration)
         professional = ProfessionalRepository.get_by_id(
             db, identity.company.id, appointment.clinical_professional_id
@@ -562,6 +758,13 @@ class AppointmentDomain:
         appointment = cls._appointment(db, identity, appointment_id, lock=True)
         status = AppointmentStatus(appointment.status)
         changes = data.model_dump(exclude_unset=True)
+        if (
+            getattr(appointment, "patient_plan_contract_item_id", None) is not None
+            and {"patient_id", "service_id"}.intersection(changes)
+        ):
+            raise AppointmentLifecycleError(
+                "Paciente e serviço não podem ser alterados em uma sessão vinculada a plano."
+            )
         is_master_note_correction = (
             identity.role in {UserRole.OWNER, UserRole.ADMIN}
             and set(changes) == {"notes"}
@@ -669,6 +872,7 @@ class AppointmentDomain:
                 "Somente usuários master podem remover agendamentos."
             )
         appointment = cls._appointment(db, identity, appointment_id, lock=True)
+        cls._settle_plan_session(db, identity, appointment, None)
         appointment.deleted_at = datetime.now(UTC)
         cls._audit(
             db,

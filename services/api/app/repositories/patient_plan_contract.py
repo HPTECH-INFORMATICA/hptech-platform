@@ -8,6 +8,31 @@ from app.models.patient_plan_contract import PatientPlanContract, PatientPlanCon
 
 class PatientPlanContractRepository:
     @staticmethod
+    def get_item_by_id(
+        db: Session,
+        company_id: uuid.UUID,
+        item_id: uuid.UUID,
+        *,
+        for_update: bool = False,
+    ) -> PatientPlanContractItem | None:
+        statement = (
+            select(PatientPlanContractItem)
+            .options(
+                selectinload(PatientPlanContractItem.ledger_entries),
+                selectinload(PatientPlanContractItem.contract).selectinload(
+                    PatientPlanContract.transactions
+                ),
+            )
+            .where(
+                PatientPlanContractItem.company_id == company_id,
+                PatientPlanContractItem.id == item_id,
+            )
+        )
+        if for_update:
+            statement = statement.with_for_update()
+        return db.execute(statement).scalar_one_or_none()
+
+    @staticmethod
     def get_by_id(db: Session, company_id: uuid.UUID, contract_id: uuid.UUID) -> PatientPlanContract | None:
         statement = select(PatientPlanContract).options(
             selectinload(PatientPlanContract.items).selectinload(PatientPlanContractItem.ledger_entries),

@@ -89,6 +89,23 @@ forma de pagamento. Lançamentos removidos logicamente não são apresentados co
 cobrança ativa. A Agenda não mantém uma cópia do pagamento: o módulo Financeiro
 continua sendo a fonte de verdade.
 
+## Integração com planos e sessões
+
+Na criação, o agendamento pode ser avulso ou vinculado a um item de contrato do
+mesmo paciente e serviço. O backend valida tenant, titular, serviço, status,
+vigência e saldo, bloqueia concorrentemente o item do contrato e registra uma
+reserva append-only. Sessões pagas são utilizadas antes das cortesias.
+
+Ao concluir, a reserva vira consumo sem criar outra cobrança. Ao cancelar ou
+marcar ausência, ela é liberada. A remoção lógica auditada por usuário master
+libera uma reserva ainda aberta ou restaura um consumo concluído. O banco
+impede duas reservas iniciais para o mesmo agendamento.
+
+A resposta da Agenda informa o contrato, nome do plano, sessão corrente, total
+contratado, saldo restante, saldo pago, saldo cortesia e origem da sessão. O
+recebível apresentado é sempre o do contrato; a cobrança avulsa continua sendo
+gerada apenas para atendimentos sem plano.
+
 ## Ciclo operacional
 
 Transições permitidas:

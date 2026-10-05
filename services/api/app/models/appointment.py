@@ -74,6 +74,12 @@ class Appointment(
             name="fk_appointments_company_service",
             ondelete="RESTRICT",
         ),
+        ForeignKeyConstraint(
+            ["company_id", "patient_plan_contract_item_id"],
+            ["patient_plan_contract_items.company_id", "patient_plan_contract_items.id"],
+            name="fk_appointments_company_patient_plan_contract_item",
+            ondelete="RESTRICT",
+        ),
         CheckConstraint(
             "ends_at > starts_at",
             name="ck_appointments_ends_after_starts",
@@ -131,6 +137,12 @@ class Appointment(
     service_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         nullable=False,
+        index=True,
+    )
+
+    patient_plan_contract_item_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        nullable=True,
         index=True,
     )
 
@@ -232,6 +244,26 @@ class Appointment(
         ),
     )
 
+    patient_plan_contract_item = relationship(
+        "PatientPlanContractItem",
+        back_populates="appointments",
+        primaryjoin=(
+            "and_(Appointment.company_id == PatientPlanContractItem.company_id, "
+            "foreign(Appointment.patient_plan_contract_item_id) == PatientPlanContractItem.id)"
+        ),
+        overlaps="appointments,company",
+    )
+
+    session_ledger_entries = relationship(
+        "SessionLedgerEntry",
+        back_populates="appointment",
+        primaryjoin=(
+            "and_(Appointment.company_id == SessionLedgerEntry.company_id, "
+            "Appointment.id == foreign(SessionLedgerEntry.appointment_id))"
+        ),
+        overlaps="contract,contract_item,ledger_entries",
+    )
+
     transactions = relationship(
         "Transaction",
         back_populates="appointment",
@@ -243,6 +275,16 @@ class Appointment(
 
     @property
     def active_income_transaction(self) -> "Transaction | None":
+        if self.patient_plan_contract_item is not None:
+            return next(
+                (
+                    transaction
+                    for transaction in self.patient_plan_contract_item.contract.transactions
+                    if transaction.deleted_at is None
+                    and transaction.transaction_type == "INCOME"
+                ),
+                None,
+            )
         return next(
             (
                 transaction
@@ -255,7 +297,15 @@ class Appointment(
 
     @property
     def financial_status(self) -> str:
-        if self.service_price_snapshot <= 0:
+        if (
+            self.patient_plan_contract_item is not None
+            and self.patient_plan_contract_item.contract.price_snapshot <= 0
+        ):
+            return "NO_CHARGE"
+        if (
+            self.patient_plan_contract_item is None
+            and self.service_price_snapshot <= 0
+        ):
             return "NO_CHARGE"
         transaction = self.active_income_transaction
         return transaction.status if transaction is not None else "NOT_GENERATED"
@@ -274,6 +324,73 @@ class Appointment(
     def financial_payment_method(self) -> str | None:
         transaction = self.active_income_transaction
         return transaction.payment_method if transaction is not None else None
+
+    @property
+    def plan_contract_id(self) -> uuid.UUID | None:
+        item = self.patient_plan_contract_item
+        return item.contract_id if item is not None else None
+
+    @property
+    def plan_name(self) -> str | None:
+        item = self.patient_plan_contract_item
+        return item.contract.plan_name_snapshot if item is not None else None
+
+    @property
+    def plan_sessions_total(self) -> int | None:
+        item = self.patient_plan_contract_item
+        if item is None:
+            return None
+        return item.paid_sessions_snapshot + item.complimentary_sessions_snapshot
+
+    def _plan_available(self, bucket: str) -> int | None:
+        item = self.patient_plan_contract_item
+        if item is None:
+            return None
+        additions = {"CREDIT", "RELEASE", "RESTORE"}
+        return sum(
+            entry.quantity if entry.event_type in additions else -entry.quantity
+            for entry in item.ledger_entries
+            if entry.bucket == bucket
+        )
+
+    @property
+    def plan_paid_sessions_remaining(self) -> int | None:
+        return self._plan_available("PAID")
+
+    @property
+    def plan_complimentary_sessions_remaining(self) -> int | None:
+        return self._plan_available("COURTESY")
+
+    @property
+    def plan_sessions_remaining(self) -> int | None:
+        paid = self.plan_paid_sessions_remaining
+        courtesy = self.plan_complimentary_sessions_remaining
+        if paid is None or courtesy is None:
+            return None
+        return paid + courtesy
+
+    @property
+    def plan_session_sequence(self) -> int | None:
+        item = self.patient_plan_contract_item
+        if item is None:
+            return None
+        consumed = sum(
+            entry.quantity
+            for entry in item.ledger_entries
+            if entry.event_type == "CONSUME"
+        )
+        return consumed if self.status == "COMPLETED" else consumed + 1
+
+    @property
+    def plan_session_bucket(self) -> str | None:
+        return next(
+            (
+                entry.bucket
+                for entry in self.session_ledger_entries
+                if entry.event_type == "RESERVE"
+            ),
+            None,
+        )
 
 
 Appointment.__table__.append_constraint(

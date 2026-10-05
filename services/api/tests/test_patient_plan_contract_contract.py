@@ -32,6 +32,7 @@ def test_contract_tables_are_tenant_safe_and_ledger_is_constrained() -> None:
     assert "fk_patient_plan_contract_items_company_contract" in item_constraints
     assert "fk_session_ledger_company_contract" in ledger_constraints
     assert "fk_session_ledger_company_contract_item" in ledger_constraints
+    assert "fk_session_ledger_company_appointment" in ledger_constraints
     assert "fk_transactions_company_patient_plan_contract" in transaction_fks
     assert inspect(PatientPlanContract).relationships["items"].cascade.delete_orphan
 
@@ -48,3 +49,12 @@ def test_openapi_exposes_contract_creation_and_patient_listing() -> None:
     app.include_router(api_router)
     paths = app.openapi()["paths"]
     assert set(paths["/api/v1/patient-plan-contracts"]) == {"get", "post"}
+
+
+def test_migration_links_plan_reservations_to_appointments() -> None:
+    migration = Path(
+        "alembic/versions/d1f6a8c42b70_link_plan_sessions_to_appointments.py"
+    ).read_text(encoding="utf-8")
+    assert "fk_appointments_company_patient_plan_contract_item" in migration
+    assert "fk_session_ledger_company_appointment" in migration
+    assert "uq_session_ledger_appointment_reserve" in migration

@@ -6,6 +6,10 @@ from sqlalchemy.orm import Session, selectinload
 from sqlalchemy.sql.elements import ColumnElement
 
 from app.models.appointment import Appointment
+from app.models.patient_plan_contract import (
+    PatientPlanContract,
+    PatientPlanContractItem,
+)
 from app.schemas.appointment import AppointmentStatus
 
 
@@ -42,7 +46,15 @@ class AppointmentRepository:
     ) -> Appointment | None:
         statement = (
             select(Appointment)
-            .options(selectinload(Appointment.transactions))
+            .options(
+                selectinload(Appointment.transactions),
+                selectinload(Appointment.session_ledger_entries),
+                selectinload(Appointment.patient_plan_contract_item)
+                .selectinload(PatientPlanContractItem.ledger_entries),
+                selectinload(Appointment.patient_plan_contract_item)
+                .selectinload(PatientPlanContractItem.contract)
+                .selectinload(PatientPlanContract.transactions),
+            )
             .where(
                 *AppointmentRepository._operational_filters(company_id),
                 Appointment.id == appointment_id,
@@ -86,7 +98,15 @@ class AppointmentRepository:
         ) or 0
         statement = (
             select(Appointment)
-            .options(selectinload(Appointment.transactions))
+            .options(
+                selectinload(Appointment.transactions),
+                selectinload(Appointment.session_ledger_entries),
+                selectinload(Appointment.patient_plan_contract_item)
+                .selectinload(PatientPlanContractItem.ledger_entries),
+                selectinload(Appointment.patient_plan_contract_item)
+                .selectinload(PatientPlanContractItem.contract)
+                .selectinload(PatientPlanContract.transactions),
+            )
             .where(*filters)
             .order_by(Appointment.starts_at.asc(), Appointment.id.asc())
             .offset((page - 1) * page_size)

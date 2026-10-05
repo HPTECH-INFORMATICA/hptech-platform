@@ -7,6 +7,7 @@ from uuid import uuid4
 from app.repositories.appointment import AppointmentRepository
 from app.repositories.audit_log import AuditLogRepository
 from app.repositories.financial import FinancialRepository
+from app.repositories.patient_plan_contract import PatientPlanContractRepository
 from app.core.identity import UserRole
 from app.schemas.appointment import (
     AppointmentCreate,
@@ -72,6 +73,73 @@ def test_create_derives_snapshots_duration_tenant_and_audit(monkeypatch) -> None
     assert audit.call_args.kwargs["details"] == {"status": "SCHEDULED"}
     db.commit.assert_called_once_with()
     db.refresh.assert_called_once_with(result)
+
+
+def test_create_with_plan_reserves_paid_session(monkeypatch) -> None:
+    current_identity = identity()
+    db = MagicMock()
+    patient = SimpleNamespace(id=uuid4(), is_active=True)
+    professional = SimpleNamespace(id=uuid4(), is_active=True)
+    service = SimpleNamespace(
+        id=uuid4(),
+        is_active=True,
+        name="Sessão do plano",
+        duration_minutes=60,
+        price=Decimal("300.00"),
+    )
+    contract = SimpleNamespace(
+        id=uuid4(),
+        patient_id=patient.id,
+        status="ACTIVE",
+        starts_on=datetime(2026, 9, 1).date(),
+        expires_on=datetime(2026, 12, 31).date(),
+    )
+    item = SimpleNamespace(
+        id=uuid4(),
+        company_id=current_identity.company.id,
+        contract_id=contract.id,
+        contract=contract,
+        service_id=service.id,
+        ledger_entries=[
+            SimpleNamespace(event_type="CREDIT", bucket="PAID", quantity=10)
+        ],
+    )
+    data = AppointmentCreate(
+        patient_id=patient.id,
+        professional_id=professional.id,
+        service_id=service.id,
+        patient_plan_contract_item_id=item.id,
+        starts_at={"local_datetime": datetime(2026, 9, 15, 9)},
+    )
+    monkeypatch.setattr(
+        AppointmentDomain,
+        "_references",
+        MagicMock(return_value=(patient, professional, service)),
+    )
+    monkeypatch.setattr(AppointmentDomain, "_ensure_schedule", MagicMock())
+    monkeypatch.setattr(
+        PatientPlanContractRepository,
+        "get_item_by_id",
+        MagicMock(return_value=item),
+    )
+    monkeypatch.setattr(
+        AppointmentRepository,
+        "add",
+        MagicMock(side_effect=lambda _db, appointment: appointment),
+    )
+    monkeypatch.setattr(AuditLogRepository, "add", MagicMock())
+
+    result = AppointmentDomain.create(db, current_identity, data)
+
+    assert result.patient_plan_contract_item_id == item.id
+    ledger = next(
+        call.args[0]
+        for call in db.add.call_args_list
+        if getattr(call.args[0], "event_type", None) == "RESERVE"
+    )
+    assert ledger.bucket == "PAID"
+    assert ledger.quantity == 1
+    assert ledger.contract_item_id == item.id
 
 
 def test_cancel_uses_specific_audit_event(monkeypatch) -> None:
@@ -190,6 +258,51 @@ def test_complete_free_service_does_not_create_receivable(monkeypatch) -> None:
     )
 
     assert result.status == "COMPLETED"
+    financial_add.assert_not_called()
+
+
+def test_complete_plan_session_consumes_reservation_without_new_charge(
+    monkeypatch,
+) -> None:
+    current_identity = identity()
+    item = SimpleNamespace(id=uuid4(), contract_id=uuid4())
+    reservation = SimpleNamespace(event_type="RESERVE", bucket="PAID", quantity=1)
+    appointment = SimpleNamespace(
+        id=uuid4(),
+        company_id=current_identity.company.id,
+        patient_plan_contract_item_id=item.id,
+        patient_plan_contract_item=item,
+        session_ledger_entries=[reservation],
+        lead_id=None,
+        status="IN_PROGRESS",
+        service_name_snapshot="Sessão do plano",
+        service_price_snapshot=Decimal("300.00"),
+        ends_at=datetime(2026, 9, 15, 15, 0, tzinfo=UTC),
+    )
+    monkeypatch.setattr(
+        AppointmentRepository,
+        "get_by_id",
+        MagicMock(return_value=appointment),
+    )
+    financial_add = MagicMock()
+    monkeypatch.setattr(FinancialRepository, "add", financial_add)
+    monkeypatch.setattr(AuditLogRepository, "add", MagicMock())
+    db = MagicMock()
+
+    result = AppointmentDomain.transition(
+        db,
+        current_identity,
+        appointment.id,
+        AppointmentStatus.COMPLETED,
+    )
+
+    events = [
+        call.args[0].event_type
+        for call in db.add.call_args_list
+        if getattr(call.args[0], "event_type", None)
+    ]
+    assert result.status == "COMPLETED"
+    assert events == ["RELEASE", "CONSUME"]
     financial_add.assert_not_called()
 
 

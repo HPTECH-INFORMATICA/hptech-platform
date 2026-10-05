@@ -62,6 +62,11 @@ class PatientPlanContractItem(UUIDPrimaryKeyMixin, TimestampMixin, Base):
 
     contract = relationship("PatientPlanContract", back_populates="items")
     ledger_entries = relationship("SessionLedgerEntry", back_populates="contract_item", overlaps="ledger_entries")
+    appointments = relationship(
+        "Appointment",
+        back_populates="patient_plan_contract_item",
+        overlaps="appointments,company",
+    )
 
 
 class SessionLedgerEntry(UUIDPrimaryKeyMixin, Base):
@@ -69,6 +74,7 @@ class SessionLedgerEntry(UUIDPrimaryKeyMixin, Base):
     __table_args__ = (
         ForeignKeyConstraint(["company_id", "contract_id"], ["patient_plan_contracts.company_id", "patient_plan_contracts.id"], name="fk_session_ledger_company_contract", ondelete="RESTRICT"),
         ForeignKeyConstraint(["company_id", "contract_item_id"], ["patient_plan_contract_items.company_id", "patient_plan_contract_items.id"], name="fk_session_ledger_company_contract_item", ondelete="RESTRICT"),
+        ForeignKeyConstraint(["company_id", "appointment_id"], ["appointments.company_id", "appointments.id"], name="fk_session_ledger_company_appointment", ondelete="RESTRICT"),
         CheckConstraint("event_type IN ('CREDIT', 'RESERVE', 'RELEASE', 'CONSUME', 'RESTORE', 'EXPIRE')", name="ck_session_ledger_event_type"),
         CheckConstraint("bucket IN ('PAID', 'COURTESY')", name="ck_session_ledger_bucket"),
         CheckConstraint("quantity > 0", name="ck_session_ledger_quantity_positive"),
@@ -77,6 +83,7 @@ class SessionLedgerEntry(UUIDPrimaryKeyMixin, Base):
     company_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
     contract_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
     contract_item_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False, index=True)
+    appointment_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True, index=True)
     event_type: Mapped[str] = mapped_column(String(20), nullable=False, index=True)
     bucket: Mapped[str] = mapped_column(String(20), nullable=False)
     quantity: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -86,3 +93,8 @@ class SessionLedgerEntry(UUIDPrimaryKeyMixin, Base):
 
     contract = relationship("PatientPlanContract", back_populates="ledger_entries", overlaps="contract_item,ledger_entries")
     contract_item = relationship("PatientPlanContractItem", back_populates="ledger_entries", overlaps="contract,ledger_entries")
+    appointment = relationship(
+        "Appointment",
+        back_populates="session_ledger_entries",
+        overlaps="contract,contract_item,ledger_entries",
+    )

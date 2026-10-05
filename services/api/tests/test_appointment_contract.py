@@ -49,6 +49,10 @@ def test_appointment_foreign_keys_are_tenant_safe_and_restrict_deletion() -> Non
             "clinical_professional_id",
         ),
         "fk_appointments_company_service": ("company_id", "service_id"),
+        "fk_appointments_company_patient_plan_contract_item": (
+            "company_id",
+            "patient_plan_contract_item_id",
+        ),
     }
 
     for constraint_name, columns in expected.items():
@@ -98,6 +102,7 @@ def test_appointment_relationships_keep_company_in_the_join() -> None:
         "patient",
         "clinical_professional",
         "service",
+        "patient_plan_contract_item",
     ):
         join = str(appointment_relationships[relationship_name].primaryjoin)
         assert "appointments.company_id" in join

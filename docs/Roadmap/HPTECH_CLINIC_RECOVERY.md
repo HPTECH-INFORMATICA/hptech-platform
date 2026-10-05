@@ -460,3 +460,10 @@ prontuário clínico, mantendo dados clínicos separados dos dados operacionais.
 | Item | Estado | Evidência | Pendência para concluir |
 | --- | --- | --- | --- |
 | D2 — contrato e ledger | Em andamento | Contrato tenant-safe com snapshots comerciais, recebível único e créditos iniciais separados entre sessões pagas e cortesias. Ledger protegido contra atualização e exclusão no PostgreSQL. No paciente, `Planos contratados` permite contratar como pago integralmente ou em aberto e consultar saldo e validade. API publicada, lint limpo e build de 36 rotas aprovado. | Validar a contratação autenticada em produção e integrar reserva/consumo/estorno à Agenda. |
+
+### 2026-10-05 — integração transacional entre plano e Agenda
+
+| Item | Estado | Evidência | Pendência para concluir |
+| --- | --- | --- | --- |
+| D2/F1 — reserva e consumo de sessões | Em validação | Agendamento aceita item de contrato tenant-safe, valida paciente, serviço, vigência e saldo, reserva primeiro sessão paga e depois cortesia, consome somente na conclusão e libera em cancelamento/ausência. Exclusão master restaura o saldo de forma append-only. Sessões de plano usam o recebível único do contrato e não geram cobrança duplicada. API completa com 684 testes aprovados. | Aplicar migration, publicar o backend, integrar o seletor e os saldos na Agenda web e validar o fluxo autenticado de ponta a ponta. |
+| F2 — prontuário do atendimento | Planejado | O vínculo entre agendamento, contrato e sessão já preserva a referência que o futuro atendimento clínico consumirá. | Modelar atendimento próprio, evolução, fotos antes/durante/depois, comparação, documentos e assinaturas com segurança e auditoria. |

@@ -58,6 +58,7 @@ class AppointmentCreate(BaseModel):
     patient_id: uuid.UUID
     professional_id: uuid.UUID
     service_id: uuid.UUID
+    patient_plan_contract_item_id: uuid.UUID | None = None
     lead_id: uuid.UUID | None = None
     starts_at: AppointmentCivilDateTime
     notes: str | None = Field(
@@ -150,6 +151,15 @@ class AppointmentResponse(BaseModel):
         )
     )
     service_id: uuid.UUID
+    patient_plan_contract_item_id: uuid.UUID | None = None
+    plan_contract_id: uuid.UUID | None = None
+    plan_name: str | None = None
+    plan_session_sequence: int | None = None
+    plan_sessions_total: int | None = None
+    plan_sessions_remaining: int | None = None
+    plan_paid_sessions_remaining: int | None = None
+    plan_complimentary_sessions_remaining: int | None = None
+    plan_session_bucket: str | None = None
     lead_id: uuid.UUID | None
     service_name_snapshot: str
     service_duration_minutes_snapshot: int
