@@ -21,6 +21,7 @@ from app.routers.landing_page import (
 )
 from app.routers.user_admin import router as user_admin_router
 from app.routers.treatment_plan import router as treatment_plan_router
+from app.routers.patient_plan_contract import router as patient_plan_contract_router
 
 api_router = APIRouter(prefix="/api/v1")
 
@@ -34,6 +35,7 @@ api_router.include_router(lead_history_router)
 api_router.include_router(service_router)
 api_router.include_router(service_category_router)
 api_router.include_router(treatment_plan_router)
+api_router.include_router(patient_plan_contract_router)
 api_router.include_router(patient_router)
 api_router.include_router(professional_router)
 api_router.include_router(professional_availability_router)

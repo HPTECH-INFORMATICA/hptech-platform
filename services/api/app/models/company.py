@@ -152,6 +152,13 @@ class Company(
         passive_deletes=True,
     )
 
+    patient_plan_contracts = relationship(
+        "PatientPlanContract",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+        overlaps="patient,plan_contracts",
+    )
+
     tags = relationship(
         "Tag",
         back_populates="company",

@@ -29,3 +29,8 @@ from app.models.treatment_plan import (  # noqa: E402, F401
     TreatmentPlan,
     TreatmentPlanItem,
 )
+from app.models.patient_plan_contract import (  # noqa: E402, F401
+    PatientPlanContract,
+    PatientPlanContractItem,
+    SessionLedgerEntry,
+)

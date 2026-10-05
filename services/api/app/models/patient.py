@@ -52,3 +52,9 @@ class Patient(UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin, Base):
             "Patient.id == foreign(Appointment.patient_id))"
         ),
     )
+    plan_contracts = relationship(
+        "PatientPlanContract",
+        back_populates="patient",
+        cascade="all, delete-orphan",
+        overlaps="company,patient",
+    )

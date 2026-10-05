@@ -454,3 +454,9 @@ Próxima execução: modelar a contratação do plano pelo paciente, preservando
 cópia comercial imutável do plano vendido, condições de pagamento e o ledger de
 sessões. Depois, integrar reserva e consumo à Agenda antes de iniciar o
 prontuário clínico, mantendo dados clínicos separados dos dados operacionais.
+
+### 2026-10-05 — contratação e crédito inicial de sessões
+
+| Item | Estado | Evidência | Pendência para concluir |
+| --- | --- | --- | --- |
+| D2 — contrato e ledger | Em andamento | Contrato tenant-safe com snapshots comerciais, recebível único e créditos iniciais separados entre sessões pagas e cortesias. Ledger protegido contra atualização e exclusão no PostgreSQL. | Aplicar migration, publicar a API, criar a interface no paciente e integrar reserva/consumo/estorno à Agenda. |

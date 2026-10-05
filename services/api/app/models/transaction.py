@@ -50,6 +50,12 @@ class Transaction(
             name="fk_transactions_company_appointment",
             ondelete="RESTRICT",
         ),
+        ForeignKeyConstraint(
+            ["company_id", "patient_plan_contract_id"],
+            ["patient_plan_contracts.company_id", "patient_plan_contracts.id"],
+            name="fk_transactions_company_patient_plan_contract",
+            ondelete="RESTRICT",
+        ),
         CheckConstraint(
             "transaction_type IN ('INCOME', 'EXPENSE')",
             name="ck_transactions_type",
@@ -78,6 +84,17 @@ class Transaction(
                 "AND deleted_at IS NULL"
             ),
         ),
+        Index(
+            "uq_transactions_active_income_patient_plan_contract",
+            "company_id",
+            "patient_plan_contract_id",
+            unique=True,
+            postgresql_where=text(
+                "patient_plan_contract_id IS NOT NULL "
+                "AND transaction_type = 'INCOME' "
+                "AND deleted_at IS NULL"
+            ),
+        ),
     )
 
     company_id: Mapped[uuid.UUID] = mapped_column(
@@ -97,6 +114,10 @@ class Transaction(
         UUID(as_uuid=True),
         nullable=True,
         index=True,
+    )
+
+    patient_plan_contract_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), nullable=True, index=True
     )
 
     description: Mapped[str] = mapped_column(
@@ -169,5 +190,15 @@ class Transaction(
         primaryjoin=(
             "and_(Transaction.company_id == Appointment.company_id, "
             "foreign(Transaction.appointment_id) == Appointment.id)"
+        ),
+    )
+
+    patient_plan_contract = relationship(
+        "PatientPlanContract",
+        back_populates="transactions",
+        overlaps="company,transactions",
+        primaryjoin=(
+            "and_(Transaction.company_id == PatientPlanContract.company_id, "
+            "foreign(Transaction.patient_plan_contract_id) == PatientPlanContract.id)"
         ),
     )
