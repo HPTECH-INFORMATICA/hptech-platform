@@ -282,6 +282,16 @@ function AppointmentCard({
       <p className="break-words text-sm font-medium text-hp-foreground">
         {appointment.service_name_snapshot}
       </p>
+      {appointment.plan_name ? (
+        <div className="rounded-[var(--radius-md)] bg-hp-primary-soft px-2 py-1.5 text-xs text-hp-foreground">
+          <p className="font-semibold">{appointment.plan_name}</p>
+          <p className="mt-0.5">
+            Sessão {appointment.plan_session_sequence ?? "—"} de{" "}
+            {appointment.plan_sessions_total ?? "—"} · Saldo disponível:{" "}
+            {appointment.plan_sessions_remaining ?? "—"}
+          </p>
+        </div>
+      ) : null}
       <p className="truncate text-sm text-hp-foreground" title={patientName}>{patientName}</p>
       <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-hp-muted">
         <span>{professionalName}</span>
@@ -542,6 +552,9 @@ export default function AgendaPage({
           patientPhone: selectedPatientPhone,
           professionalName: selectedProfessional.display_name,
           serviceName: selectedAppointment.service_name_snapshot,
+          planName: selectedAppointment.plan_name,
+          planSessionSequence: selectedAppointment.plan_session_sequence,
+          planSessionsTotal: selectedAppointment.plan_sessions_total,
           startsAt: selectedAppointment.starts_at,
           endsAt: selectedAppointment.ends_at,
           timezone,
@@ -803,6 +816,31 @@ export default function AgendaPage({
                     </Badge>
                   </dd>
                 </div>
+                {selectedAppointment.plan_name ? (
+                  <>
+                    <div>
+                      <dt className="font-medium text-hp-muted">Plano</dt>
+                      <dd className="mt-1 text-hp-foreground">
+                        {selectedAppointment.plan_name}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="font-medium text-hp-muted">Sessão</dt>
+                      <dd className="mt-1 text-hp-foreground">
+                        {selectedAppointment.plan_session_sequence ?? "—"} de{" "}
+                        {selectedAppointment.plan_sessions_total ?? "—"}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="font-medium text-hp-muted">Saldo após a reserva</dt>
+                      <dd className="mt-1 text-hp-foreground">
+                        {selectedAppointment.plan_sessions_remaining ?? "—"} sessões{" "}
+                        ({selectedAppointment.plan_paid_sessions_remaining ?? 0} pagas +{" "}
+                        {selectedAppointment.plan_complimentary_sessions_remaining ?? 0} cortesias)
+                      </dd>
+                    </div>
+                  </>
+                ) : null}
                 {selectedAppointment.financial_paid_date ? (
                   <div>
                     <dt className="font-medium text-hp-muted">Pagamento</dt>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 import Alert from "@/components/ui/Alert";
 import Button from "@/components/ui/Button";
@@ -27,6 +27,10 @@ import {
   type AppointmentData,
 } from "@/services/appointment-service";
 import type { PatientData } from "@/services/patient-service";
+import {
+  listPatientPlanContracts,
+  type PatientPlanContractData,
+} from "@/services/patient-plan-contract-service";
 import type { ProfessionalData } from "@/services/professional-service";
 import type { ServiceData } from "@/services/service-service";
 
@@ -69,6 +73,11 @@ export default function AppointmentEditor({
     appointment?.professional_id ?? "",
   );
   const [serviceId, setServiceId] = useState(appointment?.service_id ?? "");
+  const [planItemId, setPlanItemId] = useState("STANDALONE");
+  const [planContracts, setPlanContracts] = useState<PatientPlanContractData[]>([]);
+  const [plansLoading, setPlansLoading] = useState(false);
+  const [plansError, setPlansError] = useState<string | null>(null);
+  const planRequest = useRef(0);
   const [localDateTime, setLocalDateTime] = useState(
     appointment
       ? civilDateTimeInTimezone(appointment.starts_at, timezone)
@@ -95,6 +104,23 @@ export default function AppointmentEditor({
       : Number(selectedOffset)
     : offsets[0] ?? null;
   const durationNumber = Number(duration);
+  const eligiblePlanItems = useMemo(
+    () =>
+      planContracts.flatMap((contract) =>
+        contract.status === "ACTIVE" &&
+        contract.starts_on <= localDateTime.slice(0, 10) &&
+        contract.expires_on >= localDateTime.slice(0, 10)
+          ? contract.items
+              .filter(
+                (item) =>
+                  item.service_id === serviceId &&
+                  item.paid_available + item.complimentary_available > 0,
+              )
+              .map((item) => ({ contract, item }))
+          : [],
+      ),
+    [localDateTime, planContracts, serviceId],
+  );
   const referencesReady =
     !referencesLoading &&
     !referencesError &&
@@ -123,6 +149,31 @@ export default function AppointmentEditor({
               durationNumber > 0,
           );
 
+  async function loadPatientPlans(nextPatientId: string) {
+    const request = ++planRequest.current;
+    setPlanContracts([]);
+    setPlansError(null);
+    if (!nextPatientId) {
+      setPlansLoading(false);
+      return;
+    }
+    setPlansLoading(true);
+    try {
+      const result = await listPatientPlanContracts(nextPatientId);
+      if (request === planRequest.current) setPlanContracts(result.items);
+    } catch (reason) {
+      if (request === planRequest.current) {
+        setPlansError(
+          reason instanceof Error && reason.message
+            ? reason.message
+            : "Não foi possível consultar os planos.",
+        );
+      }
+    } finally {
+      if (request === planRequest.current) setPlansLoading(false);
+    }
+  }
+
   async function save() {
     if (!formValid) return;
     setSaving(true);
@@ -134,6 +185,9 @@ export default function AppointmentEditor({
           patient_id: patientId,
           professional_id: professionalId,
           service_id: serviceId,
+          ...(planItemId === "STANDALONE"
+            ? {}
+            : { patient_plan_contract_item_id: planItemId }),
           lead_id: null,
           starts_at: {
             local_datetime: `${localDateTime}:00`,
@@ -208,7 +262,12 @@ export default function AppointmentEditor({
                   value: patient.id,
                   label: patient.name,
                 }))}
-                onChange={(event) => setPatientId(event.target.value)}
+                onChange={(event) => {
+                  const nextPatientId = event.target.value;
+                  setPatientId(nextPatientId);
+                  setPlanItemId("STANDALONE");
+                  void loadPatientPlans(nextPatientId);
+                }}
               />
               <Select
                 label="Profissional"
@@ -235,10 +294,43 @@ export default function AppointmentEditor({
                 onChange={(event) => {
                   const nextServiceId = event.target.value;
                   setServiceId(nextServiceId);
+                  setPlanItemId("STANDALONE");
                   const service = services.find((item) => item.id === nextServiceId);
                   if (service) setDuration(String(service.duration_minutes));
                 }}
               />
+              {mode === "create" && patientId && serviceId ? (
+                <Select
+                  label="Forma do atendimento"
+                  value={planItemId}
+                  disabled={plansLoading}
+                  options={[
+                    { value: "STANDALONE", label: "Serviço avulso" },
+                    ...eligiblePlanItems.map(({ contract, item }) => ({
+                      value: item.id,
+                      label: `${contract.plan_name_snapshot} — ${
+                        item.paid_available + item.complimentary_available
+                      } sessões disponíveis (${item.paid_available} pagas + ${
+                        item.complimentary_available
+                      } cortesias)`,
+                    })),
+                  ]}
+                  description={
+                    plansLoading
+                      ? "Consultando planos ativos do paciente..."
+                      : eligiblePlanItems.length > 0
+                        ? "Ao usar um plano, a sessão é reservada agora e consumida somente ao concluir."
+                        : "Nenhum plano ativo com saldo para este serviço. O atendimento será avulso."
+                  }
+                  onChange={(event) => setPlanItemId(event.target.value)}
+                />
+              ) : null}
+              {plansError ? (
+                <Alert
+                  variant="warning"
+                  description={`Não foi possível consultar os planos. O atendimento ainda pode ser criado como avulso. ${plansError}`}
+                />
+              ) : null}
             </>
           ) : null}
 
@@ -256,6 +348,7 @@ export default function AppointmentEditor({
               onChange={(event) => {
                 setLocalDateTime(event.target.value);
                 setSelectedOffset("");
+                setPlanItemId("STANDALONE");
               }}
             />
           ) : null}

@@ -6,6 +6,9 @@ type AppointmentSharingInput = {
   patientPhone: string;
   professionalName: string;
   serviceName: string;
+  planName?: string | null;
+  planSessionSequence?: number | null;
+  planSessionsTotal?: number | null;
   startsAt: string;
   endsAt: string;
   timezone: string;
@@ -62,6 +65,14 @@ export function buildAppointmentSharing(
     `Data: ${date}`,
     `Horário: ${time}`,
     `Serviço: ${input.serviceName}`,
+    ...(input.planName
+      ? [
+          `Plano: ${input.planName}`,
+          input.planSessionSequence && input.planSessionsTotal
+            ? `Sessão: ${input.planSessionSequence} de ${input.planSessionsTotal}`
+            : "",
+        ].filter(Boolean)
+      : []),
     `Profissional: ${input.professionalName}`,
     "",
     `Adicionar à agenda: ${calendarUrl}`,

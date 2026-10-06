@@ -18,6 +18,15 @@ export type AppointmentData = {
   patient_id: string;
   professional_id: string;
   service_id: string;
+  patient_plan_contract_item_id: string | null;
+  plan_contract_id: string | null;
+  plan_name: string | null;
+  plan_session_sequence: number | null;
+  plan_sessions_total: number | null;
+  plan_sessions_remaining: number | null;
+  plan_paid_sessions_remaining: number | null;
+  plan_complimentary_sessions_remaining: number | null;
+  plan_session_bucket: "PAID" | "COURTESY" | null;
   lead_id: string | null;
   service_name_snapshot: string;
   service_duration_minutes_snapshot: number;
@@ -43,6 +52,7 @@ export type AppointmentCreateInput = {
   patient_id: string;
   professional_id: string;
   service_id: string;
+  patient_plan_contract_item_id?: string;
   lead_id: string | null;
   starts_at: AppointmentCivilDateTime;
   notes: string | null;
